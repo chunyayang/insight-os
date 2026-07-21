@@ -1,0 +1,36 @@
+# Dependencies
+node_modules
+
+# Nuxt build artifacts
+.nuxt
+.nitro
+.cache
+.output
+dist
+
+# Nuxt / Nitro data
+.data
+
+# Logs
+*.log
+logs
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Test / coverage
+coverage
+test-results
+playwright-report
+.playwright
+
+# Editor / OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# Vercel
+.vercel

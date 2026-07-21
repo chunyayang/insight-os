@@ -1,0 +1,19 @@
+/*
+ * Insight OS — global stylesheet.
+ *
+ * CSS cascade-layer order is load-bearing (see stack-conventions): PrimeVue
+ * component styles sit BETWEEN Tailwind's base and utilities so Tailwind utility
+ * classes can override component styles. The PrimeVue `cssLayer.order` in
+ * nuxt.config.ts must match the layer names declared here.
+ */
+@layer tailwind-base, primevue, tailwind-utilities;
+
+@import 'tailwindcss/theme.css' layer(tailwind-base);
+@import 'tailwindcss/preflight.css' layer(tailwind-base);
+@import 'tailwindcss/utilities.css' layer(tailwind-utilities);
+
+/* Bridges PrimeVue design tokens into Tailwind utilities (bg-primary, text-muted-color, …). */
+@plugin 'tailwindcss-primeui';
+
+/* Design tokens (color/typography/chart ramp) are the single source of truth for color.
+ * Loaded in Phase 1a: @import './tokens.css'; */

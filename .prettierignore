@@ -1,0 +1,13 @@
+# The .claude guidance layer is authored prose/reference — never reformat it.
+.claude
+
+.nuxt
+.nitro
+.output
+.data
+node_modules
+pnpm-lock.yaml
+dist
+coverage
+playwright-report
+test-results
