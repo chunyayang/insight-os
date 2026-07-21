@@ -15,5 +15,7 @@
 /* Bridges PrimeVue design tokens into Tailwind utilities (bg-primary, text-muted-color, …). */
 @plugin 'tailwindcss-primeui';
 
-/* Design tokens (color/typography/chart ramp) are the single source of truth for color.
- * Loaded in Phase 1a: @import './tokens.css'; */
+/* Design tokens are the single source of truth for color. Imported UNLAYERED on purpose:
+ * unlayered rules outrank layered ones, so the tokens' `body` background/text and the
+ * `.dark` overrides win over Tailwind's (layered) preflight without !important. */
+@import './tokens.css';

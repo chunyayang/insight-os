@@ -1,5 +1,5 @@
-import Aura from '@primeuix/themes/aura'
 import tailwindcss from '@tailwindcss/vite'
+import { InsightPreset } from './app/theme/insight-preset'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -25,7 +25,7 @@ export default defineNuxtConfig({
     options: {
       // Aura preset; token alignment to the design system lands in Phase 1a via definePreset().
       theme: {
-        preset: Aura,
+        preset: InsightPreset,
         options: {
           // Manual dark mode — never media-query. Toggled by the `.dark` class on <html>.
           darkModeSelector: '.dark',
