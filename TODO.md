@@ -32,10 +32,10 @@ Legend: ✅ done · 🔜 next · ⬜ pending
 
 ## Phase 3 — Tests & DoD
 
-- ⬜ Unit: `useFormat`, permissions matrix, market→chart-index map
-- ⬜ Component smoke: a KPI card + auth-middleware redirect
-- ⬜ Playwright E2E: login → dashboard → anomaly visible
-- ⬜ Confirm full CI gate green on every slice
+- ✅ Unit: `useFormat`, permissions matrix, market→chart-index map, FX/money rules, locale parity
+- ✅ Component smoke (Nuxt env): KpiCard rendering + useCan role reactivity
+- ✅ Playwright E2E: login → dashboard → JP anomaly; viewer route block; theme + locale switch
+- ✅ Full CI gate green (lint · typecheck · test · build); 65 unit/component tests + 3 E2E
 
 ## Decisions & deviations (log)
 
@@ -45,3 +45,14 @@ Legend: ✅ done · 🔜 next · ⬜ pending
   spec, though v5 is the current latest. Chosen deliberately (see session decision).
 - **Node 24 · pnpm 11** — `onlyBuiltDependencies`/`allowBuilds` live in `pnpm-workspace.yaml`
   (pnpm 11 no longer reads the `pnpm` field in `package.json`).
+- **Playwright config is `playwright.config.mts`** — Playwright loads a `.ts` config as
+  CJS, so `import.meta.url` threw; `.mts` fixes it without adding `"type": "module"` to
+  package.json (which would change how every other `.js` config is parsed). Same reasoning
+  as `vitest.config.mts`.
+- **Nested composables opt-in** — `imports.dirs: ['composables/**']` in nuxt.config, because
+  Nuxt only auto-imports `composables/` one level deep and the conventions require
+  `composables/queries/`.
+- **Chart wrappers take `summary`, not `ariaLabel`** — `ariaLabel` collides with the native
+  `aria-label` attribute and cannot be type-checked as a prop.
+- **E2E stays out of the blocking CI gate** for the MVP (per testing-and-ci); run locally
+  with `MOCK_NO_LATENCY=1 pnpm test:e2e`.

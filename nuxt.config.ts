@@ -50,6 +50,8 @@ export default defineNuxtConfig({
     strategy: 'no_prefix',
     defaultLocale: 'en',
     langDir: 'locales',
+    // Needed for i18n to emit valid absolute SEO links; Vercel supplies the real origin.
+    baseUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
     locales: [
       { code: 'en', language: 'en-US', file: 'en.json', name: 'English' },
       { code: 'zh-TW', language: 'zh-TW', file: 'zh-TW.json', name: '繁體中文' },
