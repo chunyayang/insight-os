@@ -19,7 +19,7 @@ Legend: ✅ done · 🔜 next · ⬜ pending
 - ✅ **1b** API layer — `app/types/api.ts` + Axios plugin + Vue Query plugin (SSR hydrate)
 - ✅ **1c** Mock backend — `server/utils/mock/` + per-day FX rate table + JP weekly anomaly seed (13 unit tests)
 - ✅ **1d** i18n locales (en / zh-TW) + `useFormat` (JPY 0-dec) + `<html lang>` (30 unit tests)
-- 🔜 **1e** Auth + RBAC — `permissions.ts`, `markets.ts`, `useCan`, Pinia stores, auth middleware
+- ✅ **1e** Auth + RBAC — `permissions.ts`, `markets.ts`, `useCan`, Pinia stores, auth middleware
 - ⬜ **1f** App shell — `layouts/default.vue` (topbar + grouped RBAC sidebar) + `components/common/`
 - ⬜ **1g** Chart infra — Chart.js client plugin + token-aware wrappers
 

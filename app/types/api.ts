@@ -64,6 +64,27 @@ export interface FxProvenance {
   rangeTo: string // ISO date — last day covered
 }
 
+/* ─────────────────────────── Auth / session ─────────────────────────── */
+
+export interface SessionUser {
+  id: string
+  name: string
+  email: string
+  role: Role
+}
+
+export interface LoginRequest {
+  email: string
+  password: string
+  /** MVP demo affordance: seeds the session with a role for review. */
+  role?: Role
+}
+
+export interface LoginResponse {
+  token: string
+  user: SessionUser
+}
+
 /* ─────────────────────────── Dashboard ─────────────────────────── */
 
 export interface KpiMetric {
