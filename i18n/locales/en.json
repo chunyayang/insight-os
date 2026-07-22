@@ -12,7 +12,8 @@
     "states": {
       "loading": "Loading…",
       "empty": "No data",
-      "error": "Something went wrong"
+      "error": "Something went wrong",
+      "comingSoon": "Coming soon"
     },
     "theme": {
       "toggle": "Toggle theme",
