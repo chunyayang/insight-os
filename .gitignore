@@ -34,3 +34,6 @@ playwright-report
 
 # Vercel
 .vercel
+
+# Internal-only skill (not for the repo)
+.claude/skills/product-spec/
