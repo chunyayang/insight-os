@@ -21,6 +21,12 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
 
+  // Nuxt only auto-imports composables/ one level deep; the conventions put Vue Query
+  // composables in composables/queries/, so opt the nested directories in.
+  imports: {
+    dirs: ['composables/**'],
+  },
+
   primevue: {
     options: {
       // Aura preset; token alignment to the design system lands in Phase 1a via definePreset().

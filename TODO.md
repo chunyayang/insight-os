@@ -25,7 +25,7 @@ Legend: ✅ done · 🔜 next · ⬜ pending
 
 ## Phase 2 — Vertical slice: Login + Dashboard
 
-- ⬜ **2a** Login page (validation, demo role picker, language switcher)
+- ✅ **2a** Login page (validation, demo role picker, language switcher)
 - ⬜ **2b** Dashboard mock endpoint + query composable
 - ⬜ **2c** Dashboard UI (KPI cards, anomaly strip, revenue chart, AI summary)
 - ⬜ **2d** Empty thin pages for remaining routes (RBAC-gated)

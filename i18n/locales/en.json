@@ -30,6 +30,29 @@
       "de": "Germany"
     }
   },
+  "login": {
+    "title": "Sign in to Insight OS",
+    "subtitle": "Cross-border commerce analytics for your team.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you{'@'}company.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "demoRoleLabel": "Demo role",
+    "demoRoleHint": "Pick a role to preview its permissions.",
+    "roles": {
+      "admin": "Admin",
+      "analyst": "Analyst",
+      "viewer": "Viewer"
+    },
+    "validation": {
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordRequired": "Password is required.",
+      "passwordTooShort": "Password must be at least 6 characters."
+    }
+  },
   "errors": {
     "auth": {
       "invalidCredentials": "That email or password isn't right."
@@ -37,6 +60,7 @@
     "codes": {
       "networkError": "Couldn't reach the server. Check your connection and try again.",
       "timeout": "The request timed out. Please try again.",
+      "invalidCredentials": "That email or password isn't right.",
       "unauthorized": "Your session has expired. Please sign in again.",
       "forbidden": "You don't have permission to do that.",
       "notFound": "We couldn't find what you were looking for.",

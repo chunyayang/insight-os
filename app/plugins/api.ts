@@ -1,5 +1,6 @@
 import axios, { type AxiosError, type AxiosInstance } from 'axios'
 import type { ApiError } from '~/types/api'
+import { extractApiError } from '~/utils/errors'
 
 /**
  * The single Axios instance. ONLY Vue Query composables (composables/queries/) call it —
@@ -30,17 +31,14 @@ export default defineNuxtPlugin(() => {
   // error bodies — they localize off `error.code`.
   instance.interceptors.response.use(
     (response) => response,
-    (error: AxiosError<ApiError>) => {
-      const body = error.response?.data
-      const apiError: ApiError =
-        body && typeof body === 'object' && 'error' in body
-          ? body
-          : {
-              error: {
-                code: error.code === 'ECONNABORTED' ? 'TIMEOUT' : 'NETWORK_ERROR',
-                message: error.message,
-              },
-            }
+    (error: AxiosError<unknown>) => {
+      // Handles both the contract shape and H3's createError wrapping (see extractApiError).
+      const apiError: ApiError = extractApiError(error.response?.data) ?? {
+        error: {
+          code: error.code === 'ECONNABORTED' ? 'TIMEOUT' : 'NETWORK_ERROR',
+          message: error.message,
+        },
+      }
 
       // Integration point (Phase 1d/1f): surface a localized Toast keyed off
       // apiError.error.code once i18n + the PrimeVue Toast service are wired.

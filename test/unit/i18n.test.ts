@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import en from '../../i18n/locales/en.json'
 import zhTW from '../../i18n/locales/zh-TW.json'
-import { errorKey, errorKeyFromCode, isApiError } from '../../app/utils/errors'
+import { errorKey, errorKeyFromCode, extractApiError, isApiError } from '../../app/utils/errors'
 
 /** Flatten a nested message object into dotted key paths. */
 function keyPaths(obj: Record<string, unknown>, prefix = ''): string[] {
@@ -62,6 +62,31 @@ describe('api error -> i18n key', () => {
     expect(errorKey(new Error('boom'))).toBe('errors.codes.unknown')
     expect(errorKey(undefined)).toBe('errors.codes.unknown')
     expect(keyPaths(en)).toContain('errors.codes.unknown')
+  })
+
+  /**
+   * Regression: H3/Nitro wraps a thrown createError payload under `data` and sets a
+   * BOOLEAN `error: true` at the top level. A naive `'error' in body` check matches that
+   * boolean and yields an ApiError with an undefined code — which silently degraded the
+   * login screen to a generic "unknown error" instead of the credentials message.
+   */
+  it('extracts the error from both the contract shape and H3 createError wrapping', () => {
+    const contractShape = { error: { code: 'NOT_FOUND', message: 'nope' } }
+    expect(extractApiError(contractShape)).toEqual(contractShape)
+
+    const h3Shape = {
+      error: true,
+      statusCode: 401,
+      data: { error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password.' } },
+    }
+    expect(extractApiError(h3Shape)?.error.code).toBe('INVALID_CREDENTIALS')
+    expect(errorKey(extractApiError(h3Shape))).toBe('errors.codes.invalidCredentials')
+  })
+
+  it('returns null when a body carries no recognisable API error', () => {
+    expect(extractApiError(undefined)).toBeNull()
+    expect(extractApiError('boom')).toBeNull()
+    expect(extractApiError({ error: true, statusCode: 500 })).toBeNull()
   })
 
   it('narrows a typed ApiError', () => {

@@ -30,6 +30,29 @@
       "de": "德國"
     }
   },
+  "login": {
+    "title": "登入 Insight OS",
+    "subtitle": "為您的團隊打造的跨境電商分析平台。",
+    "emailLabel": "電子郵件",
+    "emailPlaceholder": "you{'@'}company.com",
+    "passwordLabel": "密碼",
+    "passwordPlaceholder": "請輸入密碼",
+    "submit": "登入",
+    "submitting": "登入中…",
+    "demoRoleLabel": "示範角色",
+    "demoRoleHint": "選擇角色以預覽該權限。",
+    "roles": {
+      "admin": "管理員",
+      "analyst": "分析師",
+      "viewer": "檢視者"
+    },
+    "validation": {
+      "emailRequired": "請輸入電子郵件。",
+      "emailInvalid": "請輸入有效的電子郵件地址。",
+      "passwordRequired": "請輸入密碼。",
+      "passwordTooShort": "密碼至少需要 6 個字元。"
+    }
+  },
   "errors": {
     "auth": {
       "invalidCredentials": "電子郵件或密碼不正確。"
@@ -37,6 +60,7 @@
     "codes": {
       "networkError": "無法連線至伺服器，請檢查網路連線後再試一次。",
       "timeout": "請求逾時，請再試一次。",
+      "invalidCredentials": "電子郵件或密碼不正確。",
       "unauthorized": "您的工作階段已過期，請重新登入。",
       "forbidden": "您沒有執行此操作的權限。",
       "notFound": "找不到您要尋找的資料。",
