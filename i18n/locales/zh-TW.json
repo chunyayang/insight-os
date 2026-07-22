@@ -1,6 +1,48 @@
 {
   "common": {
     "appName": "Insight OS",
-    "scaffoldReady": "專案骨架已就緒 — 基礎建置進行中。"
+    "scaffoldReady": "專案骨架已就緒 — 基礎建置進行中。",
+    "actions": {
+      "retry": "重試",
+      "cancel": "取消",
+      "save": "儲存",
+      "close": "關閉",
+      "signOut": "登出"
+    },
+    "states": {
+      "loading": "載入中…",
+      "empty": "沒有資料",
+      "error": "發生錯誤"
+    },
+    "theme": {
+      "toggle": "切換佈景主題",
+      "light": "淺色",
+      "dark": "深色"
+    },
+    "language": {
+      "switch": "切換語言"
+    },
+    "markets": {
+      "all": "所有市場",
+      "us": "美國",
+      "jp": "日本",
+      "tw": "台灣",
+      "de": "德國"
+    }
+  },
+  "errors": {
+    "auth": {
+      "invalidCredentials": "電子郵件或密碼不正確。"
+    },
+    "codes": {
+      "networkError": "無法連線至伺服器，請檢查網路連線後再試一次。",
+      "timeout": "請求逾時，請再試一次。",
+      "unauthorized": "您的工作階段已過期，請重新登入。",
+      "forbidden": "您沒有執行此操作的權限。",
+      "notFound": "找不到您要尋找的資料。",
+      "validationFailed": "請檢查標示的欄位後再試一次。",
+      "serverError": "伺服器發生問題，請稍後再試。",
+      "unknown": "發生未預期的錯誤。"
+    }
   }
 }

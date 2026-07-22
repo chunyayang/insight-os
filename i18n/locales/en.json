@@ -1,6 +1,48 @@
 {
   "common": {
     "appName": "Insight OS",
-    "scaffoldReady": "Scaffold ready — foundation build in progress."
+    "scaffoldReady": "Scaffold ready — foundation build in progress.",
+    "actions": {
+      "retry": "Retry",
+      "cancel": "Cancel",
+      "save": "Save",
+      "close": "Close",
+      "signOut": "Sign out"
+    },
+    "states": {
+      "loading": "Loading…",
+      "empty": "No data",
+      "error": "Something went wrong"
+    },
+    "theme": {
+      "toggle": "Toggle theme",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "language": {
+      "switch": "Change language"
+    },
+    "markets": {
+      "all": "All markets",
+      "us": "United States",
+      "jp": "Japan",
+      "tw": "Taiwan",
+      "de": "Germany"
+    }
+  },
+  "errors": {
+    "auth": {
+      "invalidCredentials": "That email or password isn't right."
+    },
+    "codes": {
+      "networkError": "Couldn't reach the server. Check your connection and try again.",
+      "timeout": "The request timed out. Please try again.",
+      "unauthorized": "Your session has expired. Please sign in again.",
+      "forbidden": "You don't have permission to do that.",
+      "notFound": "We couldn't find what you were looking for.",
+      "validationFailed": "Please check the highlighted fields and try again.",
+      "serverError": "Something went wrong on our end. Please try again shortly.",
+      "unknown": "An unexpected error occurred."
+    }
   }
 }
