@@ -27,7 +27,7 @@ Legend: ✅ done · 🔜 next · ⬜ pending
 
 - ✅ **2a** Login page (validation, demo role picker, language switcher)
 - ✅ **2b** Dashboard mock endpoint + query composable
-- ⬜ **2c** Dashboard UI (KPI cards, anomaly strip, revenue chart, AI summary)
+- ✅ **2c** Dashboard UI (KPI cards, anomaly strip, revenue chart, AI summary)
 - ⬜ **2d** Empty thin pages for remaining routes (RBAC-gated)
 
 ## Phase 3 — Tests & DoD

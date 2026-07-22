@@ -60,6 +60,38 @@
     "switchRole": "切換角色",
     "signedInAs": "登入身分"
   },
+  "dashboard": {
+    "title": "儀表板",
+    "subtitle": "今日各市場的營運表現。",
+    "kpi": {
+      "revenue": "今日營收",
+      "orders": "訂單數",
+      "conversionRate": "轉換率",
+      "activeUsers": "活躍用戶",
+      "vsYesterday": "與昨日相比",
+      "sparklineSummary": "{metric} 的 14 天趨勢"
+    },
+    "alerts": {
+      "title": "異常警示",
+      "askAi": "詢問 AI 原因",
+      "empty": "未偵測到異常 — 所有市場運作正常。",
+      "severity": {
+        "critical": "嚴重",
+        "warning": "警告",
+        "info": "資訊"
+      }
+    },
+    "revenueTrend": {
+      "title": "營收趨勢",
+      "chartSummary": "各市場 {days} 天的營收，以 {currency} 顯示。",
+      "allMarkets": "全部"
+    },
+    "aiSummary": {
+      "title": "AI 每日摘要",
+      "generatedAt": "產生於 {time}",
+      "regenerate": "重新產生"
+    }
+  },
   "login": {
     "title": "登入 Insight OS",
     "subtitle": "為您的團隊打造的跨境電商分析平台。",

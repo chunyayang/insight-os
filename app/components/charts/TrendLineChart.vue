@@ -14,7 +14,7 @@ export interface TrendSeries {
 const props = defineProps<{
   labels: string[]
   series: TrendSeries[]
-  ariaLabel: string
+  summary: string
   height?: string
   /** Render as a filled area (single-series trends read better filled). */
   fill?: boolean
@@ -70,7 +70,7 @@ const options = computed<ChartConfiguration['options']>(() => ({
     type="line"
     :data="data"
     :options="options"
-    :summary="ariaLabel"
+    :summary="summary"
     :height="height ?? '18rem'"
   />
 </template>

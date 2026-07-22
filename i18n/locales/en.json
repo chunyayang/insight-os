@@ -60,6 +60,38 @@
     "switchRole": "Switch role",
     "signedInAs": "Signed in as"
   },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Today's performance across your markets.",
+    "kpi": {
+      "revenue": "Today's Revenue",
+      "orders": "Orders",
+      "conversionRate": "Conversion Rate",
+      "activeUsers": "Active Users",
+      "vsYesterday": "vs yesterday",
+      "sparklineSummary": "14-day trend for {metric}"
+    },
+    "alerts": {
+      "title": "Anomaly alerts",
+      "askAi": "Ask AI why",
+      "empty": "No anomalies detected — all markets look normal.",
+      "severity": {
+        "critical": "Critical",
+        "warning": "Warning",
+        "info": "Info"
+      }
+    },
+    "revenueTrend": {
+      "title": "Revenue trend",
+      "chartSummary": "Revenue over {days} days by market, shown in {currency}.",
+      "allMarkets": "All"
+    },
+    "aiSummary": {
+      "title": "AI daily summary",
+      "generatedAt": "Generated {time}",
+      "regenerate": "Regenerate"
+    }
+  },
   "login": {
     "title": "Sign in to Insight OS",
     "subtitle": "Cross-border commerce analytics for your team.",

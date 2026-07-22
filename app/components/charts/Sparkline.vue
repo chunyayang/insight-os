@@ -9,7 +9,7 @@ import type { ChartConfiguration } from 'chart.js'
  */
 const props = defineProps<{
   data: number[]
-  ariaLabel: string
+  summary: string
   /** Ramp index, or a semantic direction colour for trend emphasis. */
   colorIndex?: number
   trend?: 'up' | 'down' | 'neutral'
@@ -50,11 +50,5 @@ const options = computed<ChartConfiguration['options']>(() => ({
 </script>
 
 <template>
-  <ChartsBaseChart
-    type="line"
-    :data="data"
-    :options="options"
-    :summary="ariaLabel"
-    height="2.5rem"
-  />
+  <ChartsBaseChart type="line" :data="data" :options="options" :summary="summary" height="2.5rem" />
 </template>
