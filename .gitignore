@@ -35,5 +35,6 @@ playwright-report
 # Vercel
 .vercel
 
-# Internal-only skill (not for the repo)
-.claude/skills/product-spec/
+# Internal-only skill — distributed out-of-band, see .claude/CLAUDE.md
+# No trailing slash: that form would not match if this becomes a symlink.
+.claude/skills/product-spec

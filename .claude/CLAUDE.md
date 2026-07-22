@@ -30,3 +30,16 @@ Reference material sits in `.claude/skills/` and loads only when relevant — pr
 `/stack-conventions`, `/mock-api-contract`, `/i18n-workflow`,
 `/insight-os-design-tokens`, `/product-spec`, `/testing-and-ci`,
 `/dod-and-git-workflow`.
+
+### `/product-spec` is distributed out-of-band
+The product spec is **not tracked in this repo** (gitignored). It lives in the
+separate private repo `insight-os-doc`. To get it, clone that repo and link it in:
+
+```sh
+git clone <insight-os-doc-remote> ~/projects/insight-os-doc
+ln -s ~/projects/insight-os-doc/product-spec .claude/skills/product-spec
+```
+
+Until you do, `/product-spec` will not appear in the skills list, and references
+to it from `/testing-and-ci` and `/dod-and-git-workflow` will not resolve.
+Never `git add -f` it back into this repo.
