@@ -35,6 +35,9 @@ importers:
       pinia:
         specifier: ^4.0.2
         version: 4.0.2(@vue/devtools-api@8.1.5)(typescript@6.0.3)(vue@3.5.40(typescript@6.0.3))
+      primeicons:
+        specifier: ^8.0.0
+        version: 8.0.0
       primevue:
         specifier: ^4.5.5
         version: 4.5.5(vue@3.5.40(typescript@6.0.3))
@@ -4831,6 +4834,9 @@ packages:
   pretty-bytes@7.1.1:
     resolution: {integrity: sha512-X+vn9z8nOFZQlxOLmfJ0iKDdMD7jYTsTW12OAlCpdoE3Igik6L37pugIZi+N3usuyp5McfgKPWi12q3zvHLeGQ==}
     engines: {node: '>=20'}
+
+  primeicons@8.0.0:
+    resolution: {integrity: sha512-eZGk+Mgb4fE+LkJi9LvllbnB4RVUF9kzmnLVnT3ZMY6stqKVh7TUJ0mFoMNIEgTnJSvhaGcJotDiSvtVvkHd7g==}
 
   primevue@4.5.5:
     resolution: {integrity: sha512-Kv5REIewCdP806QaoU+4nBXfmpzOGFKkZ9qH4KsL6MjiAQVc4PUzypt8erl4r3Vzh3nr3aWZIxkxYRRsLGiX2A==}
@@ -11005,6 +11011,8 @@ snapshots:
   prettier@3.9.5: {}
 
   pretty-bytes@7.1.1: {}
+
+  primeicons@8.0.0: {}
 
   primevue@4.5.5(vue@3.5.40(typescript@6.0.3)):
     dependencies:

@@ -30,6 +30,36 @@
       "de": "Germany"
     }
   },
+  "nav": {
+    "groups": {
+      "main": "Main",
+      "manage": "Manage",
+      "org": "Organization"
+    },
+    "items": {
+      "dashboard": "Dashboard",
+      "analytics": "Analytics",
+      "aiAssistant": "AI Assistant",
+      "customers": "Customers",
+      "campaigns": "Campaigns",
+      "dataSources": "Data Sources",
+      "team": "Team",
+      "notifications": "Notifications",
+      "settings": "Settings"
+    },
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "openMenu": "Open navigation"
+  },
+  "topbar": {
+    "searchPlaceholder": "Search markets, customers, campaigns",
+    "search": "Search",
+    "notifications": "Notifications",
+    "unreadCount": "{count} unread",
+    "userMenu": "Account menu",
+    "switchRole": "Switch role",
+    "signedInAs": "Signed in as"
+  },
   "login": {
     "title": "Sign in to Insight OS",
     "subtitle": "Cross-border commerce analytics for your team.",

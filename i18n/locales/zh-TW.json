@@ -30,6 +30,36 @@
       "de": "德國"
     }
   },
+  "nav": {
+    "groups": {
+      "main": "主要",
+      "manage": "管理",
+      "org": "組織"
+    },
+    "items": {
+      "dashboard": "儀表板",
+      "analytics": "數據分析",
+      "aiAssistant": "AI 助理",
+      "customers": "顧客",
+      "campaigns": "行銷活動",
+      "dataSources": "資料來源",
+      "team": "團隊",
+      "notifications": "通知",
+      "settings": "設定"
+    },
+    "collapse": "收合側邊欄",
+    "expand": "展開側邊欄",
+    "openMenu": "開啟導覽"
+  },
+  "topbar": {
+    "searchPlaceholder": "搜尋市場、顧客、行銷活動",
+    "search": "搜尋",
+    "notifications": "通知",
+    "unreadCount": "{count} 則未讀",
+    "userMenu": "帳號選單",
+    "switchRole": "切換角色",
+    "signedInAs": "登入身分"
+  },
   "login": {
     "title": "登入 Insight OS",
     "subtitle": "為您的團隊打造的跨境電商分析平台。",

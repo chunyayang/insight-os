@@ -14,4 +14,7 @@ useHead(() => ({
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
+
+  <!-- Mounted once at the root so errors surface on every route, login included. -->
+  <Toast position="bottom-right" />
 </template>
