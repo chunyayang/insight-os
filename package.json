@@ -41,7 +41,7 @@
     "@commitlint/config-conventional": "^21.2.0",
     "@nuxt/eslint": "^1.16.0",
     "@nuxt/test-utils": "^4.0.3",
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "^1.62.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vue/test-utils": "^2.4.11",
     "eslint": "^10.7.0",
