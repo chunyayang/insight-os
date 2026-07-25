@@ -45,7 +45,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@vue/test-utils": "^2.4.11",
     "eslint": "^10.7.0",
-    "happy-dom": "^20.11.0",
+    "happy-dom": "^20.11.1",
     "husky": "^9.1.7",
     "lint-staged": "^17.1.0",
     "playwright-core": "^1.61.1",
