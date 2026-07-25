@@ -10,7 +10,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # pnpm/action-setup MUST run before setup-node, or `cache: pnpm` can't find pnpm.
       # It reads the pnpm version from the `packageManager` field in package.json.
