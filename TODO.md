@@ -56,3 +56,10 @@ Legend: ✅ done · 🔜 next · ⬜ pending
   `aria-label` attribute and cannot be type-checked as a prop.
 - **E2E stays out of the blocking CI gate** for the MVP (per testing-and-ci); run locally
   with `MOCK_NO_LATENCY=1 pnpm test:e2e`.
+- **`typescript` and the PrimeVue trio (`primevue`, `@primevue/nuxt-module`,
+  `@primeuix/themes`) are excluded from Dependabot major-version bumps** — see the pins
+  above. Ignore rules live in `.github/dependabot.yml`.
+- **CI can fail with `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`** on freshly-bumped deps —
+  pnpm's built-in supply-chain guard rejects packages published too recently (currently
+  ~24h). Not a bug; re-run CI later rather than investigating. First seen on Dependabot
+  PR #13, 2026-07-25. See `.npmrc`.
