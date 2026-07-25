@@ -14,7 +14,7 @@ jobs:
 
       # pnpm/action-setup MUST run before setup-node, or `cache: pnpm` can't find pnpm.
       # It reads the pnpm version from the `packageManager` field in package.json.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v7
         with:
