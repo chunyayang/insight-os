@@ -28,8 +28,11 @@ playwright-report
 
 # Editor / OS
 .DS_Store
+# Personal editor prefs stay local; shared toolchain config is tracked —
+# settings.json pins Prettier as the formatter to match lint-staged.
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
 
 # Vercel
