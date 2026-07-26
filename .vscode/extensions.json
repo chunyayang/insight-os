@@ -1,0 +1,13 @@
+{
+  // Recommendations only — VS Code prompts, it never installs or disables.
+  // Each entry backs a tool this repo already pins in package.json.
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "Vue.volar",
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss"
+  ],
+  // Vetur is the pre-Volar Vue extension; both formatting .vue files is the
+  // ambiguity this config exists to remove.
+  "unwantedRecommendations": ["octref.vetur"]
+}
