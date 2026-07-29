@@ -22,6 +22,10 @@
   "[css]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  // Tailwind v4 CSS-first at-rules (@plugin, @theme, @utility, …) aren't
+  // known to VS Code's built-in CSS language service; silence the false
+  // "Unknown at rule" warning instead of suppressing all CSS validation.
+  "css.customData": [".vscode/tailwind.css-data.json"],
   "[markdown]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
