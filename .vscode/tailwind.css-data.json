@@ -1,0 +1,29 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@plugin",
+      "description": "Tailwind CSS v4: loads a JS-based Tailwind plugin from a CSS file."
+    },
+    {
+      "name": "@theme",
+      "description": "Tailwind CSS v4: defines design tokens as CSS variables in the CSS-first config."
+    },
+    {
+      "name": "@utility",
+      "description": "Tailwind CSS v4: defines a custom utility class."
+    },
+    {
+      "name": "@custom-variant",
+      "description": "Tailwind CSS v4: defines a custom variant."
+    },
+    {
+      "name": "@source",
+      "description": "Tailwind CSS v4: adds an explicit source path for class scanning."
+    },
+    {
+      "name": "@config",
+      "description": "Tailwind CSS v4: loads a legacy JS config file for compatibility."
+    }
+  ]
+}
