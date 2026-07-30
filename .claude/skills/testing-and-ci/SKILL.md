@@ -82,15 +82,18 @@ test/
 2. **Permission map (`app/constants/permissions.ts` + `useCan()`)** — table-driven
    test: for each ability, which roles pass. RBAC is a security-shaped rule; a
    regression here is a real bug, not cosmetic. See `stack-conventions` (Roles).
-3. **Market → chart-index map (`app/constants/markets.ts`)** — each market maps to
-   one stable `--chart-*` index; assert the mapping is total and unique.
+3. **Market → colour map (`MARKET_COLOR` in `app/constants/markets.ts`)** — assert the
+   mapping is total and that colours are distinct per theme. Also assert every value is
+   **6-digit hex** and survives `withAlpha()`: Chart.js can't parse `oklch()`, so a
+   colour swapped to a `--ui-*` token would pass through unfaded and render every area
+   fill opaque — a silent, test-invisible regression unless it's pinned here.
 4. **A couple of component smoke tests** — mount a KPI card / a chart wrapper with
    `mountSuspended` (or `renderSuspended` + Testing Library) and assert it renders
    with sample data and its empty state renders with none.
 5. **One E2E happy path** — login → dashboard loads → an anomaly alert is visible.
 
 Explicitly **out of scope for the MVP**: chasing a coverage %, snapshotting every
-component, testing PrimeVue internals, and exhaustive E2E flows.
+component, testing Nuxt UI internals, and exhaustive E2E flows.
 
 ## Helpers worth knowing
 

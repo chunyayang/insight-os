@@ -120,8 +120,9 @@ at existing skills — the DoD is where those rules get enforced per change.
 - [ ] **i18n parity**: no hardcoded user-facing strings; every new key exists in
       **both** `en.json` and `zh-TW.json`; numbers/currency/dates go through
       `useFormat` (JPY = 0 decimals). See `i18n-workflow`.
-- [ ] **Color**: no raw hex, no Tailwind palette colors — only design tokens
-      (`var(--…)` / `tailwindcss-primeui` classes). See `insight-os-design-tokens`.
+- [ ] **Color**: no raw hex, no Tailwind palette colors — only Nuxt UI semantic
+      tokens (`--ui-*`) and Tailwind theme vars/utilities. The sole exception is
+      chart hex (`MARKET_COLOR` / `CHART_CHROME`). See `stack-conventions`.
 - [ ] **RBAC respected**: role-gated UI/routes use the central permission map +
       `useCan()`; *(Hidden)* means hidden, not disabled. See `product-spec` / `stack-conventions`.
 - [ ] **State boundary**: server data via Vue Query, UI state via Pinia — never cloned.
@@ -136,4 +137,4 @@ at existing skills — the DoD is where those rules get enforced per change.
       Commit title.
 
 ## Related skills
-`testing-and-ci` · `stack-conventions` · `i18n-workflow` · `insight-os-design-tokens` · `product-spec`.
+`testing-and-ci` · `stack-conventions` · `i18n-workflow` · `product-spec`.

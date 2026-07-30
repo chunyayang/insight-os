@@ -25,14 +25,6 @@ updates:
       # which the lint/typecheck gate depends on. See TODO.md "Decisions & deviations".
       - dependency-name: 'typescript'
         update-types: ['version-update:semver-major']
-      # PrimeVue pinned to v4 deliberately per the product spec, even though v5
-      # is current latest. See TODO.md "Decisions & deviations".
-      - dependency-name: 'primevue'
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@primevue/nuxt-module'
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@primeuix/themes'
-        update-types: ['version-update:semver-major']
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: 'github-actions'
