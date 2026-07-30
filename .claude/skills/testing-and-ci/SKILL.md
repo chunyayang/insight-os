@@ -90,7 +90,7 @@ test/
 5. **One E2E happy path** — login → dashboard loads → an anomaly alert is visible.
 
 Explicitly **out of scope for the MVP**: chasing a coverage %, snapshotting every
-component, testing PrimeVue internals, and exhaustive E2E flows.
+component, testing Nuxt UI internals, and exhaustive E2E flows.
 
 ## Helpers worth knowing
 

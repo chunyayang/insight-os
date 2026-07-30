@@ -41,8 +41,19 @@ Legend: ✅ done · 🔜 next · ⬜ pending
 
 - **TypeScript pinned to 6.x** — `typescript-eslint` and `vue-tsc` do not yet support the
   TS 7 native port; the rest of the stack is on current majors.
-- **PrimeVue pinned to v4** (nuxt-module 4.5.5 + `@primeuix/themes` 1.2.5) per the product
-  spec, though v5 is the current latest. Chosen deliberately (see session decision).
+- **Migrating PrimeVue 4 → Nuxt UI 4.10** (decided 2026-07-30, superseding the "PrimeVue pinned
+  to v4" decision). Three findings invalidated the pin: `primefaces/primevue` is **archived**
+  (MIT forever but frozen — no security patches, no future Vue/Nuxt compat); **PrimeVue 5 moves
+  `Chart` to the paid PRO tier**, inverting the original reason we pinned to v4; and the v5
+  Community licence requires _all_ of <$1M revenue, <5 devs, <10 employees and never >$3M outside
+  capital, re-confirmed yearly — every one a tripwire on the success path for a commercial SaaS.
+  Nuxt UI is MIT with Pro merged in free, actively developed, and its table is TanStack-based.
+  Full rationale, rejected alternatives and PR sequence: `.claude/doc/nuxt-ui-migration.md`.
+- **Custom design tokens retired** as part of that migration. `tokens.css` was Aura primitives
+  resolved by hand, which Nuxt UI regenerates from `app.config.ts`; typography/radii/elevation
+  come from Tailwind v4's own theme; the motion keyframes had zero consumers. The
+  `insight-os-design-tokens` skill is deleted. Chart colors are the one exception and now live as
+  hex in TypeScript (`MARKET_COLOR`, `CHART_CHROME`) because Chart.js cannot consume `oklch()`.
 - **Node 24 · pnpm 11** — `onlyBuiltDependencies`/`allowBuilds` live in `pnpm-workspace.yaml`
   (pnpm 11 no longer reads the `pnpm` field in `package.json`).
 - **Playwright config is `playwright.config.mts`** — Playwright loads a `.ts` config as
@@ -56,9 +67,9 @@ Legend: ✅ done · 🔜 next · ⬜ pending
   `aria-label` attribute and cannot be type-checked as a prop.
 - **E2E stays out of the blocking CI gate** for the MVP (per testing-and-ci); run locally
   with `MOCK_NO_LATENCY=1 pnpm test:e2e`.
-- **`typescript` and the PrimeVue trio (`primevue`, `@primevue/nuxt-module`,
-  `@primeuix/themes`) are excluded from Dependabot major-version bumps** — see the pins
-  above. Ignore rules live in `.github/dependabot.yml`.
+- **`typescript` is excluded from Dependabot major-version bumps** — see the pin above. Ignore
+  rules live in `.github/dependabot.yml`. The PrimeVue trio was also ignored there until the
+  Nuxt UI migration made it moot.
 - **CI can fail with `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`** on freshly-bumped deps —
   pnpm's built-in supply-chain guard rejects packages published too recently (currently
   ~24h). Not a bug; re-run CI later rather than investigating. First seen on Dependabot
