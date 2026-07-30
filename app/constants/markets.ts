@@ -23,19 +23,24 @@ export function currencyForMarket(market: MarketFilter): CurrencyCode {
 }
 
 /**
- * ONE fixed categorical-ramp index per market, used everywhere the market appears
- * (charts, tags, legends) so a market keeps the same color across the whole app.
- * Indexes point at the --chart-0..13 design tokens; never remap to Aura semantic colors.
+ * ONE fixed colour per market, used everywhere the market appears (charts, tags,
+ * legends) so a market reads the same across the whole app. A market's colour must
+ * never depend on how many series a chart happens to render — which is why Chart.js's
+ * built-in `Colors` plugin is not used: it assigns by dataset index.
+ *
+ * HEX, not a CSS custom property, and deliberately so. Chart.js draws on a canvas and
+ * needs a real colour string; `withAlpha()` in useChartTheme parses **hex only**, and
+ * Nuxt UI's tokens resolve to `oklch()`, which it would pass through unfaded — silently
+ * turning every area fill opaque. Do not "unify" these into `--ui-*`.
+ *
+ * Values are Tailwind palette steps (600 light / 400 dark) chosen to sit beside the
+ * emerald-and-slate identity in app.config.ts. Keep them coordinated by hand.
  */
-export const MARKET_CHART_INDEX: Record<MarketCode, number> = {
-  US: 0,
-  JP: 1,
-  TW: 2,
-  DE: 3,
-}
-
-export function chartTokenForMarket(market: MarketCode): string {
-  return `var(--chart-${MARKET_CHART_INDEX[market]})`
+export const MARKET_COLOR: Record<MarketCode, { light: string; dark: string }> = {
+  US: { light: '#0284c7', dark: '#38bdf8' }, // sky-600 / sky-400
+  JP: { light: '#d97706', dark: '#fbbf24' }, // amber-600 / amber-400
+  TW: { light: '#7c3aed', dark: '#a78bfa' }, // violet-600 / violet-400
+  DE: { light: '#0d9488', dark: '#2dd4bf' }, // teal-600 / teal-400
 }
 
 /**

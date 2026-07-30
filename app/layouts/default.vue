@@ -47,7 +47,7 @@ const { t } = useI18n()
   grid-template-areas:
     'topbar topbar'
     'sidebar main';
-  background: var(--bg);
+  background: var(--ui-bg-muted);
 }
 
 .shell--collapsed {
@@ -60,8 +60,8 @@ const { t } = useI18n()
 
 .shell__sidebar {
   grid-area: sidebar;
-  border-inline-end: 1px solid var(--border);
-  background: var(--card);
+  border-inline-end: 1px solid var(--ui-border);
+  background: var(--ui-bg);
   overflow-y: auto;
 }
 

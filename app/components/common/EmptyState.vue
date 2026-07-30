@@ -34,16 +34,16 @@ withDefaults(
 
 .empty-state__icon {
   font-size: 1.75rem;
-  color: var(--faint);
+  color: var(--ui-text-dimmed);
 }
 
 .empty-state__title {
   font-weight: 600;
-  color: var(--text);
+  color: var(--ui-text-highlighted);
 }
 
 .empty-state__description {
-  color: var(--sub);
+  color: var(--ui-text-muted);
   max-width: 34ch;
 }
 

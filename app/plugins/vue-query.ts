@@ -27,19 +27,14 @@ export default defineNuxtPlugin((nuxt) => {
    * transport layer free of UI concerns and means no caller can forget to surface an
    * error. Copy is keyed off `error.code`; the raw server message is never shown.
    * Client-only — there is no Toast during SSR.
+   *
+   * `runWithContext` is required because this fires from a cache callback, outside any
+   * component setup: without it `useNotify`'s own `useI18n()`/`useToast()` calls have no
+   * Nuxt instance to bind to.
    */
   function notifyError(error: unknown) {
     if (!import.meta.client) return
-    const toast = nuxt.vueApp.config.globalProperties.$toast
-    const translate = nuxt.vueApp.config.globalProperties.$t
-    if (!toast || typeof translate !== 'function') return
-
-    toast.add({
-      severity: 'error',
-      summary: translate('common.states.error'),
-      detail: translate(errorKey(error)),
-      life: 5000,
-    })
+    nuxt.runWithContext(() => useNotify().error(errorKey(error)))
   }
 
   const queryClient = new QueryClient({

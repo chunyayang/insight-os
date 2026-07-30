@@ -41,10 +41,10 @@ const fmt = useFormat()
 
 <style scoped>
 .ai-summary {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow);
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
   padding: 1.25rem;
   min-width: 0;
 }
@@ -64,21 +64,21 @@ const fmt = useFormat()
   gap: 0.5rem;
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--ui-text-highlighted);
 }
 
 .ai-summary__title i {
-  color: var(--violet);
+  color: var(--ui-secondary);
 }
 
 .ai-summary__meta {
   margin-block-start: 0.125rem;
-  color: var(--faint);
+  color: var(--ui-text-dimmed);
   font-size: 0.8125rem;
 }
 
 .ai-summary__text {
-  color: var(--sub);
+  color: var(--ui-text-muted);
   line-height: 1.6;
   max-width: 80ch;
 }

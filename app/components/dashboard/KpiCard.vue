@@ -55,10 +55,10 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
 
 <style scoped>
 .kpi {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow);
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
   padding: 1.125rem 1.25rem;
   display: flex;
   flex-direction: column;
@@ -67,7 +67,7 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
 }
 
 .kpi__label {
-  color: var(--sub);
+  color: var(--ui-text-muted);
   font-size: 0.875rem;
 }
 
@@ -75,7 +75,7 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
   font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--text);
+  color: var(--ui-text-highlighted);
   font-variant-numeric: tabular-nums;
   /* Long CJK labels and big numbers must wrap rather than overflow the card. */
   overflow-wrap: anywhere;
@@ -99,17 +99,17 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
 
 /* Direction colours are semantic tokens — they carry meaning, not decoration. */
 .kpi__delta--up {
-  color: var(--prim-ink);
+  color: var(--ui-primary);
 }
 .kpi__delta--down {
-  color: var(--danger-ink);
+  color: var(--ui-error);
 }
 .kpi__delta--neutral {
-  color: var(--sub);
+  color: var(--ui-text-muted);
 }
 
 .kpi__delta-caption {
-  color: var(--faint);
+  color: var(--ui-text-dimmed);
 }
 
 .kpi__spark {

@@ -123,8 +123,8 @@ const initials = computed(() =>
   align-items: center;
   gap: 0.75rem;
   padding: 0.625rem 1rem;
-  background: var(--card);
-  border-block-end: 1px solid var(--border);
+  background: var(--ui-bg);
+  border-block-end: 1px solid var(--ui-border);
 }
 
 .topbar__search {

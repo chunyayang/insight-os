@@ -1,12 +1,11 @@
 import type { MarketCode } from '~/types/api'
-import { MARKET_CHART_INDEX } from '~/constants/markets'
-
-const RAMP_SIZE = 14
+import { MARKET_COLOR, MARKETS } from '~/constants/markets'
 
 /**
  * Fade a resolved token to an alpha fill. Canvas colour parsing is narrower than CSS —
  * color-mix() isn't reliably supported for fillStyle — so convert to rgba() explicitly.
- * The --chart-* ramp is plain 6-digit hex in both themes, and non-hex input passes through.
+ * Every colour we hand Chart.js is 6-digit hex for exactly this reason; non-hex input
+ * passes through unchanged, which would read as a fully opaque fill.
  */
 export function withAlpha(color: string, alpha: number): string {
   const hex = color.trim().replace('#', '')
@@ -18,56 +17,57 @@ export function withAlpha(color: string, alpha: number): string {
 }
 
 /**
- * Resolves the design-token chart palette into concrete colors for Chart.js.
+ * Chart chrome — the non-series colours Chart.js draws (axes, ticks, tooltip surface)
+ * plus the two trend-direction colours.
  *
- * Chart.js needs real color strings on a canvas — it can't consume `var(--chart-0)` —
- * so the tokens are read from computed style at render time. Because tokens.css
- * re-declares the whole ramp under `.dark`, re-reading after a theme flip is all that's
- * needed for charts to restyle; we never hardcode a second dark palette.
+ * Hex for the same reason as MARKET_COLOR: Chart.js cannot consume `oklch()`, which is
+ * what Nuxt UI's `--ui-*` tokens resolve to. These mirror the slate/emerald/red steps
+ * Nuxt UI derives from app.config.ts — keep them in step by hand rather than reading
+ * them back out of the DOM.
+ */
+const CHART_CHROME = {
+  light: {
+    grid: '#e2e8f0', // slate-200, matches --ui-border
+    text: '#64748b', // slate-500, matches --ui-text-muted
+    surface: '#ffffff', // matches --ui-bg
+    positive: '#059669', // emerald-600, matches --ui-primary
+    negative: '#dc2626', // red-600, matches --ui-error
+  },
+  dark: {
+    grid: '#1e293b', // slate-800
+    text: '#94a3b8', // slate-400
+    surface: '#0f172a', // slate-900
+    positive: '#34d399', // emerald-400
+    negative: '#f87171', // red-400
+  },
+} as const
+
+/** Series without a market identity cycle these, in canonical market order. */
+const SERIES_RAMP = MARKETS
+
+/**
+ * Resolves the chart palette for the active theme.
  *
- * The read is deferred to nextTick after the theme changes, because the `.dark` class
- * lands on <html> via useHead on the next tick — reading sooner returns stale values.
+ * Purely derived from `isDark` — no `getComputedStyle`, no DOM access, no lifecycle
+ * hooks. That makes it SSR-safe: charts paint the right colours on the first frame
+ * instead of flipping after hydration, which the previous CSS-custom-property version
+ * needed a `nextTick` workaround to approximate.
  */
 export function useChartTheme() {
   const { isDark } = useTheme()
 
-  function readToken(name: string): string {
-    if (!import.meta.client) return ''
-    return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-  }
+  const scheme = computed(() => (isDark.value ? 'dark' : 'light'))
+  const theme = computed(() => CHART_CHROME[scheme.value])
 
-  function snapshot() {
-    return {
-      ramp: Array.from({ length: RAMP_SIZE }, (_, i) => readToken(`--chart-${i}`)),
-      grid: readToken('--border'),
-      text: readToken('--sub'),
-      surface: readToken('--card'),
-      // Semantic colours, resolved for canvas use. Trend direction carries meaning, so
-      // it uses these rather than the categorical ramp.
-      positive: readToken('--prim'),
-      negative: readToken('--danger'),
-    }
-  }
-
-  const theme = ref(snapshot())
-
-  onMounted(() => {
-    theme.value = snapshot()
-  })
-
-  watch(isDark, async () => {
-    await nextTick()
-    theme.value = snapshot()
-  })
-
-  /** A market's colour is fixed by its ramp index so it stays identical app-wide. */
+  /** A market's colour is fixed by identity so it stays identical app-wide. */
   function colorForMarket(market: MarketCode): string {
-    return theme.value.ramp[MARKET_CHART_INDEX[market]] ?? theme.value.ramp[0] ?? ''
+    return MARKET_COLOR[market][scheme.value]
   }
 
   /** Series without a market identity fall back to ramp order. */
   function colorAt(index: number): string {
-    return theme.value.ramp[index % RAMP_SIZE] ?? ''
+    const market = SERIES_RAMP[index % SERIES_RAMP.length]
+    return market ? MARKET_COLOR[market][scheme.value] : ''
   }
 
   return { theme, colorForMarket, colorAt }

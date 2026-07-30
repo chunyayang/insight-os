@@ -75,10 +75,10 @@ const chartSummary = computed(() =>
 
 <style scoped>
 .trend {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow);
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
   padding: 1.25rem;
   min-width: 0;
 }
@@ -95,6 +95,6 @@ const chartSummary = computed(() =>
 .trend__title {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--ui-text-highlighted);
 }
 </style>

@@ -64,7 +64,7 @@ function askAiLink(alert: AnomalyAlert) {
 .alerts__heading {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--ui-text-highlighted);
   margin-block-end: 0.75rem;
 }
 
@@ -76,10 +76,10 @@ function askAiLink(alert: AnomalyAlert) {
 }
 
 .alerts__card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow);
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
   padding: 1rem 1.125rem;
   display: flex;
   flex-direction: column;
@@ -96,11 +96,11 @@ function askAiLink(alert: AnomalyAlert) {
 }
 
 .alerts__time {
-  color: var(--faint);
+  color: var(--ui-text-dimmed);
   font-size: 0.8125rem;
 }
 
 .alerts__message {
-  color: var(--text);
+  color: var(--ui-text-highlighted);
 }
 </style>

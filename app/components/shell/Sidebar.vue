@@ -64,7 +64,7 @@ const visibleGroups = computed(() =>
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--faint);
+  color: var(--ui-text-dimmed);
 }
 
 .sidebar__list {
@@ -79,8 +79,8 @@ const visibleGroups = computed(() =>
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 0.625rem;
-  border-radius: var(--radius-control);
-  color: var(--sub);
+  border-radius: var(--radius-lg);
+  color: var(--ui-text-muted);
   text-decoration: none;
   transition:
     background-color 0.15s ease,
@@ -92,13 +92,17 @@ const visibleGroups = computed(() =>
 }
 
 .sidebar__link:hover {
-  background: var(--hover);
-  color: var(--text);
+  background: var(--ui-bg-elevated);
+  color: var(--ui-text-highlighted);
 }
 
+/* Tinted chip derived from the brand colour rather than a fixed ramp step, so it stays
+   correct in both themes (a literal primary-50 would glare in dark mode). color-mix is
+   safe here — the canvas-parsing limitation that rules it out for charts doesn't apply
+   to ordinary CSS. */
 .sidebar__link--active {
-  background: var(--prim-soft);
-  color: var(--prim-ink);
+  background: color-mix(in oklab, var(--ui-primary) 12%, transparent);
+  color: var(--ui-primary);
   font-weight: 600;
 }
 

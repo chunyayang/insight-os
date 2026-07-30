@@ -1,21 +1,35 @@
 /*
  * Insight OS — global stylesheet.
  *
- * CSS cascade-layer order is load-bearing (see stack-conventions): PrimeVue
- * component styles sit BETWEEN Tailwind's base and utilities so Tailwind utility
- * classes can override component styles. The PrimeVue `cssLayer.order` in
- * nuxt.config.ts must match the layer names declared here.
+ * Layer order is load-bearing while PrimeVue and Nuxt UI coexist (PRs 1–7 of the
+ * Nuxt UI migration). These are Tailwind v4's own canonical layers with `primevue`
+ * slotted between `base` and `components`, so Tailwind utilities — which land in
+ * `utilities`, last — still override PrimeVue component styles. The
+ * `primevue.options.theme.options.cssLayer.order` in nuxt.config.ts must match this
+ * list exactly. Both go away when PrimeVue is removed.
  */
-@layer tailwind-base, primevue, tailwind-utilities;
+@layer theme, base, primevue, components, utilities;
 
-@import 'tailwindcss/theme.css' layer(tailwind-base);
-@import 'tailwindcss/preflight.css' layer(tailwind-base);
-@import 'tailwindcss/utilities.css' layer(tailwind-utilities);
+@import 'tailwindcss';
+@import '@nuxt/ui';
 
-/* Bridges PrimeVue design tokens into Tailwind utilities (bg-primary, text-muted-color, …). */
+/* Bridges PrimeVue design tokens into Tailwind utilities. Removed with PrimeVue. */
 @plugin 'tailwindcss-primeui';
 
-/* Design tokens are the single source of truth for color. Imported UNLAYERED on purpose:
- * unlayered rules outrank layered ones, so the tokens' `body` background/text and the
- * `.dark` overrides win over Tailwind's (layered) preflight without !important. */
-@import './tokens.css';
+/*
+ * The only hand-written CSS in the app.
+ *
+ * Nuxt UI already styles `body` (antialiased + bg-default/text-default) and gives its
+ * own components focus rings, but this covers the plain elements our BEM styles put on
+ * the page — sidebar links, icon buttons — so the keyboard a11y floor doesn't depend on
+ * the browser default.
+ *
+ * `dark` needs no counterpart: --ui-primary re-declares itself under .dark.
+ */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--ui-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}

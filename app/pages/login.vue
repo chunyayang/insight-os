@@ -144,7 +144,7 @@ async function onSubmit() {
   display: grid;
   place-items: center;
   padding: 1.5rem;
-  background: var(--bg);
+  background: var(--ui-bg-muted);
   position: relative;
 }
 
@@ -158,10 +158,10 @@ async function onSubmit() {
   width: 100%;
   /* No rigid width: zh-TW text must be free to reflow without clipping. */
   max-width: 26rem;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow);
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
   padding: 2rem;
 }
 
@@ -173,12 +173,12 @@ async function onSubmit() {
   font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--text);
+  color: var(--ui-text-highlighted);
 }
 
 .login__subtitle {
   margin-block-start: 0.375rem;
-  color: var(--sub);
+  color: var(--ui-text-muted);
 }
 
 .login__field {
@@ -190,15 +190,15 @@ async function onSubmit() {
 
 .login__label {
   font-weight: 600;
-  color: var(--text);
+  color: var(--ui-text-highlighted);
 }
 
 .login__error {
-  color: var(--danger);
+  color: var(--ui-error);
 }
 
 .login__hint {
-  color: var(--faint);
+  color: var(--ui-text-dimmed);
 }
 
 .login__alert {
