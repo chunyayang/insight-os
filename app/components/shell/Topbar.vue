@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Role } from '~/types/api'
+import type { DropdownMenuItem } from '@nuxt/ui'
 import { ROLES } from '~/constants/permissions'
 
 const emit = defineEmits<{ toggleSidebar: []; openMobileNav: [] }>()
@@ -13,31 +13,45 @@ const search = ref('')
 /** Placeholder count until the notifications endpoint lands (§4.9). */
 const unreadCount = computed(() => 3)
 
-const userMenu = ref()
-const menuItems = computed(() => [
-  {
-    label: `${t('topbar.signedInAs')} ${auth.user?.name ?? ''}`,
-    disabled: true,
-  },
-  { separator: true },
-  {
-    label: t('topbar.switchRole'),
-    icon: 'pi pi-users',
-    items: ROLES.map((role) => ({
-      label: t(`login.roles.${role}`),
-      icon: auth.role === role ? 'pi pi-check' : undefined,
-      command: () => auth.switchRole(role as Role),
-    })),
-  },
-  { separator: true },
-  {
-    label: t('common.actions.signOut'),
-    icon: 'pi pi-sign-out',
-    command: async () => {
-      auth.signOut()
-      await navigateTo('/login')
+/**
+ * Nested arrays are UDropdownMenu's grouping primitive: each inner array renders as its
+ * own `role="group"`, divided by a rule. There is no separator *item* to insert.
+ */
+const menuItems = computed<DropdownMenuItem[][]>(() => [
+  [
+    {
+      label: `${t('topbar.signedInAs')} ${auth.user?.name ?? ''}`,
+      type: 'label',
     },
-  },
+  ],
+  [
+    {
+      label: t('topbar.switchRole'),
+      icon: 'i-lucide-users',
+      children: ROLES.map((role) => ({
+        label: t(`login.roles.${role}`),
+        // `checkbox` rather than a decorative tick: it renders as menuitemcheckbox with
+        // aria-checked, so the active role is announced instead of only being drawn.
+        type: 'checkbox' as const,
+        checked: auth.role === role,
+        // Selecting the already-active role fires this with `false`. "No role" isn't a
+        // state the app has, so only act on the checked edge and let the re-click be inert.
+        onUpdateChecked: (checked: boolean) => {
+          if (checked) auth.switchRole(role)
+        },
+      })),
+    },
+  ],
+  [
+    {
+      label: t('common.actions.signOut'),
+      icon: 'i-lucide-log-out',
+      onSelect: async () => {
+        auth.signOut()
+        await navigateTo('/login')
+      },
+    },
+  ],
 ])
 
 const initials = computed(() =>
@@ -53,66 +67,64 @@ const initials = computed(() =>
 <template>
   <header class="topbar">
     <!-- Rail toggle on desktop, drawer opener on mobile. Both icon-only -> aria-label. -->
-    <Button
-      class="topbar__rail-toggle"
-      icon="pi pi-bars"
+    <UButton
+      class="topbar__rail-toggle rounded-full"
+      icon="i-lucide-menu"
       :aria-label="ui.sidebarCollapsed ? t('nav.expand') : t('nav.collapse')"
-      severity="secondary"
-      text
-      rounded
+      color="neutral"
+      variant="ghost"
+      square
       @click="emit('toggleSidebar')"
     />
-    <Button
-      class="topbar__drawer-toggle"
-      icon="pi pi-bars"
+    <UButton
+      class="topbar__drawer-toggle rounded-full"
+      icon="i-lucide-menu"
       :aria-label="t('nav.openMenu')"
-      severity="secondary"
-      text
-      rounded
+      color="neutral"
+      variant="ghost"
+      square
       @click="emit('openMobileNav')"
     />
 
     <div class="topbar__search">
-      <IconField>
-        <InputIcon class="pi pi-search" />
-        <InputText
-          v-model="search"
-          :placeholder="t('topbar.searchPlaceholder')"
-          :aria-label="t('topbar.search')"
-          size="small"
-          fluid
-        />
-      </IconField>
+      <UInput
+        v-model="search"
+        icon="i-lucide-search"
+        :placeholder="t('topbar.searchPlaceholder')"
+        :aria-label="t('topbar.search')"
+        size="sm"
+        class="w-full"
+      />
     </div>
 
     <div class="topbar__actions">
-      <NuxtLink to="/notifications" class="topbar__bell">
-        <OverlayBadge :value="unreadCount" severity="danger">
-          <Button
-            icon="pi pi-bell"
-            :aria-label="t('topbar.unreadCount', { count: unreadCount })"
-            severity="secondary"
-            text
-            rounded
-          />
-        </OverlayBadge>
-      </NuxtLink>
+      <!-- One link, not a button nested inside one: UButton renders the anchor itself
+           when `to` is set, and UChip decorates it without adding another tab stop. -->
+      <UChip :text="unreadCount" :show="unreadCount > 0" color="error" size="lg" inset>
+        <UButton
+          to="/notifications"
+          class="rounded-full"
+          icon="i-lucide-bell"
+          :aria-label="t('topbar.unreadCount', { count: unreadCount })"
+          color="neutral"
+          variant="ghost"
+          square
+        />
+      </UChip>
 
       <CommonThemeToggle />
       <CommonLanguageSwitcher />
 
-      <Button
-        class="topbar__avatar"
-        :aria-label="t('topbar.userMenu')"
-        aria-haspopup="true"
-        severity="secondary"
-        text
-        rounded
-        @click="userMenu?.toggle($event)"
-      >
-        <Avatar :label="initials" shape="circle" size="normal" />
-      </Button>
-      <Menu ref="userMenu" :model="menuItems" :popup="true" />
+      <UDropdownMenu :items="menuItems" :content="{ align: 'end' }">
+        <UButton
+          class="rounded-full"
+          :avatar="{ text: initials }"
+          :aria-label="t('topbar.userMenu')"
+          color="neutral"
+          variant="ghost"
+          square
+        />
+      </UDropdownMenu>
     </div>
   </header>
 </template>
@@ -137,11 +149,6 @@ const initials = computed(() =>
   align-items: center;
   gap: 0.375rem;
   margin-inline-start: auto;
-}
-
-.topbar__bell {
-  display: inline-flex;
-  text-decoration: none;
 }
 
 .topbar__drawer-toggle {

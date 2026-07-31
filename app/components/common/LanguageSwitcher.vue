@@ -9,7 +9,7 @@
  */
 const { locale, locales, setLocale, t } = useI18n()
 
-const options = computed(() =>
+const items = computed(() =>
   locales.value.map((l) =>
     typeof l === 'string' ? { label: l, value: l } : { label: l.name ?? l.code, value: l.code },
   ),
@@ -17,13 +17,11 @@ const options = computed(() =>
 </script>
 
 <template>
-  <Select
+  <USelect
     :model-value="locale"
-    :options="options"
-    option-label="label"
-    option-value="value"
+    :items="items"
     :aria-label="t('common.language.switch')"
-    size="small"
+    size="sm"
     @update:model-value="(code) => setLocale(code)"
   />
 </template>
