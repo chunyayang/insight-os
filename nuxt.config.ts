@@ -1,4 +1,3 @@
-import tailwindcss from '@tailwindcss/vite'
 import { InsightPreset } from './app/theme/insight-preset'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -9,6 +8,7 @@ export default defineNuxtConfig({
   css: ['primeicons/primeicons.css', '~/assets/css/main.css'],
 
   modules: [
+    '@nuxt/ui',
     '@primevue/nuxt-module',
     '@pinia/nuxt',
     '@nuxtjs/i18n',
@@ -16,9 +16,19 @@ export default defineNuxtConfig({
     '@nuxt/test-utils/module',
   ],
 
-  // Tailwind v4 is wired through its Vite plugin (not a Nuxt module).
-  vite: {
-    plugins: [tailwindcss()],
+  // @nuxt/ui registers the Tailwind v4 Vite plugin itself — do NOT also add
+  // @tailwindcss/vite, or Tailwind runs twice.
+  ui: {
+    // Our cookie-based useTheme() is the sole owner of dark mode. @nuxtjs/color-mode
+    // (which @nuxt/ui would otherwise pull in) defaults to localStorage, which isn't
+    // readable during SSR and would reintroduce the light-flash on first paint.
+    colorMode: false,
+  },
+
+  icon: {
+    // Bundle only the icons actually referenced in source, rather than fetching from
+    // the Iconify API at runtime.
+    clientBundle: { scan: true },
   },
 
   // Nuxt only auto-imports composables/ one level deep; the conventions put Vue Query
@@ -36,10 +46,10 @@ export default defineNuxtConfig({
           // Manual dark mode — never media-query. Toggled by the `.dark` class on <html>.
           darkModeSelector: '.dark',
           // Order so Tailwind utilities can override PrimeVue component styles.
-          // Matches the layer order declared in app/assets/css/main.css.
+          // Must match the @layer declaration in app/assets/css/main.css exactly.
           cssLayer: {
             name: 'primevue',
-            order: 'tailwind-base, primevue, tailwind-utilities',
+            order: 'theme, base, primevue, components, utilities',
           },
         },
       },

@@ -15,10 +15,10 @@ const { data, isPending, isError, error, refetch, isFetching } = useDashboardSum
     <!-- Loading: skeletons matching the real layout, not a spinner. -->
     <template v-if="isPending">
       <div class="dash__kpis">
-        <Skeleton v-for="n in 4" :key="n" height="9rem" border-radius="var(--radius-card)" />
+        <Skeleton v-for="n in 4" :key="n" height="9rem" border-radius="var(--radius-xl)" />
       </div>
-      <Skeleton height="10rem" border-radius="var(--radius-card)" class="dash__block" />
-      <Skeleton height="22rem" border-radius="var(--radius-card)" class="dash__block" />
+      <Skeleton height="10rem" border-radius="var(--radius-xl)" class="dash__block" />
+      <Skeleton height="22rem" border-radius="var(--radius-xl)" class="dash__block" />
     </template>
 
     <CommonErrorState v-else-if="isError" :error="error" @retry="refetch()" />

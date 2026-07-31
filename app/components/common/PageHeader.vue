@@ -31,12 +31,12 @@ defineProps<{
   font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--text);
+  color: var(--ui-text-highlighted);
 }
 
 .page-header__subtitle {
   margin-block-start: 0.25rem;
-  color: var(--sub);
+  color: var(--ui-text-muted);
 }
 
 .page-header__actions {

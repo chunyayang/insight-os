@@ -47,11 +47,11 @@ const text = computed(() => props.message ?? t(errorKey(props.error)))
 
 .error-state__icon {
   font-size: 1.75rem;
-  color: var(--danger);
+  color: var(--ui-error);
 }
 
 .error-state__message {
-  color: var(--sub);
+  color: var(--ui-text-muted);
   max-width: 40ch;
 }
 </style>

@@ -11,7 +11,7 @@ import {
 import {
   currencyForMarket,
   currencyFractionDigits,
-  MARKET_CHART_INDEX,
+  MARKET_COLOR,
   MARKET_CURRENCY,
   MARKETS,
 } from '../../app/constants/markets'
@@ -54,11 +54,9 @@ describe('currency formatting', () => {
 })
 
 describe('markets map', () => {
-  it('gives every market a native currency and a unique chart index', () => {
+  it('gives every market a native currency and a colour in both themes', () => {
     expect(Object.keys(MARKET_CURRENCY).sort()).toEqual([...MARKETS].sort())
-    const indexes = Object.values(MARKET_CHART_INDEX)
-    expect(new Set(indexes).size).toBe(indexes.length) // unique
-    expect(indexes.every((i) => i >= 0 && i <= 13)).toBe(true) // within the --chart-0..13 ramp
+    expect(Object.keys(MARKET_COLOR).sort()).toEqual([...MARKETS].sort())
   })
 
   it('resolves "All" to USD', () => {
