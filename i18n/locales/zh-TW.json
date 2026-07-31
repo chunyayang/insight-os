@@ -7,7 +7,9 @@
       "cancel": "取消",
       "save": "儲存",
       "close": "關閉",
-      "signOut": "登出"
+      "signOut": "登出",
+      "showPassword": "顯示密碼",
+      "hidePassword": "隱藏密碼"
     },
     "states": {
       "loading": "載入中…",

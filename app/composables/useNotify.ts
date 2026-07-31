@@ -16,7 +16,14 @@ import { useToast } from '@nuxt/ui/composables/useToast'
  */
 export function useNotify() {
   const toast = useToast()
-  const { t } = useI18n()
+
+  // Deliberately NOT useI18n(): vue-i18n's composable throws "Must be called at the top
+  // of a `setup` function" when there is no current component instance, and the most
+  // important caller — plugins/vue-query.ts's cache-level error handler — is a callback,
+  // not a component. `$i18n` is the same global Composer, reachable through the Nuxt
+  // app context that runWithContext restores, so it works from either side.
+  const { $i18n } = useNuxtApp()
+  const t = (key: string) => $i18n.t(key)
 
   function error(messageKey: string) {
     toast.add({

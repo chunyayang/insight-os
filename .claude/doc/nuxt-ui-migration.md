@@ -1,8 +1,9 @@
 # Migrate Insight OS from PrimeVue 4 to Nuxt UI 4.10
 
-> **Status:** in flight, started 2026-07-30. PR 0 (this document + the skill and spec edits) has
-> landed; PRs 1–7 have not. Until PR 7 merges, the skills describe Nuxt UI while the code still
-> runs PrimeVue — that gap is deliberate and tracked here, not an inconsistency to "fix".
+> **Status:** in flight, started 2026-07-30. **Landed:** PR 0 (#25), PR 1 (#26), PR 2 (#29),
+> PR 3 (this one). **Remaining:** PRs 4–7. Until PR 7 merges, the skills describe Nuxt UI while
+> parts of the code still run PrimeVue — that gap is deliberate and tracked here, not an
+> inconsistency to "fix".
 >
 > **Decision record.** Written before implementation and kept as the reference each PR is
 > reviewed against. PR 7 appends what actually shipped.
