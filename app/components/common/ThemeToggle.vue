@@ -5,13 +5,14 @@ const { isDark, toggle } = useTheme()
 </script>
 
 <template>
-  <Button
-    :icon="isDark ? 'pi pi-sun' : 'pi pi-moon'"
+  <UButton
+    class="rounded-full"
+    :icon="isDark ? 'i-lucide-sun' : 'i-lucide-moon'"
     :aria-label="t('common.theme.toggle')"
     :title="t('common.theme.toggle')"
-    severity="secondary"
-    text
-    rounded
+    color="neutral"
+    variant="ghost"
+    square
     @click="toggle"
   />
 </template>

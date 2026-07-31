@@ -38,7 +38,7 @@ const visibleGroups = computed(() =>
             :title="props.collapsed ? t(`nav.items.${item.key}`) : undefined"
             @click="emit('navigate')"
           >
-            <i :class="item.icon" aria-hidden="true" />
+            <UIcon :name="item.icon" class="sidebar__icon" />
             <span v-if="!props.collapsed" class="sidebar__label">
               {{ t(`nav.items.${item.key}`) }}
             </span>
@@ -85,6 +85,14 @@ const visibleGroups = computed(() =>
   transition:
     background-color 0.15s ease,
     color 0.15s ease;
+}
+
+/* Explicit box so the rail width stays stable regardless of the icon's own intrinsic
+   size, and so labels can't squeeze it when zh-TW copy runs long. */
+.sidebar__icon {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .sidebar--collapsed .sidebar__link {

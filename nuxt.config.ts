@@ -28,7 +28,16 @@ export default defineNuxtConfig({
   icon: {
     // Bundle only the icons actually referenced in source, rather than fetching from
     // the Iconify API at runtime.
-    clientBundle: { scan: true },
+    clientBundle: {
+      scan: {
+        // The scanner skips .ts/.js by default ("to improve performance"), but the
+        // sidebar's icon names live in constants/navigation.ts, not in a template.
+        // Without this they miss the bundle and fall back to a runtime Iconify API
+        // request — invisible nav icons wherever that host is slow or blocked.
+        // Extends the default glob rather than replacing it, so .vue stays covered.
+        globInclude: ['**/*.{vue,jsx,tsx,md,mdc,mdx,yml,yaml}', 'app/**/*.ts'],
+      },
+    },
   },
 
   // Nuxt only auto-imports composables/ one level deep; the conventions put Vue Query
