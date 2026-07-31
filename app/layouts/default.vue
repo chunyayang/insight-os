@@ -3,8 +3,8 @@
  * Authenticated app shell: top bar + grouped sidebar.
  *
  * Responsive strategy (spec §5.1): full sidebar on desktop, icon-only rail below
- * 1024px, and a PrimeVue Drawer below 768px. The rail state is persisted UI state
- * (Pinia); the drawer is transient.
+ * 1024px, and a Drawer below 768px. The rail state is persisted UI state (Pinia);
+ * the drawer is transient.
  */
 const ui = useUiStore()
 const { t } = useI18n()
@@ -22,15 +22,18 @@ const { t } = useI18n()
       <ShellSidebar :collapsed="ui.sidebarCollapsed" />
     </aside>
 
-    <!-- Mobile: same nav inside a Drawer. Escape closes it and returns focus (PrimeVue). -->
-    <Drawer
-      v-model:visible="ui.mobileNavOpen"
-      :header="t('common.appName')"
-      position="left"
-      class="shell__drawer"
+    <!-- Mobile: same nav inside a Drawer. Escape closes it and returns focus to the
+         trigger — Reka's dialog primitive handles both, so no focus wiring here. -->
+    <UDrawer
+      v-model:open="ui.mobileNavOpen"
+      :title="t('common.appName')"
+      direction="left"
+      :handle="false"
     >
-      <ShellSidebar @navigate="ui.closeMobileNav()" />
-    </Drawer>
+      <template #body>
+        <ShellSidebar @navigate="ui.closeMobileNav()" />
+      </template>
+    </UDrawer>
 
     <main class="shell__main">
       <slot />
