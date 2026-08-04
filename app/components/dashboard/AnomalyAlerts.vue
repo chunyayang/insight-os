@@ -31,9 +31,9 @@ function askAiLink(alert: AnomalyAlert) {
   <section aria-labelledby="alerts-heading">
     <h2 id="alerts-heading" class="alerts__heading">{{ t('dashboard.alerts.title') }}</h2>
 
-    <CommonEmptyState
+    <UEmpty
       v-if="alerts.length === 0"
-      icon="pi pi-check-circle"
+      icon="i-lucide-circle-check"
       :title="t('dashboard.alerts.empty')"
     />
 

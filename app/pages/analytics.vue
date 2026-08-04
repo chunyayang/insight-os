@@ -15,6 +15,6 @@ definePageMeta({ ability: 'analytics:view' })
 <template>
   <div>
     <CommonPageHeader :title="t('nav.items.analytics')" />
-    <CommonEmptyState icon="pi pi-wrench" :title="t('common.states.comingSoon')" />
+    <UEmpty icon="i-lucide-wrench" :title="t('common.states.comingSoon')" />
   </div>
 </template>

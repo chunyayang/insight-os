@@ -10,6 +10,6 @@ const { t } = useI18n()
 <template>
   <div>
     <CommonPageHeader :title="t('nav.items.settings')" />
-    <CommonEmptyState icon="pi pi-wrench" :title="t('common.states.comingSoon')" />
+    <UEmpty icon="i-lucide-wrench" :title="t('common.states.comingSoon')" />
   </div>
 </template>
