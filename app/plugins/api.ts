@@ -40,9 +40,9 @@ export default defineNuxtPlugin(() => {
         },
       }
 
-      // Integration point (Phase 1d/1f): surface a localized Toast keyed off
-      // apiError.error.code once i18n + the PrimeVue Toast service are wired.
-
+      // Deliberately silent: the toast is raised once, at the cache level, by
+      // plugins/vue-query.ts. Notifying here too would double every message and
+      // put UI concerns in the transport layer.
       return Promise.reject(apiError)
     },
   )

@@ -15,19 +15,26 @@ const password = ref('')
 const selectedRole = ref<Role>('admin')
 /** Validation stays quiet until the first submit, then becomes live. */
 const submitted = ref(false)
+/** Reveal toggle: UInput has no equivalent of PrimeVue's `toggle-mask`, so we swap `type`. */
+const passwordVisible = ref(false)
 
+/**
+ * `undefined` rather than `''` for "no error", and that is load-bearing: UFormField
+ * declares `error` as `[Boolean, String]`, and Vue's boolean casting turns an empty
+ * string into `true` — every field would render invalid before the first submit.
+ */
 const emailError = computed(() => {
-  if (!submitted.value) return ''
+  if (!submitted.value) return undefined
   if (!email.value.trim()) return t('login.validation.emailRequired')
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) return t('login.validation.emailInvalid')
-  return ''
+  return undefined
 })
 
 const passwordError = computed(() => {
-  if (!submitted.value) return ''
+  if (!submitted.value) return undefined
   if (!password.value) return t('login.validation.passwordRequired')
   if (password.value.length < 6) return t('login.validation.passwordTooShort')
-  return ''
+  return undefined
 })
 
 const isValid = computed(() => !emailError.value && !passwordError.value)
@@ -75,62 +82,78 @@ async function onSubmit() {
         <p class="login__subtitle">{{ t('login.subtitle') }}</p>
       </header>
 
-      <form novalidate @submit.prevent="onSubmit">
-        <Message v-if="serverError" severity="error" class="login__alert" :closable="false">
-          {{ serverError }}
-        </Message>
+      <!-- UFormField owns the label/error wiring: it generates the id, points its
+           <label for> at the control, and hands the control aria-invalid +
+           aria-describedby. The validation itself stays the hand-rolled computeds
+           above — no UForm, no schema. -->
+      <form class="login__form" novalidate @submit.prevent="onSubmit">
+        <!-- role="alert" so the failure is announced: it is injected after the fact,
+             which a screen reader would otherwise pass over silently. -->
+        <UAlert
+          v-if="serverError"
+          role="alert"
+          :description="serverError"
+          color="error"
+          variant="subtle"
+          icon="i-lucide-circle-alert"
+        />
 
-        <div class="login__field">
-          <label for="email" class="login__label">{{ t('login.emailLabel') }}</label>
-          <InputText
-            id="email"
+        <UFormField :label="t('login.emailLabel')" :error="emailError">
+          <UInput
             v-model="email"
             type="email"
             autocomplete="email"
             :placeholder="t('login.emailPlaceholder')"
-            :invalid="Boolean(emailError)"
-            :aria-describedby="emailError ? 'email-error' : undefined"
-            fluid
+            class="w-full"
           />
-          <small v-if="emailError" id="email-error" class="login__error">{{ emailError }}</small>
-        </div>
+        </UFormField>
 
-        <div class="login__field">
-          <label for="password" class="login__label">{{ t('login.passwordLabel') }}</label>
-          <Password
+        <UFormField :label="t('login.passwordLabel')" :error="passwordError">
+          <UInput
             v-model="password"
-            input-id="password"
-            :feedback="false"
-            toggle-mask
+            :type="passwordVisible ? 'text' : 'password'"
             autocomplete="current-password"
             :placeholder="t('login.passwordPlaceholder')"
-            :invalid="Boolean(passwordError)"
-            :aria-describedby="passwordError ? 'password-error' : undefined"
-            fluid
-          />
-          <small v-if="passwordError" id="password-error" class="login__error">
-            {{ passwordError }}
-          </small>
-        </div>
+            class="w-full"
+            :ui="{ trailing: 'pe-1' }"
+          >
+            <template #trailing>
+              <UButton
+                type="button"
+                color="neutral"
+                variant="link"
+                size="sm"
+                :icon="passwordVisible ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                :aria-label="
+                  passwordVisible
+                    ? t('common.actions.hidePassword')
+                    : t('common.actions.showPassword')
+                "
+                :aria-pressed="passwordVisible"
+                @click="passwordVisible = !passwordVisible"
+              />
+            </template>
+          </UInput>
+        </UFormField>
 
-        <div class="login__field">
-          <span id="role-label" class="login__label">{{ t('login.demoRoleLabel') }}</span>
-          <SelectButton
+        <!-- The group label is URadioGroup's own <legend>, not UFormField's <label>:
+             a fieldset is what a set of radios should be named by. UFormField still
+             contributes the hint, which it links via aria-describedby. -->
+        <UFormField :help="t('login.demoRoleHint')">
+          <URadioGroup
             v-model="selectedRole"
-            :options="roleOptions"
-            option-label="label"
-            option-value="value"
-            :allow-empty="false"
-            aria-labelledby="role-label"
+            :items="roleOptions"
+            :legend="t('login.demoRoleLabel')"
+            orientation="horizontal"
           />
-          <small class="login__hint">{{ t('login.demoRoleHint') }}</small>
-        </div>
+        </UFormField>
 
-        <Button
+        <UButton
           type="submit"
           :label="login.isPending.value ? t('login.submitting') : t('login.submit')"
           :loading="login.isPending.value"
-          fluid
+          size="lg"
+          block
         />
       </form>
     </section>
@@ -138,7 +161,10 @@ async function onSubmit() {
 </template>
 
 <style scoped>
-/* Colors come from design tokens only — no raw hex, no Tailwind palette classes. */
+/*
+ * Only the page frame is hand-styled — the card, its header and the field rhythm.
+ * Everything inside the form is Nuxt UI's own, so it carries no BEM.
+ */
 .login {
   min-height: 100dvh;
   display: grid;
@@ -181,27 +207,9 @@ async function onSubmit() {
   color: var(--ui-text-muted);
 }
 
-.login__field {
+.login__form {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
-  margin-block-end: 1.125rem;
-}
-
-.login__label {
-  font-weight: 600;
-  color: var(--ui-text-highlighted);
-}
-
-.login__error {
-  color: var(--ui-error);
-}
-
-.login__hint {
-  color: var(--ui-text-dimmed);
-}
-
-.login__alert {
-  margin-block-end: 1rem;
+  gap: 1.125rem;
 }
 </style>

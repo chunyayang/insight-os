@@ -11,6 +11,9 @@ export function useLoginMutation() {
   const auth = useAuthStore()
 
   return useMutation({
+    // The login form renders the failure inline, with dedicated copy for bad
+    // credentials — the global toast would say the same thing a second time.
+    meta: { silent: true },
     mutationFn: async (payload: LoginRequest): Promise<LoginResponse> => {
       const response = await $api.post<ApiResponse<LoginResponse>>('/auth/login', payload)
       return response.data.data

@@ -37,7 +37,7 @@ test.describe('Insight OS smoke', () => {
 
     await page.getByLabel('Email').fill('sam@insight-os.demo')
     await page.getByLabel('Password', { exact: true }).fill('secret123')
-    await page.getByRole('button', { name: 'Viewer' }).click()
+    await page.getByRole('radio', { name: 'Viewer' }).check()
     await page.getByRole('button', { name: 'Sign in' }).click()
 
     await expect(page.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeVisible()

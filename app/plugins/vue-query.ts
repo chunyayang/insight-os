@@ -29,17 +29,23 @@ export default defineNuxtPlugin((nuxt) => {
    * Client-only — there is no Toast during SSR.
    *
    * `runWithContext` is required because this fires from a cache callback, outside any
-   * component setup: without it `useNotify`'s own `useI18n()`/`useToast()` calls have no
-   * Nuxt instance to bind to.
+   * component setup: without it `useNotify`'s `useToast()` has no Nuxt instance to bind
+   * to. (Its translation deliberately does not go through `useI18n()` for the same
+   * reason — see the comment in useNotify.ts.)
+   *
+   * Opt out per query/mutation with `meta: { silent: true }` where the surface already
+   * renders the failure itself, so the user isn't told twice. Login is the one case.
    */
-  function notifyError(error: unknown) {
-    if (!import.meta.client) return
+  function notifyError(error: unknown, meta?: Record<string, unknown>) {
+    if (!import.meta.client || meta?.silent) return
     nuxt.runWithContext(() => useNotify().error(errorKey(error)))
   }
 
   const queryClient = new QueryClient({
-    queryCache: new QueryCache({ onError: notifyError }),
-    mutationCache: new MutationCache({ onError: notifyError }),
+    queryCache: new QueryCache({ onError: (error, query) => notifyError(error, query.meta) }),
+    mutationCache: new MutationCache({
+      onError: (error, _vars, _ctx, mutation) => notifyError(error, mutation.meta),
+    }),
     defaultOptions: {
       queries: {
         staleTime: 60_000,

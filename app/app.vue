@@ -21,12 +21,10 @@ const uiLocale = computed(() => (locale.value === 'zh-TW' ? zhTw : en))
 <template>
   <!-- UApp provides the toast/overlay portals and Nuxt UI's locale (RTL + built-in
        component strings). Wraps everything so errors surface on every route, login
-       included. `<Toast>` below is PrimeVue's and is removed with it. -->
+       included. It is now the app's only toast host: useNotify() writes here. -->
   <UApp :locale="uiLocale">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
   </UApp>
-
-  <Toast position="bottom-right" />
 </template>
