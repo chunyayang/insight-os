@@ -1,7 +1,8 @@
 # Migrate Insight OS from PrimeVue 4 to Nuxt UI 4.10
 
 > **Status:** in flight, started 2026-07-30. **Landed:** PR 0 (#25), PR 1 (#26), PR 2 (#29),
-> PR 3 (this one). **Remaining:** PRs 4–7. Until PR 7 merges, the skills describe Nuxt UI while
+> PR 3 (#30), PR 4 (#32), PR 5 (#33), PR 6 (this one).
+> **Remaining:** PR 7. Until PR 7 merges, the skills describe Nuxt UI while
 > parts of the code still run PrimeVue — that gap is deliberate and tracked here, not an
 > inconsistency to "fix".
 >
