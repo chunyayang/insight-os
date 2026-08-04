@@ -1,15 +1,16 @@
 <script setup lang="ts">
 /**
- * Placeholder route. The module lands in a later slice; this exists now so the
- * navigation is walkable end to end and the RBAC route guard is real rather than
- * theoretical.
+ * Customers — a THIN page. The list, its filters and its query all live in the feature
+ * component. The remaining sub-views from the spec (profile, segments, journey timeline)
+ * land in the Customers module slice; this route exists now because the list is what
+ * proves the shared DataTable against a real endpoint.
  */
 const { t } = useI18n()
 </script>
 
 <template>
   <div>
-    <CommonPageHeader :title="t('nav.items.customers')" />
-    <UEmpty icon="i-lucide-wrench" :title="t('common.states.comingSoon')" />
+    <CommonPageHeader :title="t('customers.title')" :subtitle="t('customers.subtitle')" />
+    <CustomersCustomerList />
   </div>
 </template>

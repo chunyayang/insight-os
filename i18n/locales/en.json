@@ -31,6 +31,13 @@
       "jp": "Japan",
       "tw": "Taiwan",
       "de": "Germany"
+    },
+    "table": {
+      "sortBy": "Sort by {column}",
+      "showing": "{from}–{to} of {total}",
+      "exportCsv": "Export CSV",
+      "exportCsvHint": "Download the rows on this page as a CSV file.",
+      "exportDenied": "Your role can't export data."
     }
   },
   "nav": {
@@ -116,6 +123,44 @@
       "emailInvalid": "Enter a valid email address.",
       "passwordRequired": "Password is required.",
       "passwordTooShort": "Password must be at least 6 characters."
+    }
+  },
+  "customers": {
+    "title": "Customers",
+    "subtitle": "Every buyer across your four markets, in their own currency.",
+    "list": {
+      "caption": "Customers, with market, lifetime value, order count, last activity and status.",
+      "emptyTitle": "No customers match these filters",
+      "emptyDescription": "Try a different market or segment, or clear the search."
+    },
+    "columns": {
+      "name": "Customer",
+      "email": "Email",
+      "market": "Market",
+      "segment": "Segment",
+      "lifetimeValue": "Lifetime value",
+      "currency": "Currency",
+      "totalOrders": "Orders",
+      "lastActive": "Last active",
+      "status": "Status"
+    },
+    "filters": {
+      "search": "Search customers",
+      "searchPlaceholder": "Search name or email",
+      "segment": "Filter by segment",
+      "allSegments": "All segments",
+      "market": "Filter by market"
+    },
+    "segments": {
+      "vip": "VIP",
+      "loyal": "Loyal",
+      "new": "New",
+      "atRisk": "At risk"
+    },
+    "statuses": {
+      "active": "Active",
+      "dormant": "Dormant",
+      "churned": "Churned"
     }
   },
   "errors": {

@@ -118,7 +118,7 @@ Hard boundary — violating it is the most common review rejection:
 ## Table conventions
 
 - Tables go through `app/components/common/DataTable.vue`, a thin `UTable` wrapper bound to the `ApiListResponse<T>` / `ListQuery` contract in `types/api.ts`. Pages do not use `UTable` directly.
-- `UTable` is built on TanStack Table (`useVueTable`), so server-side paging is `manualPagination` + `manualSorting` + `rowCount` passed through `:pagination-options`. Use it for any list that can grow; client-side mode is fine for small fixed sets.
+- `UTable` is built on TanStack Table (`useVueTable`), so going server-side means `:pagination-options="{ manualPagination: true, rowCount }"` **and** `:sorting-options="{ manualSorting: true }"` — they are two separate option bags, and missing either lets the table quietly re-sort or re-slice the one page it holds. Use this for any list that can grow; client-side mode is fine for small fixed sets.
 - Standard features on analytics tables: sortable columns, column filters, global search, CSV export, an empty state via the `#empty` slot, and `column-pinning` for the sticky first columns on narrow viewports (pinning needs explicit column `size` values).
 - **Sorting delegates to the server on the raw numeric field.** Money cells render per record in `nativeCurrency`, and mixed-currency sorting is currency-blind by design in the MVP — never coerce formatted currency strings client-side.
 - Export actions are permission-gated (`can('export:csv')`). Where the treatment is *disabled + tooltip* rather than hidden, the disabled control needs a wrapper element to receive pointer events.

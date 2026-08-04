@@ -139,6 +139,29 @@ export interface RevenueResponse {
   totalsByMarket: { market: MarketCode; total: Money }[] // sum of daily-converted amounts
 }
 
+/* ─────────────────────────── Customers ─────────────────────────── */
+
+export type CustomerSegment = 'vip' | 'loyal' | 'new' | 'at-risk'
+export type CustomerStatus = 'active' | 'dormant' | 'churned'
+
+export interface Customer {
+  id: string
+  name: string
+  email: string
+  market: MarketCode
+  segment: CustomerSegment
+  status: CustomerStatus
+  /** Lifetime value in all four currencies — each the sum of day-converted amounts. */
+  lifetimeValue: Money
+  /**
+   * Which `lifetimeValue` key to render. Customers has no currency selector, so every
+   * record shows its own market's currency and ignores the Analytics-scoped one.
+   */
+  nativeCurrency: CurrencyCode
+  totalOrders: number
+  lastActiveAt: string // ISO 8601
+}
+
 /* ─────────────────────────── AI Assistant ─────────────────────────── */
 
 export interface AiChatRequest {
@@ -178,6 +201,9 @@ export interface ListQuery {
   order?: 'asc' | 'desc'
   q?: string
   market?: MarketCode | 'All'
+  /** Named filters. An endpoint honours only the ones it documents; the rest are ignored. */
+  segment?: string
+  status?: string
   range?: RangeToken
   from?: string // ISO date (mutually exclusive with `range`)
   to?: string // ISO date
