@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { TabsItem } from '@nuxt/ui'
 import type { MarketCode } from '~/types/api'
 import { MARKETS, type MarketFilter } from '~/constants/markets'
 import type { TrendSeries } from '~/components/charts/TrendLineChart.vue'
@@ -17,11 +18,11 @@ const fmt = useFormat()
 const market = ref<MarketFilter>('All')
 const { data, isPending, isError, error, refetch } = useRevenueSeries({ market })
 
-const tabs = computed(() => [
-  { label: t('dashboard.revenueTrend.allMarkets'), value: 'All' as MarketFilter },
+const tabs = computed<TabsItem[]>(() => [
+  { label: t('dashboard.revenueTrend.allMarkets'), value: 'All' },
   ...MARKETS.map((m) => ({
     label: t(`common.markets.${m.toLowerCase()}`),
-    value: m as MarketFilter,
+    value: m,
   })),
 ])
 
@@ -49,19 +50,27 @@ const chartSummary = computed(() =>
   <section class="trend" aria-labelledby="trend-heading">
     <header class="trend__header">
       <h2 id="trend-heading" class="trend__title">{{ t('dashboard.revenueTrend.title') }}</h2>
-      <SelectButton
-        v-model="market"
-        :options="tabs"
-        option-label="label"
-        option-value="value"
-        :allow-empty="false"
-        size="small"
-        :aria-label="t('dashboard.revenueTrend.title')"
+      <!--
+        `:content="false"` makes this a toggle-only tablist: the chart below is the
+        panel, and it is one element re-fetched per market rather than four mounted
+        panels. Not `v-model`, because UTabs types its value as `string | number` and
+        writing that straight back into a `Ref<MarketFilter>` doesn't type-check; the
+        cast is safe since every `value` above comes from MARKETS.
+        The tablist takes its context from the section heading — Nuxt UI renders the
+        list inside its root, so a fallthrough `aria-label` would land on the wrapper
+        rather than on the element with `role="tablist"`.
+      -->
+      <UTabs
+        :model-value="market"
+        :items="tabs"
+        :content="false"
+        size="sm"
+        @update:model-value="market = $event as MarketFilter"
       />
     </header>
 
     <!-- Three-state floor: skeleton / error+retry / chart. -->
-    <Skeleton v-if="isPending" height="18rem" />
+    <USkeleton v-if="isPending" class="h-72 rounded-xl" />
     <CommonErrorState v-else-if="isError" :error="error" @retry="refetch()" />
     <ChartsTrendLineChart
       v-else

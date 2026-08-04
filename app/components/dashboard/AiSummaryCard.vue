@@ -16,7 +16,7 @@ const fmt = useFormat()
     <header class="ai-summary__header">
       <div>
         <h2 id="ai-summary-heading" class="ai-summary__title">
-          <i class="pi pi-sparkles" aria-hidden="true" />
+          <UIcon name="i-lucide-sparkles" class="ai-summary__icon" aria-hidden="true" />
           {{ t('dashboard.aiSummary.title') }}
         </h2>
         <p class="ai-summary__meta">
@@ -24,12 +24,12 @@ const fmt = useFormat()
         </p>
       </div>
 
-      <Button
+      <UButton
         :label="t('dashboard.aiSummary.regenerate')"
-        icon="pi pi-refresh"
-        size="small"
-        severity="secondary"
-        outlined
+        icon="i-lucide-refresh-cw"
+        size="sm"
+        color="neutral"
+        variant="outline"
         :loading="regenerating"
         @click="emit('regenerate')"
       />
@@ -67,8 +67,10 @@ const fmt = useFormat()
   color: var(--ui-text-highlighted);
 }
 
-.ai-summary__title i {
+/* Targeted by class, not by element: UIcon renders a <span>, not an <i>. */
+.ai-summary__icon {
   color: var(--ui-secondary);
+  font-size: 1.125rem;
 }
 
 .ai-summary__meta {
