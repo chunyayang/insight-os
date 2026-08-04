@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { BadgeProps } from '@nuxt/ui'
 import type { AnomalyAlert } from '~/types/api'
 
 defineProps<{ alerts: AnomalyAlert[] }>()
@@ -6,9 +7,11 @@ defineProps<{ alerts: AnomalyAlert[] }>()
 const { t } = useI18n()
 const fmt = useFormat()
 
-const severityTag: Record<AnomalyAlert['severity'], string> = {
-  critical: 'danger',
-  warning: 'warn',
+/** Severity → semantic badge colour. The label beside it carries the meaning; the
+ *  colour only reinforces it, so this never has to stand on its own. */
+const severityColor: Record<AnomalyAlert['severity'], BadgeProps['color']> = {
+  critical: 'error',
+  warning: 'warning',
   info: 'info',
 }
 
@@ -37,24 +40,25 @@ function askAiLink(alert: AnomalyAlert) {
     <ul v-else class="alerts">
       <li v-for="alert in alerts" :key="alert.id" class="alerts__card">
         <div class="alerts__top">
-          <Tag
-            :severity="severityTag[alert.severity]"
-            :value="t(`dashboard.alerts.severity.${alert.severity}`)"
+          <UBadge
+            :color="severityColor[alert.severity]"
+            variant="subtle"
+            :label="t(`dashboard.alerts.severity.${alert.severity}`)"
           />
           <span class="alerts__time">{{ fmt.relativeTime(alert.detectedAt) }}</span>
         </div>
 
         <p class="alerts__message">{{ alert.message }}</p>
 
-        <NuxtLink :to="askAiLink(alert)">
-          <Button
-            :label="t('dashboard.alerts.askAi')"
-            icon="pi pi-arrow-right"
-            icon-pos="right"
-            size="small"
-            text
-          />
-        </NuxtLink>
+        <!-- `to` renders the UButton as a NuxtLink itself — the wrapper the PrimeVue
+             version needed would have nested a <button> inside an <a>. -->
+        <UButton
+          :to="askAiLink(alert)"
+          :label="t('dashboard.alerts.askAi')"
+          trailing-icon="i-lucide-arrow-right"
+          size="sm"
+          variant="ghost"
+        />
       </li>
     </ul>
   </section>

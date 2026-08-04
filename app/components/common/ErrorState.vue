@@ -21,14 +21,14 @@ const text = computed(() => props.message ?? t(errorKey(props.error)))
 
 <template>
   <div class="error-state" role="alert">
-    <i class="pi pi-exclamation-triangle error-state__icon" aria-hidden="true" />
+    <UIcon name="i-lucide-triangle-alert" class="error-state__icon" aria-hidden="true" />
     <p class="error-state__message">{{ text }}</p>
-    <Button
+    <UButton
       :label="t('common.actions.retry')"
-      icon="pi pi-refresh"
-      severity="secondary"
-      size="small"
-      outlined
+      icon="i-lucide-refresh-cw"
+      color="neutral"
+      variant="outline"
+      size="sm"
       @click="emit('retry')"
     />
   </div>

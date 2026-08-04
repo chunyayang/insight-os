@@ -12,13 +12,15 @@ const { data, isPending, isError, error, refetch, isFetching } = useDashboardSum
   <div>
     <CommonPageHeader :title="t('dashboard.title')" :subtitle="t('dashboard.subtitle')" />
 
-    <!-- Loading: skeletons matching the real layout, not a spinner. -->
+    <!-- Loading: skeletons matching the real layout, not a spinner. USkeleton takes no
+         size props — its box is set with utilities, and the heights mirror the cards
+         they stand in for so the page doesn't jump when the data lands. -->
     <template v-if="isPending">
       <div class="dash__kpis">
-        <Skeleton v-for="n in 4" :key="n" height="9rem" border-radius="var(--radius-xl)" />
+        <USkeleton v-for="n in 4" :key="n" class="h-36 rounded-xl" />
       </div>
-      <Skeleton height="10rem" border-radius="var(--radius-xl)" class="dash__block" />
-      <Skeleton height="22rem" border-radius="var(--radius-xl)" class="dash__block" />
+      <USkeleton class="dash__block h-40 rounded-xl" />
+      <USkeleton class="dash__block h-88 rounded-xl" />
     </template>
 
     <CommonErrorState v-else-if="isError" :error="error" @retry="refetch()" />

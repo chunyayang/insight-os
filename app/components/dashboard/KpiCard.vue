@@ -34,8 +34,8 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
 
     <div class="kpi__footer">
       <span class="kpi__delta" :class="`kpi__delta--${trend}`">
-        <i
-          :class="trend === 'down' ? 'pi pi-arrow-down-right' : 'pi pi-arrow-up-right'"
+        <UIcon
+          :name="trend === 'down' ? 'i-lucide-arrow-down-right' : 'i-lucide-arrow-up-right'"
           aria-hidden="true"
         />
         {{ fmt.delta(metric.deltaPct) }}
