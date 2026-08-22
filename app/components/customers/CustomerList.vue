@@ -83,6 +83,10 @@ const rows = computed(() => data.value?.data ?? [])
 const columns = computed<TableColumn<Customer>[]>(() => [
   { accessorKey: 'name', header: t('customers.columns.name'), enableSorting: true, size: 240 },
   { accessorKey: 'market', header: t('customers.columns.market'), size: 130 },
+  // LTV sorts on each record's NATIVE amount, so across markets it ranks by raw number and a
+  // JPY total always wins — meaningful only within one market (spec §4.5). Gating this control
+  // on `filters.market !== 'All'` is specified and deliberately deferred until after the
+  // ECharts migration — see issue #40. Not a bug.
   {
     accessorKey: 'lifetimeValue',
     header: t('customers.columns.lifetimeValue'),

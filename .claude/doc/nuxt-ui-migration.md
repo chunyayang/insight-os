@@ -436,9 +436,23 @@ Targeted checks, ordered by risk:
 
 ## Open items (flagging, not fixing)
 
-- **Pre-existing spec conflict, unrelated to this migration:** Settings→General specifies a
-  "default currency" setting while spec.md:46/121 insist the currency selector is Analytics-only.
-  The spec never reconciles these. Needs a product decision; I have not changed either statement.
+- **Resolved (2026-08-22) — Settings "default currency".** The pre-existing conflict between
+  Settings→General and spec.md:46/121 was a wording gap, not a design clash. Product decision: the
+  setting is the **initial value of the Analytics currency selector**, not an app-wide display
+  currency. Non-Analytics pages keep rendering each record's native currency and are unaffected, so
+  the "a control that isn't visible on a page must never silently alter that page's numbers"
+  guarantee still holds. spec.md:208 now says so explicitly. No code impact — Settings is a stub.
+- **Deferred — gating the monetary sort control.** spec.md:157 says a currency-blind ranking is
+  "only meaningful when the list is filtered to a single market", but never said what the UI should
+  offer, so PR 6 ships the LTV sort unconditionally. Decision (2026-08-22): the control should be
+  live only while the market filter names one market, and otherwise inert with a tooltip — shown,
+  not hidden, so the filter/ranking relationship is discoverable. The endpoint keeps its raw-field
+  sort capability; this is an affordance rule, not an API restriction. **Sequenced after PR 7 and
+  the Chart.js → ECharts replacement**, so `CustomerList.vue` is knowingly out of step with
+  spec.md:157 until then — that is a UX blemish, not a correctness bug, since the sort is honest
+  about ordering native amounts. Tracked in **issue #40** (this doc is trimmed at PR 7, so the
+  issue is the durable record), and also in `/stack-conventions` (table conventions), which is where
+  whoever builds Campaigns will look.
 - Nuxt UI's docs have no worked example of server-side pagination, though the full TanStack option
   set passes through `:pagination-options`. PR 6 exists to prove this out before any module depends
   on it.
