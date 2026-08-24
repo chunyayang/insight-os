@@ -16,3 +16,4 @@ describes completes, so a stale plan never reads as current fact.
 | Document | Status |
 |---|---|
 | [nuxt-ui-migration.md](nuxt-ui-migration.md) | In flight — started 2026-07-30 |
+| [currency-model.md](currency-model.md) | Settled — 2026-08-24 |
