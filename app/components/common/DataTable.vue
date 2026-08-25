@@ -17,7 +17,7 @@ import { csvFilename, downloadCsv, toCsv, type CsvExport } from '~/utils/csv'
  * Sorting therefore always happens on the server against the RAW field — never coerce
  * formatted strings back into numbers to sort them client-side. This table stays
  * domain-agnostic and knows nothing about currency; how money cells render and which
- * currency they sort on is settled in `.claude/doc/currency-model.md`.
+ * currency they sort on is settled in the product spec's `currency-model.md`.
  */
 const props = defineProps<{
   columns: TableColumn<T>[]

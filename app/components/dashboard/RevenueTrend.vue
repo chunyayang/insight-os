@@ -8,9 +8,11 @@ import type { TrendSeries } from '~/components/charts/TrendLineChart.vue'
  * 30-day revenue trend with market tabs.
  *
  * The market tabs are a DATA-SCOPE control: they flow into the query key and refetch.
- * Amounts render in USD here because the Dashboard is not Analytics — the currency
- * selector lives only there, and a control that isn't on this page must never change
- * this page's numbers.
+ *
+ * The Analytics currency selector lives only on Analytics and must never change this
+ * page's numbers. But four market lines share ONE axis, so every point needs the same
+ * currency whatever market its line is: the settled design is the org's REPORTING
+ * currency. USD is hardcoded below instead — known gap, issue #42.
  */
 const { t } = useI18n()
 const fmt = useFormat()
@@ -33,7 +35,8 @@ const series = computed<TrendSeries[]>(
     data.value?.series.map((s) => ({
       label: t(`common.markets.${s.market.toLowerCase()}`),
       market: s.market as MarketCode,
-      // Read the USD key out of each point's Money map — no client-side conversion.
+      // Read one key out of each point's Money map — no client-side conversion. Should be
+      // the reporting currency rather than a fixed USD (#42).
       data: s.points.map((p) => p.value.USD),
     })) ?? [],
 )
