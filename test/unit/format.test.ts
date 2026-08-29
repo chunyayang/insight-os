@@ -20,15 +20,22 @@ import type { Money } from '../../app/types/api'
 const money: Money = { USD: 1234.567, JPY: 193_456.7, TWD: 39_876.5, EUR: 1135.4 }
 
 describe('currency formatting', () => {
-  it('renders JPY with ZERO decimals', () => {
-    expect(currencyFractionDigits('JPY')).toBe(0)
-    const out = formatCurrency(193_456.7, 'JPY', 'en-US')
-    expect(out).not.toMatch(/\.\d/) // no decimal part at all
-    expect(out).toContain('193,457')
+  /**
+   * Both are 0-decimal on screen, for different reasons: JPY has no minor unit, while
+   * TWD has one that Taiwanese pricing ignores. Intl disagrees about TWD — left to
+   * itself it renders `NT$1,234.50` — so this pins the override, not the default.
+   */
+  it('renders JPY and TWD with ZERO decimals', () => {
+    for (const c of ['JPY', 'TWD'] as const) {
+      expect(currencyFractionDigits(c)).toBe(0)
+      expect(formatCurrency(1234.5, c, 'en-US')).not.toMatch(/\.\d/)
+    }
+    expect(formatCurrency(193_456.7, 'JPY', 'en-US')).toContain('193,457')
+    expect(formatCurrency(39_876.5, 'TWD', 'en-US')).toContain('39,877')
   })
 
-  it('renders USD, TWD and EUR with two decimals', () => {
-    for (const c of ['USD', 'TWD', 'EUR'] as const) {
+  it('renders USD and EUR with two decimals', () => {
+    for (const c of ['USD', 'EUR'] as const) {
       expect(currencyFractionDigits(c)).toBe(2)
       expect(formatCurrency(1234.5, c, 'en-US')).toMatch(/\.\d{2}/)
     }

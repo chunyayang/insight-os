@@ -119,7 +119,7 @@ at existing skills — the DoD is where those rules get enforced per change.
       mappers) — see `testing-and-ci`. UI-only tweaks don't need new tests.
 - [ ] **i18n parity**: no hardcoded user-facing strings; every new key exists in
       **both** `en.json` and `zh-TW.json`; numbers/currency/dates go through
-      `useFormat` (JPY = 0 decimals). See `i18n-workflow`.
+      `useFormat` (JPY and TWD = 0 decimals). See `i18n-workflow`.
 - [ ] **Color**: no raw hex, no Tailwind palette colors — only Nuxt UI semantic
       tokens (`--ui-*`) and Tailwind theme vars/utilities. The sole exception is
       chart hex (`MARKET_COLOR` / `CHART_CHROME`). See `stack-conventions`.
