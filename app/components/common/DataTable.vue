@@ -14,10 +14,10 @@ import { csvFilename, downloadCsv, toCsv, type CsvExport } from '~/utils/csv'
  * whole point: without them a 20-row page would silently sort and slice itself and pretend
  * to be the entire result set.
  *
- * Sorting therefore always happens on the server against the RAW field. Money cells render
- * per record in their native currency, and mixed-currency sorting is currency-blind by
- * design in the MVP (see the product spec, Customers) — never coerce formatted strings back
- * into numbers to paper over that.
+ * Sorting therefore always happens on the server against the RAW field — never coerce
+ * formatted strings back into numbers to sort them client-side. This table stays
+ * domain-agnostic and knows nothing about currency; how money cells render and which
+ * currency they sort on is settled in the product spec's `currency-model.md`.
  */
 const props = defineProps<{
   columns: TableColumn<T>[]

@@ -7,8 +7,12 @@ export const MARKETS: MarketCode[] = ['US', 'JP', 'TW', 'DE']
 export type MarketFilter = MarketCode | 'All'
 
 /**
- * Each market's native currency. Off Analytics, monetary values render in the record's
- * native currency — this map is how the client picks which `Money` key to read.
+ * Each market's functional currency — the currency that market's operation runs on.
+ *
+ * Deriving a currency from a market in the CLIENT is the defect issue #42 removes: the
+ * functional currency is declared per record and must be read off it. This map is also
+ * properly the organization's configuration rather than a constant, since two orgs in one
+ * market can run on different currencies.
  * Records whose market is "All" display in USD (international/base currency).
  */
 export const MARKET_CURRENCY: Record<MarketCode, CurrencyCode> = {

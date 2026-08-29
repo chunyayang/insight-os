@@ -78,7 +78,7 @@ Rules:
 Hard boundary — violating it is the most common review rejection:
 
 - **Vue Query owns all server data.** Anything fetched from an API lives in query cache, never copied into Pinia.
-- **Pinia owns client/UI state only**: auth session + current role, locale, theme, sidebar collapsed, global filters (date range, selected markets). **Display currency is *not* a global filter** — it is an Analytics-scoped display/normalization control (the selector appears only on Analytics). Off Analytics, monetary values render in each record's native currency. See `mock-api-contract.md` (*Currency & money conversion → Display scope*).
+- **Pinia owns client/UI state only**: auth session + current role, locale, theme, sidebar collapsed, global filters (date range, selected markets). **Display currency is *not* a global filter** — it is an Analytics-scoped display/normalization control (the selector appears only on Analytics). Off Analytics there is no selector; what renders is settled in `/product-spec` → `currency-model.md` (§3).
 - Query conventions:
   - Every query lives in `composables/queries/`, one file per domain.
   - Use a query-key factory per domain: `revenueKeys.byMarket(market, range)` — never inline array keys in components.
@@ -120,7 +120,7 @@ Hard boundary — violating it is the most common review rejection:
 - Tables go through `app/components/common/DataTable.vue`, a thin `UTable` wrapper bound to the `ApiListResponse<T>` / `ListQuery` contract in `types/api.ts`. Pages do not use `UTable` directly.
 - `UTable` is built on TanStack Table (`useVueTable`), so going server-side means `:pagination-options="{ manualPagination: true, rowCount }"` **and** `:sorting-options="{ manualSorting: true }"` — they are two separate option bags, and missing either lets the table quietly re-sort or re-slice the one page it holds. Use this for any list that can grow; client-side mode is fine for small fixed sets.
 - Standard features on analytics tables: sortable columns, column filters, global search, CSV export, an empty state via the `#empty` slot, and `column-pinning` for the sticky first columns on narrow viewports (pinning needs explicit column `size` values).
-- **Sorting delegates to the server on the raw numeric field.** Money cells render per record in `nativeCurrency`, and mixed-currency sorting is currency-blind by design in the MVP — never coerce formatted currency strings client-side.
+- **Sorting delegates to the server on the raw numeric field** — never coerce formatted currency strings client-side. Monetary columns sort on the **reporting-currency** amount, and the column says so. How money cells render and sort is one decision, recorded once in **`/product-spec` → `currency-model.md`**; read it before building any table with a money column. **Not yet implemented** — `CustomerList.vue` renders LTV local-only and sorts on the local amount; tracked in issue #41.
 - Export actions are permission-gated (`can('export:csv')`). Where the treatment is *disabled + tooltip* rather than hidden, the disabled control needs a wrapper element to receive pointer events.
 
 ## Accessibility & quality floor

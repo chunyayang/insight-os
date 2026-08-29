@@ -9,9 +9,12 @@ const fmt = useFormat()
 const label = computed(() => t(`dashboard.kpi.${props.metric.key}`))
 
 /**
- * Dashboard KPIs are NOT Analytics, so monetary values render in the base currency and
- * do not react to the Analytics currency selector. The value is read straight out of the
- * Money map — the client picks a key, it never converts.
+ * Dashboard KPIs are NOT Analytics: they never react to the Analytics currency selector.
+ * The value is read straight out of the Money map — the client picks a key, it never converts.
+ *
+ * These are cross-market AGGREGATES, which have no functional currency, so the settled
+ * design renders them in the org's PRESENTATION currency. `nativeMoney(value, 'All')` below resolves
+ * to a hardcoded USD instead — known gap, issue #42.
  */
 const displayValue = computed(() => {
   const value = props.metric.value
