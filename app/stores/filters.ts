@@ -23,7 +23,8 @@ export const useFiltersStore = defineStore('filters', () => {
   const market = ref<MarketFilter>('All')
 
   /**
-   * Analytics-only. Do not read this outside Analytics — other pages show native currency.
+   * Analytics-only. This is a PRESENTATION-currency override: it re-presents already-fetched
+   * figures for this page and nothing else. Renamed to `presentationCurrency` in issue #43.
    *
    * `'USD'` is the fallback for "no organization setting", not a fixed default: this initializes
    * from the org's REPORTING CURRENCY (Settings→General, spec §4.10) once Settings is built.

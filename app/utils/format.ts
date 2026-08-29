@@ -38,7 +38,7 @@ export function formatMoney(money: Money, currency: CurrencyCode, locale: Suppor
 }
 
 /**
- * Format a Money map in the record's NATIVE currency — the correct behaviour everywhere
+ * Format a Money map in the record's FUNCTIONAL currency — the correct behaviour everywhere
  * except Analytics, where a currency selector normalizes markets. "All" resolves to USD.
  */
 export function formatNativeMoney(

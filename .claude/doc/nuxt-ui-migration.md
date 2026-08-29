@@ -440,7 +440,7 @@ Targeted checks, ordered by risk:
   Settings "default currency" conflict, and gating the monetary sort control. Both were symptoms
   of currency rules being spread across four documents. They are now settled in one place —
   **`/product-spec` → `currency-model.md`** (the spec repo), which also withdraws the sort-gating
-  rule in favour of sorting on the reporting currency with dual-currency cells. Nothing
+  rule in favour of sorting on the presentation currency with dual-currency cells. Nothing
   currency-related should be tracked here; this doc is trimmed at PR 7.
 - Nuxt UI's docs have no worked example of server-side pagination, though the full TanStack option
   set passes through `:pagination-options`. PR 6 exists to prove this out before any module depends

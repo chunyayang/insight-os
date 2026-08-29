@@ -4,9 +4,12 @@ import { seededRange } from './seed'
 export const CURRENCIES: CurrencyCode[] = ['USD', 'JPY', 'TWD', 'EUR']
 
 /**
- * Each market's native currency. The API declares this per monetary record so the client
- * can render native amounts off-Analytics without any currency selector.
- * Records whose market is "All" use USD (international/base currency).
+ * Each market's functional currency — what that market's operation runs on. The API declares
+ * it per monetary record so the client can render the operating figure without a selector.
+ *
+ * Stands in for the ORGANIZATION'S configuration, not a fact about geography: two orgs in the
+ * same market can run on different currencies. Records whose market is "All" get USD here,
+ * which is the hardcode issue #42 removes — such a record declares its own currency.
  */
 export const MARKET_NATIVE_CURRENCY: Record<MarketCode, CurrencyCode> = {
   US: 'USD',

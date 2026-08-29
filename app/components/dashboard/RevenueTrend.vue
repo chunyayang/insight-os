@@ -11,7 +11,7 @@ import type { TrendSeries } from '~/components/charts/TrendLineChart.vue'
  *
  * The Analytics currency selector lives only on Analytics and must never change this
  * page's numbers. But four market lines share ONE axis, so every point needs the same
- * currency whatever market its line is: the settled design is the org's REPORTING
+ * currency whatever market its line is: the settled design is the org's PRESENTATION
  * currency. USD is hardcoded below instead — known gap, issue #42.
  */
 const { t } = useI18n()
@@ -36,7 +36,7 @@ const series = computed<TrendSeries[]>(
       label: t(`common.markets.${s.market.toLowerCase()}`),
       market: s.market as MarketCode,
       // Read one key out of each point's Money map — no client-side conversion. Should be
-      // the reporting currency rather than a fixed USD (#42).
+      // the presentation currency rather than a fixed USD (#42).
       data: s.points.map((p) => p.value.USD),
     })) ?? [],
 )

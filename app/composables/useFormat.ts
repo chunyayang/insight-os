@@ -33,9 +33,9 @@ export function useFormat() {
     money: (money: Money, currency: CurrencyCode) => formatMoney(money, currency, loc.value),
 
     /**
-     * Render a Money map in a record's local currency. Takes a MARKET, which is the wrong
-     * input — the local currency is declared per record and must be read off it, not derived
-     * (which is also why "All" wrongly resolves to USD here). Known gap, issue #42.
+     * Render a Money map in a record's FUNCTIONAL currency. Takes a MARKET, which is the
+     * wrong input — the functional currency is declared per record and must be read off it,
+     * not derived (which is also why "All" wrongly resolves to USD here). Issue #42.
      */
     nativeMoney: (money: Money, market: MarketFilter) =>
       formatNativeMoney(money, market, loc.value),
