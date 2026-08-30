@@ -123,6 +123,18 @@ Hard boundary — violating it is the most common review rejection:
 - **Sorting delegates to the server on the raw numeric field.** Money cells render per record in `nativeCurrency`, and mixed-currency sorting is currency-blind by design in the MVP — never coerce formatted currency strings client-side.
 - Export actions are permission-gated (`can('export:csv')`). Where the treatment is *disabled + tooltip* rather than hidden, the disabled control needs a wrapper element to receive pointer events.
 
+## Comments
+
+This codebase leans on comments to carry design intent, which only works while they stay true. Hold them to the same bar as the code.
+
+- **Why, not what.** If a comment restates the line below it, delete it. `// Round-robin the markets so every one of the four is populated at any pool size` earns its place; `// build the customer` does not.
+- **No history.** Never describe how the code used to behave, which bug prompted the change, or what was tried and rejected. That is what the commit message and the PR are for — a reader debugging under pressure needs the current contract, not a changelog. Rejected *designs* with lasting consequences go in [`.claude/doc/`](../../doc/README.md), never inline.
+- **State the constraint, not the incident.** *"Offsets run backwards from `today`: a last-active stamp can only be in the past"* survives a rewrite of the arithmetic below it. *"The old version stamped a clock time and overshot"* is stale the moment anyone reads it.
+- **Scannable.** One or two lines above the code they guard. A block running past ~5 lines is usually a design record filed in the wrong place.
+- **Comment the surprising line, not the file.** A note at the point of the constraint beats a preamble the reader has to hold in their head.
+
+A comment that would go stale if the code below changed shape is already a liability: tie it to the invariant, or drop it.
+
 ## Accessibility & quality floor
 
 - Icon-only buttons always have `aria-label` (localized).
