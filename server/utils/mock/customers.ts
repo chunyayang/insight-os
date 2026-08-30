@@ -196,13 +196,10 @@ function buildCustomer(index: number, today: Date): Customer {
 
   /**
    * Offsets run backwards from `today`: a "last active" stamp can only be in the past.
-   * The hour/minute jitter keeps relative timestamps natural ("4 hours ago").
+   * Minute resolution across the status band keeps relative timestamps natural.
    */
-  const hoursBack =
-    pickRange(`cust:seen:${id}`, minDays, maxDays) * 24 + pickRange(`cust:hour:${id}`, 1, 22)
-  const lastActive = new Date(
-    today.getTime() - (hoursBack * 60 + pickRange(`cust:min:${id}`, 0, 59)) * 60_000,
-  )
+  const minutesBack = pickRange(`cust:seen:${id}`, minDays * 1440, maxDays * 1440)
+  const lastActive = new Date(today.getTime() - minutesBack * 60_000)
 
   return {
     id,

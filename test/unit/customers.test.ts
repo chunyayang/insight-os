@@ -39,13 +39,19 @@ describe('customer pool', () => {
     expect(latest).toBeLessThanOrEqual(TODAY.getTime())
   })
 
-  /** An `active` customer whose last visit is months old would read as stale data. */
-  it('keeps active customers recent and churned ones old', () => {
-    const daysAgo = (c: (typeof pool)[number]) =>
-      (TODAY.getTime() - Date.parse(c.lastActiveAt)) / 86_400_000
+  /** A status whose recency drifts outside its own band is decoration, not data. */
+  it('keeps every status inside the recency band it declares', () => {
+    // Restated from STATUS_RECENCY rather than imported: a test that reads the same
+    // constant as the code cannot catch the constant drifting from what it produces.
+    const BANDS = { active: [0, 6], dormant: [30, 90], churned: [150, 320] } as const
 
-    expect(pool.filter((c) => c.status === 'active').every((c) => daysAgo(c) < 7)).toBe(true)
-    expect(pool.filter((c) => c.status === 'churned').every((c) => daysAgo(c) > 100)).toBe(true)
+    for (const customer of pool) {
+      const daysAgo = (TODAY.getTime() - Date.parse(customer.lastActiveAt)) / 86_400_000
+      const [min, max] = BANDS[customer.status]
+
+      expect(daysAgo).toBeGreaterThanOrEqual(min)
+      expect(daysAgo).toBeLessThanOrEqual(max)
+    }
   })
 
   /**
