@@ -52,6 +52,11 @@ wired to automated releases or auto-tagging (that was deliberately dropped as
 non-essential). The convention is cheap to keep now and makes adding release
 automation later trivial if it's ever wanted.
 
+**The body is where the story goes.** Symptom, cause, and what changed belong in the
+commit message and the PR description — never in a code comment. `git log -S` and
+`git blame` will always find them there; a comment narrating a past bug just rots in
+place. See `stack-conventions` (Comments) for what a comment should say instead.
+
 ## Local hooks — Husky + lint-staged + commitlint
 
 Fast local feedback before code leaves the machine. Setup:
@@ -131,6 +136,8 @@ at existing skills — the DoD is where those rules get enforced per change.
 - [ ] **Verified in the Vercel preview**: works in light + dark and en + zh-TW.
 - [ ] **Accessibility floor**: icon-only buttons have localized `aria-label`;
       keyboard/focus behaviour intact. See `stack-conventions` (Accessibility).
+- [ ] **Comments state intent**, not history — no "used to", "previously", or a
+      narrated past bug; that belongs in the commit body. See `stack-conventions` (Comments).
 - [ ] **Docs updated** if a convention changed — update the relevant skill or
       `CLAUDE.md`, don't let the rules drift from the code.
 - [ ] **PR reviewed** (or self-reviewed) and **squash-merged** with a Conventional
