@@ -34,6 +34,20 @@ describe('customer pool', () => {
     }
   })
 
+  it('never dates a customer as last active in the future', () => {
+    const latest = Math.max(...pool.map((c) => Date.parse(c.lastActiveAt)))
+    expect(latest).toBeLessThanOrEqual(TODAY.getTime())
+  })
+
+  /** An `active` customer whose last visit is months old would read as stale data. */
+  it('keeps active customers recent and churned ones old', () => {
+    const daysAgo = (c: (typeof pool)[number]) =>
+      (TODAY.getTime() - Date.parse(c.lastActiveAt)) / 86_400_000
+
+    expect(pool.filter((c) => c.status === 'active').every((c) => daysAgo(c) < 7)).toBe(true)
+    expect(pool.filter((c) => c.status === 'churned').every((c) => daysAgo(c) > 100)).toBe(true)
+  })
+
   /**
    * Every currency in the map is an independent day-converted total, so none is derivable
    * from another by a single rate. Asserting they merely differ is what catches a future

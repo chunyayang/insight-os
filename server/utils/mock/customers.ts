@@ -193,13 +193,15 @@ function buildCustomer(index: number, today: Date): Customer {
   })
 
   const [minDays, maxDays] = STATUS_RECENCY[status]
-  const lastActive = addDays(today, -pickRange(`cust:seen:${id}`, minDays, maxDays))
-  // Keep a time-of-day component so relative timestamps read naturally ("4 hours ago").
-  lastActive.setUTCHours(
-    pickRange(`cust:hour:${id}`, 1, 22),
-    pickRange(`cust:min:${id}`, 0, 59),
-    0,
-    0,
+
+  /**
+   * Offsets run backwards from `today`: a "last active" stamp can only be in the past.
+   * The hour/minute jitter keeps relative timestamps natural ("4 hours ago").
+   */
+  const hoursBack =
+    pickRange(`cust:seen:${id}`, minDays, maxDays) * 24 + pickRange(`cust:hour:${id}`, 1, 22)
+  const lastActive = new Date(
+    today.getTime() - (hoursBack * 60 + pickRange(`cust:min:${id}`, 0, 59)) * 60_000,
   )
 
   return {
