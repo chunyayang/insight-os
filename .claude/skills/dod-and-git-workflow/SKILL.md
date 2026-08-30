@@ -133,7 +133,10 @@ at existing skills — the DoD is where those rules get enforced per change.
 - [ ] **State boundary**: server data via Vue Query, UI state via Pinia — never cloned.
 - [ ] **States covered**: loading (skeleton), empty, and error states handled where
       the component fetches data.
-- [ ] **Verified in the Vercel preview**: works in light + dark and en + zh-TW.
+- [ ] **Verified in a browser by the author**: light + dark, en + zh-TW. Drive the dev
+      server with Playwright or click the Vercel preview — a green test run is not a
+      substitute, and the visual check is not the reviewer's to do. See `testing-and-ci`
+      (Checking a change in the app).
 - [ ] **Accessibility floor**: icon-only buttons have localized `aria-label`;
       keyboard/focus behaviour intact. See `stack-conventions` (Accessibility).
 - [ ] **Comments state intent**, not history — no "used to", "previously", or a
