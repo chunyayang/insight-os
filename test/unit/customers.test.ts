@@ -55,9 +55,8 @@ describe('customer pool', () => {
   })
 
   /**
-   * Every currency in the map is an independent day-converted total, so none is derivable
-   * from another by a single rate. Asserting they merely differ is what catches a future
-   * "simplification" that multiplies one native total by one period-end rate.
+   * Each currency is an independent day-converted total, so none is derivable from another by
+   * a single rate — which is what a period-end conversion would produce instead.
    */
   it('carries all four currencies as independent totals', () => {
     for (const customer of pool.slice(0, 12)) {
@@ -108,10 +107,9 @@ describe('queryCustomers — sorting', () => {
   })
 
   /**
-   * The load-bearing rule: lifetime value sorts on the record's NATIVE amount — the raw
-   * number behind the cell. Across mixed markets that is currency-blind by design (a JPY
-   * total dwarfs a EUR one) and the MVP provides no normalized alternative. If this ever
-   * starts sorting on a shared currency key, the spec changed and this test should fail.
+   * Lifetime value sorts on the record's NATIVE amount, which across mixed markets is
+   * currency-blind by design (a JPY total dwarfs a EUR one). If this ever sorts on a shared
+   * currency key, the spec changed and this test should fail with it.
    */
   it('sorts lifetime value on the native amount, currency-blind across markets', () => {
     const rows = list({ sort: 'lifetimeValue', order: 'desc', pageSize: pool.length }).rows

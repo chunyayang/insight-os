@@ -5,12 +5,9 @@ import { addDays, isoDate } from './dates'
 import { MARKETS } from './markets'
 
 /**
- * The Customers list — the first endpoint that exercises the list contract end to end
- * (page / pageSize / sort / order / q / market / segment / status).
- *
- * Names are per-market on purpose: the JP and TW rows put real CJK through the column
- * widths, the sort comparator and the CSV export, which is where locale bugs actually show
- * up. Each carries a romanized handle so the email column stays plausible.
+ * Customer records for the list endpoint. Names are per-market on purpose: the JP and TW rows
+ * put real CJK through the column widths, the sort comparator and the CSV export, which is
+ * where locale bugs show up. Each part carries a romanized handle for the email column.
  */
 
 interface NamePart {
@@ -108,10 +105,8 @@ const GIVEN: Record<MarketCode, NamePart[]> = {
 const FAMILY_NAME_FIRST: Record<MarketCode, boolean> = { US: false, JP: true, TW: true, DE: false }
 
 /**
- * Names are combined by position, not drawn at random: with 8×8 parts per market and 34
- * customers in each, indexing guarantees every row is a distinct person. A seeded draw
- * would collide often enough to put the same name on two rows of one page, which reads as
- * a data bug in a list whose whole job is to look like real records.
+ * Names combine by position rather than by draw: 8×8 parts against the 34 rows each market
+ * gets guarantees no two customers share a name.
  */
 function nameFor(market: MarketCode, ordinal: number): { name: string; handle: string } {
   const family = FAMILY[market][ordinal % FAMILY[market].length]!
@@ -181,10 +176,9 @@ function buildCustomer(index: number, today: Date): Customer {
   const monthly = BASE_MONTHLY_SPEND[market] * SEGMENT_SPEND_FACTOR[segment]
 
   /**
-   * Lifetime value is the SUM OF DAY-CONVERTED amounts, never the native total times one
-   * rate — the non-negotiable rule from the API contract, kept honest here by converting
-   * each monthly bucket at its own day's official rate before summing. The four currencies
-   * that come out are independent totals; the client picks `nativeCurrency` and formats it.
+   * Lifetime value is the SUM OF DAY-CONVERTED amounts, never a native total times one rate
+   * (the API contract's non-negotiable): every monthly bucket converts at its own day's
+   * official rate, so the four currencies that come out are independent totals.
    */
   const buckets = Array.from({ length: TENURE_MONTHS }, (_, month) => {
     const date = isoDate(addDays(today, -(month * 30 + 15)))
@@ -195,8 +189,8 @@ function buildCustomer(index: number, today: Date): Customer {
   const [minDays, maxDays] = STATUS_RECENCY[status]
 
   /**
-   * Offsets run backwards from `today`: a "last active" stamp can only be in the past.
-   * Minute resolution across the status band keeps relative timestamps natural.
+   * Offsets run backwards from `today`: a "last active" stamp can only be in the past, and
+   * minute resolution across the status band keeps relative timestamps natural.
    */
   const minutesBack = pickRange(`cust:seen:${id}`, minDays * 1440, maxDays * 1440)
   const lastActive = new Date(today.getTime() - minutesBack * 60_000)
@@ -217,8 +211,8 @@ function buildCustomer(index: number, today: Date): Customer {
 
 /**
  * The pool, memoized per day. Deterministic by contract: the same customer must carry the
- * same figures across requests, or paging through the list would reshuffle under the user.
- * The day is part of the cache key because the seed derives recency from `today`.
+ * same figures across requests, or paging would reshuffle the list under the user. The day is
+ * part of the key because recency is derived from `today`.
  */
 let cache: { day: string; customers: Customer[] } | null = null
 
@@ -232,13 +226,9 @@ export function customerPool(today: Date = new Date()): Customer[] {
 }
 
 /**
- * Fields this endpoint can sort by, and the raw value each one sorts on.
- *
- * `lifetimeValue` reads the record's NATIVE amount — the number behind the cell. Across
- * mixed markets that makes the sort currency-blind (a JPY total dwarfs a EUR one), which is
- * the documented MVP behaviour: narrow to a single market for a meaningful ranking. There is
- * no cross-currency normalization, and the client must not invent one by re-sorting the
- * formatted strings.
+ * Fields this endpoint can sort by, and the raw value each sorts on. `lifetimeValue` reads the
+ * record's NATIVE amount, so across mixed markets the sort is currency-blind (a JPY total
+ * dwarfs a EUR one) — the documented MVP behaviour; narrow to one market for a real ranking.
  */
 const SORTABLE = {
   name: (c: Customer) => c.name,

@@ -65,10 +65,7 @@ describe('toCsv', () => {
     ])
   })
 
-  /**
-   * The export carries the RAW amount, never the rendered cell. "¥1,284,000" would arrive
-   * as text a spreadsheet can't sum, and re-parsing it back would be locale-dependent.
-   */
+  /** The RAW amount, never the rendered cell: "¥1,284,000" is text a spreadsheet cannot sum. */
   it('exports amounts as bare numbers with the currency in its own column', () => {
     const csv = toCsv([{ name: 'Lena', amount: 1284, currency: 'EUR' }], columns)
     expect(csv).toContain('Lena,1284,EUR')

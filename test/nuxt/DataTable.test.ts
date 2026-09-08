@@ -31,14 +31,12 @@ const pagination: ApiListResponse<Row>['pagination'] = {
 }
 
 /**
- * Mounts the table the way a feature component uses it: inside <UApp> (whose
- * TooltipProvider the export tooltip needs, and which app.vue supplies for real) and
- * behind a `query` ref bound with v-model, so writes flow back exactly as they would.
+ * Mounts the table the way a feature component uses it: inside <UApp> (whose TooltipProvider
+ * the export tooltip needs) and behind a `query` ref bound with v-model.
  *
- * The session is seeded from INSIDE the harness on purpose. The auth store resolves to the
- * mounted app's own Pinia instance, so signing in from the test scope would seed a
- * different store than the one `useCan()` reads — and every role assertion would silently
- * run as the default Viewer.
+ * The session is seeded from INSIDE the harness: the auth store resolves to the mounted app's
+ * own Pinia, so signing in from the test scope seeds a different store than `useCan()` reads
+ * and every role assertion silently runs as the default Viewer.
  */
 async function mountTable(props: Record<string, unknown> = {}, role: Role = 'admin') {
   const query = ref<ListQuery>({ page: 1, pageSize: 20, ...((props.query as ListQuery) ?? {}) })
@@ -90,11 +88,7 @@ describe('DataTable', () => {
     expect(wrapper.text()).toContain('1–20 of 136')
   })
 
-  /**
-   * The load-bearing behaviour: a sort click must go to the SERVER. It writes the wire
-   * params and resets the page — it must never reorder the two rows in hand and pass that
-   * off as a sorted result set.
-   */
+  /** A sort click must reach the SERVER: wire params out, page reset, never a local reorder. */
   it('turns a sort click into wire params and resets to page 1', async () => {
     const { wrapper, updates } = await mountTable({ query: { page: 4, pageSize: 20 } })
 
@@ -163,10 +157,8 @@ describe('DataTable', () => {
     })
 
     /**
-     * `export:csv` is the one ability the spec marks *disabled + tooltip* rather than
-     * hidden: the Viewer still sees the control and can learn why it is inert. The disabled
-     * button sits inside a wrapper element so the tooltip still receives pointer events —
-     * a disabled <button> emits none of its own.
+     * *Disabled + tooltip*, not hidden: the Viewer keeps the control and can learn why it is
+     * inert. The wrapper element is what receives the tooltip's pointer events.
      */
     it('stays visible but inert for a role that does not', async () => {
       const { wrapper } = await mountTable({ csv }, 'viewer')

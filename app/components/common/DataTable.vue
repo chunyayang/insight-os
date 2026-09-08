@@ -5,19 +5,9 @@ import { csvFilename, downloadCsv, toCsv, type CsvExport } from '~/utils/csv'
 
 /**
  * The project's one table. Pages and feature components never reach for `UTable` directly.
- *
- * What makes it more than a pass-through: it is bound to the API contract rather than to a
- * row array. `query` is the `ListQuery` that goes on the wire and `pagination` is the
- * envelope's own block off `ApiListResponse`, so sorting and paging are SERVER concerns —
- * the component writes back into `query` and the caller's Vue Query composable refetches.
- * `manualSorting` / `manualPagination` tell TanStack to keep its hands off, which is the
- * whole point: without them a 20-row page would silently sort and slice itself and pretend
- * to be the entire result set.
- *
- * Sorting therefore always happens on the server against the RAW field. Money cells render
- * per record in their native currency, and mixed-currency sorting is currency-blind by
- * design in the MVP (see the product spec, Customers) — never coerce formatted strings back
- * into numbers to paper over that.
+ * It binds to the API contract rather than to a row array: `query` is the `ListQuery` that
+ * goes on the wire and `pagination` is the envelope's own block off `ApiListResponse`, so
+ * sorting and paging are SERVER concerns — the component only writes back into `query`.
  */
 const props = defineProps<{
   columns: TableColumn<T>[]
@@ -89,8 +79,7 @@ function sortIcon(id: string): string {
 
 /**
  * Sorting is opt-in per column (`enableSorting: true`) because the ENDPOINT has to support
- * the field — a header that sorts nothing is worse than no header control at all. Opting in
- * swaps the plain string header for a toggle button; everything else passes through.
+ * the field — a header that sorts nothing is worse than no header control at all.
  */
 const tableColumns = computed<TableColumn<T>[]>(() =>
   props.columns.map((column) => {
@@ -100,7 +89,7 @@ const tableColumns = computed<TableColumn<T>[]>(() =>
     const id = columnId(column)
 
     // Cast: spreading ColumnDef's discriminated union widens it past TS's ability to
-    // re-narrow, though the shape is unchanged apart from `header`.
+    // re-narrow, though nothing but `header` changes shape.
     return {
       ...column,
       header: () =>
@@ -144,10 +133,9 @@ const showing = computed(() => {
 /* ─────────────────────────── CSV export ─────────────────────────── */
 
 /**
- * `export:csv` is the one ability the spec marks *disabled + tooltip* rather than hidden,
- * so the control renders for every role and `shouldRender` keeps that decision in the
- * permission map instead of here. Client-side gating is UX only — the real backend export
- * must re-check the role.
+ * `export:csv` is the one ability the spec marks *disabled + tooltip* rather than hidden, so
+ * `shouldRender` keeps that decision in the permission map instead of here. Client-side
+ * gating is UX only — the real backend export must re-check the role.
  */
 const canExport = computed(() => can('export:csv'))
 const exportDisabled = computed(
@@ -166,9 +154,9 @@ function exportCsv() {
 /* ─────────────────────────── Slots ─────────────────────────── */
 
 /**
- * Forward `#<column>-cell` / `#<column>-header` straight through to UTable. The three below
- * are ours: each is declared once with a default a caller can override, so forwarding them
- * as well would declare the same slot name twice.
+ * Forward `#<column>-cell` / `#<column>-header` straight through to UTable. Ours are held
+ * back: each is declared below with an overridable default, and forwarding would redeclare
+ * the same slot name twice.
  */
 const OWN_SLOTS = ['toolbar', 'empty', 'loading']
 const forwardedSlots = computed(() =>
@@ -184,9 +172,8 @@ const forwardedSlots = computed(() =>
       </div>
 
       <UTooltip v-if="csv && shouldRender('export:csv')" :text="exportTooltip">
-        <!-- A disabled <button> swallows pointer events, so the tooltip would never open
-             for the role the tooltip exists to explain things to. The wrapper hears them
-             instead. -->
+        <!-- A disabled <button> emits no pointer events, so the wrapper has to hear them —
+             otherwise the tooltip never opens for the role it exists to explain things to. -->
         <span class="data-table__export">
           <UButton
             :label="t('common.table.exportCsv')"
@@ -204,6 +191,9 @@ const forwardedSlots = computed(() =>
     <CommonErrorState v-if="error" :error="error" @retry="emit('retry')" />
 
     <template v-else>
+      <!-- `sorting-options` and `pagination-options` are two separate option bags and both are
+           required: missing either lets TanStack re-sort or re-slice the one page in hand and
+           present it as the whole result set. -->
       <UTable
         v-model:sorting="sorting"
         :data="rows"
@@ -221,8 +211,8 @@ const forwardedSlots = computed(() =>
           <slot :name="name" v-bind="slotProps ?? {}" />
         </template>
 
-        <!-- First load has no rows to draw yet, so stand in for them rather than flashing
-             the empty state at someone whose data is still on the wire. -->
+        <!-- Only reached with no rows in hand: stand in for them rather than flashing the
+             empty state at someone whose data is still on the wire. -->
         <template #loading>
           <slot name="loading">
             <div class="data-table__skeleton">

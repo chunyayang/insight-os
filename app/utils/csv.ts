@@ -1,11 +1,9 @@
 /**
  * CSV export — a pure transform over rows the client already has.
  *
- * The columns here are deliberately NOT the table's display columns. A money cell renders
- * per record in its native currency ("¥1,234" / "1.234,00 €"), and re-parsing that back into
- * a number would be both locale-dependent and currency-blind. Each CSV column reads the
- * underlying value instead — the raw number, the ISO timestamp, the code — so a spreadsheet
- * gets something it can actually sum and sort. Formatting stays a display concern.
+ * The columns are deliberately NOT the table's display columns: a money cell renders in its
+ * record's native currency, and re-parsing "¥1,234" back into a number would be both
+ * locale-dependent and currency-blind. Each CSV column reads the underlying value instead.
  */
 
 export interface CsvColumn<T> {
@@ -27,12 +25,10 @@ const DELIMITER = ','
 const ROW_SEPARATOR = '\r\n'
 
 /**
- * Quote a single cell per RFC 4180, and neutralize spreadsheet formula injection.
- *
- * A text cell starting with `=`, `+`, `-` or `@` is evaluated as a formula by Excel and
- * Sheets, which turns an exported customer name into an attack on whoever opens the file.
- * Prefixing an apostrophe forces it back to text. Numbers are exempt — a negative number
- * is a number, and quoting it would break the column type on import.
+ * Quote a single cell per RFC 4180, and neutralize spreadsheet formula injection: a text cell
+ * starting with `=`, `+`, `-` or `@` is evaluated as a formula by Excel and Sheets, which
+ * turns an exported customer name into an attack on whoever opens the file. Numbers are
+ * exempt — quoting a negative number would break the column type on import.
  */
 export function escapeCsvValue(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return ''

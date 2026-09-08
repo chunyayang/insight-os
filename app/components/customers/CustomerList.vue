@@ -5,8 +5,6 @@ import type { CsvExport } from '~/utils/csv'
 import { MARKETS, type MarketFilter } from '~/constants/markets'
 
 /**
- * Customer list — the first real consumer of CommonDataTable.
- *
  * There is deliberately NO currency selector on this page. Every LTV renders in its own
  * customer's market currency and is unaffected by the Analytics-scoped selector: a control
  * that isn't visible here must never silently change these numbers.
@@ -32,10 +30,9 @@ const STATUS_COLOR: Record<CustomerStatus, 'success' | 'warning' | 'neutral'> = 
 /* ─────────────────────────── Query state ─────────────────────────── */
 
 /**
- * The single `ListQuery` that goes on the wire. DataTable writes `page`, `sort` and `order`
- * into it; the filter controls below write the rest. Market comes from the global Pinia
- * filter so the app-wide market scope stays consistent — the select here is a view onto it,
- * not a second source of truth.
+ * The single `ListQuery` that goes on the wire. DataTable writes `page`, `sort` and `order`;
+ * the filter controls below write the rest. Market comes from the global Pinia filter, so the
+ * select here is a view onto the app-wide scope rather than a second source of truth.
  */
 const query = ref<ListQuery>({
   page: 1,
@@ -76,9 +73,8 @@ const rows = computed(() => data.value?.data ?? [])
 /* ─────────────────────────── Columns ─────────────────────────── */
 
 /**
- * Explicit `size` on every column: pinning the name column positions the rest by measured
- * offset, so an unsized column would collapse the sticky layout on narrow viewports.
- * `enableSorting` is set only where /api/customers can actually sort.
+ * `enableSorting` is set only where /api/customers can actually sort. `size` records the width
+ * each column is meant to hold — the table lays out content-sized until #50 lands.
  */
 const columns = computed<TableColumn<Customer>[]>(() => [
   { accessorKey: 'name', header: t('customers.columns.name'), enableSorting: true, size: 240 },
@@ -117,9 +113,9 @@ const marketItems = computed(() => [
 /* ─────────────────────────── CSV ─────────────────────────── */
 
 /**
- * The export reads raw values, not the rendered cells: the amount goes out as a number with
- * its currency in its own column, and the timestamp as ISO. A spreadsheet can sum the first
- * and parse the second; it can do neither with "¥1,234" or "5 days ago".
+ * Raw values, not rendered cells: the amount as a number with its currency in its own column,
+ * the timestamp as ISO. A spreadsheet can sum the first and parse the second; it can do
+ * neither with "¥1,234" or "5 days ago".
  */
 const csv = computed<CsvExport<Customer>>(() => ({
   filename: 'customers',
