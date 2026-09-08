@@ -38,6 +38,7 @@ const query = defineModel<ListQuery>('query', { required: true })
 const { t } = useI18n()
 const fmt = useFormat()
 const { can, shouldRender } = useCan()
+const notify = useNotify()
 const slots = useSlots()
 
 const UButton = resolveComponent('UButton')
@@ -148,16 +149,29 @@ const showing = computed(() => {
  * gating is UX only — the real backend export must re-check the role.
  */
 const canExport = computed(() => can('export:csv'))
-const exportDisabled = computed(
-  () => !canExport.value || Boolean(props.loading) || props.rows.length === 0,
-)
+
+/**
+ * A denied control is `aria-disabled`, never `disabled`. A `disabled` button leaves the tab
+ * order and emits no events, which puts the tooltip out of reach of everyone without a mouse —
+ * and the tooltip is a pointer affordance regardless (Reka ignores `pointerType === 'touch'`
+ * by design), so activation has to say it out loud as well.
+ *
+ * Nothing to export YET is the other case: transient, self-explanatory, and nobody needs it
+ * spelled out. That one stays truly disabled.
+ */
+const exportUnavailable = computed(() => Boolean(props.loading) || props.rows.length === 0)
+
 const exportTooltip = computed(() =>
   canExport.value ? t('common.table.exportCsvHint') : t('common.table.exportDenied'),
 )
 
 /** Exports the loaded page. A whole-result export needs a `?format=csv` endpoint variant. */
 function exportCsv() {
-  if (!props.csv || exportDisabled.value) return
+  if (!canExport.value) {
+    notify.info('common.table.exportDenied')
+    return
+  }
+  if (!props.csv || exportUnavailable.value) return
   downloadCsv(csvFilename(props.csv.filename), toCsv(props.rows, props.csv.columns))
 }
 
@@ -182,19 +196,19 @@ const forwardedSlots = computed(() =>
       </div>
 
       <UTooltip v-if="csv && shouldRender('export:csv')" :text="exportTooltip">
-        <!-- A disabled <button> emits no pointer events, so the wrapper has to hear them —
-             otherwise the tooltip never opens for the role it exists to explain things to. -->
-        <span class="data-table__export">
-          <UButton
-            :label="t('common.table.exportCsv')"
-            icon="i-lucide-download"
-            color="neutral"
-            variant="outline"
-            size="sm"
-            :disabled="exportDisabled"
-            @click="exportCsv"
-          />
-        </span>
+        <!-- The button is the tooltip's own trigger: `focus` does not bubble, so a wrapper
+             around it would leave the tooltip closed for anyone arriving by keyboard. -->
+        <UButton
+          :label="t('common.table.exportCsv')"
+          icon="i-lucide-download"
+          color="neutral"
+          variant="outline"
+          size="sm"
+          class="data-table__export"
+          :disabled="canExport && exportUnavailable"
+          :aria-disabled="canExport ? undefined : true"
+          @click="exportCsv"
+        />
       </UTooltip>
     </div>
 
