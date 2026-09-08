@@ -76,7 +76,7 @@ test/
 ## What to test for the MVP (in priority order)
 
 1. **Money formatting (`composables/useFormat.ts`)** — highest value. Assert
-   JPY renders **0 decimals**, USD/TWD/EUR render correctly per market. Formatting
+   JPY and TWD render **0 decimals**, USD/EUR render correctly per market. Formatting
    is the one client-side money rule (conversion is server-side — see
    `mock-api-contract`), so it must be correct.
 2. **Permission map (`app/constants/permissions.ts` + `useCan()`)** — table-driven

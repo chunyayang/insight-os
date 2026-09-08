@@ -71,7 +71,7 @@ Follow this every time — it's short and non-negotiable:
 
 Locale-sensitive values are formatted with `Intl`, centralized in `composables/useFormat.ts`. Do not hand-format in components.
 
-- Currency varies by market and must respect currency rules: USD/EUR/TWD show 2 decimals; **JPY shows 0 decimals**. Drive this from the market→currency map in `app/constants/markets.ts`, not hardcoded.
+- Currency varies by market and must respect currency rules: USD/EUR show 2 decimals; **JPY and TWD show 0 decimals** — JPY because it has no minor unit, TWD because Taiwanese prices are quoted in whole dollars (Intl would otherwise render `NT$1,234.50`). Drive this from the market→currency map in `app/constants/markets.ts`, not hardcoded.
 - Dates/times: format via `Intl.DateTimeFormat` keyed off the active locale (`en-US` vs `zh-TW`), never a hand-written string template.
 - Percentages and large numbers (revenue) use `Intl.NumberFormat` with the active locale for correct grouping separators.
 
@@ -91,5 +91,5 @@ Locale-sensitive values are formatted with `Intl`, centralized in `composables/u
 - No literal user-facing strings left in templates or scripts.
 - Every new key exists in both `en.json` and `zh-TW.json`, same structure/order.
 - Keys follow `module.page.element` / `common.*` / `errors.*` conventions.
-- Currency/date/number formatting goes through `useFormat`, JPY has 0 decimals.
+- Currency/date/number formatting goes through `useFormat`; JPY and TWD have 0 decimals.
 - Layout verified in both languages.

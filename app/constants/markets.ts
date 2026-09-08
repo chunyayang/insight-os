@@ -44,10 +44,21 @@ export const MARKET_COLOR: Record<MarketCode, { light: string; dark: string }> =
 }
 
 /**
- * Currencies with no minor unit. JPY is the one that matters here: it must render with
- * 0 decimals everywhere (the single client-side money rule — conversion is server-side).
+ * Currencies rendered with 0 decimals. DISPLAY ONLY — this is not storage precision, and
+ * the two are deliberately different (see `roundMoney` in `server/utils/mock/fx.ts`).
+ *
+ * The two entries are here for different reasons:
+ * - JPY has no minor unit at all (ISO 4217 minor unit 0), so a fractional yen is
+ *   meaningless. Integer is correct in storage AND display.
+ * - TWD *does* have a minor unit (ISO 4217 says 2, and Intl formats `NT$1,234.50` by
+ *   default), but Taiwanese prices are quoted in whole dollars. This is convention
+ *   overriding the standard, so it applies to display only: our TWD figures are converted
+ *   values carrying real precision, and rounding them at the data layer would discard it.
+ *
+ * Do not "unify" this list with `roundMoney`'s per-currency rounding. They encode
+ * different facts and are pinned apart by tests.
  */
-export const ZERO_DECIMAL_CURRENCIES: readonly CurrencyCode[] = ['JPY']
+export const ZERO_DECIMAL_CURRENCIES: readonly CurrencyCode[] = ['JPY', 'TWD']
 
 export function currencyFractionDigits(currency: CurrencyCode): number {
   return ZERO_DECIMAL_CURRENCIES.includes(currency) ? 0 : 2
