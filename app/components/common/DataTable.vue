@@ -44,10 +44,13 @@ const UButton = resolveComponent('UButton')
 
 /**
  * A pinned cell has to be opaque: it sits over the columns scrolling under it, and Nuxt UI's
- * own `bg-default/75` lets their text read straight through the pinned one. The attribute
- * variant outranks the theme's plain class on specificity, so it wins wherever pinning is on.
+ * own `bg-default/75` lets their text read straight through the pinned one.
+ *
+ * Match the VALUE, not the attribute. UTable renders `data-pinned="false"` on every unpinned
+ * cell, so a presence match (`data-pinned:`) paints the whole table opaque — and an opaque
+ * cell background hides the collapsed row border that `divide-y` draws underneath it.
  */
-const PINNED_CELL = 'data-pinned:bg-default'
+const PINNED_CELL = 'data-[pinned=left]:bg-default data-[pinned=right]:bg-default'
 
 /* ─────────────────────────── Sorting ─────────────────────────── */
 
