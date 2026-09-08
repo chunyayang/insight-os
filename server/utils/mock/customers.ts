@@ -105,6 +105,13 @@ const GIVEN: Record<MarketCode, NamePart[]> = {
 const FAMILY_NAME_FIRST: Record<MarketCode, boolean> = { US: false, JP: true, TW: true, DE: false }
 
 /**
+ * What sits between the two halves of a name. A Chinese name is written as one run of
+ * characters; Japanese forms conventionally separate 姓 from 名 with an ideographic space, which
+ * an ASCII space is not — it collapses at CJK widths and reads as a typo to a native speaker.
+ */
+const NAME_JOINER: Record<MarketCode, string> = { US: ' ', JP: '\u3000', TW: '', DE: ' ' }
+
+/**
  * Names combine by position rather than by draw: 8×8 parts against the 34 rows each market
  * gets guarantees no two customers share a name.
  */
@@ -112,10 +119,10 @@ function nameFor(market: MarketCode, ordinal: number): { name: string; handle: s
   const family = FAMILY[market][ordinal % FAMILY[market].length]!
   const given = GIVEN[market][Math.floor(ordinal / FAMILY[market].length) % GIVEN[market].length]!
 
+  const [first, second] = FAMILY_NAME_FIRST[market] ? [family, given] : [given, family]
+
   return {
-    name: FAMILY_NAME_FIRST[market]
-      ? `${family.text} ${given.text}`
-      : `${given.text} ${family.text}`,
+    name: `${first.text}${NAME_JOINER[market]}${second.text}`,
     handle: `${given.handle}.${family.handle}`,
   }
 }

@@ -27,6 +27,15 @@ describe('customer pool', () => {
     expect(pool.find((c) => c.market === 'US')!.name.split(' ')[0]).toMatch(/^[A-Z][a-z]+$/)
   })
 
+  /** An ASCII space between 姓 and 名 is a latinism: TW runs the halves together, JP uses U+3000. */
+  it('joins CJK names the way each market writes them', () => {
+    const named = (market: string) => pool.filter((c) => c.market === market)
+
+    expect(named('TW').every((c) => !/\s/.test(c.name))).toBe(true)
+    expect(named('JP').every((c) => c.name.includes('\u3000') && !c.name.includes(' '))).toBe(true)
+    expect(named('DE').every((c) => c.name.includes(' '))).toBe(true)
+  })
+
   it('covers all four markets and gives each record its market currency', () => {
     expect(new Set(pool.map((c) => c.market))).toEqual(new Set(['US', 'JP', 'TW', 'DE']))
     for (const customer of pool) {
