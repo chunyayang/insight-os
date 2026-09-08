@@ -174,6 +174,38 @@ change runs this** — it is not the reviewer's step and not the user's.
   sees every row at full precision where the UI shows twenty, rounded. Diagnose with the
   probe, confirm in the browser. Both, not either.
 
+### Chromium alone is not enough
+
+Blink and WebKit disagree about painting, and the disagreements stay invisible until someone
+opens the page on an iPhone. Check **both** engines when a change touches:
+
+- **`position: sticky`, `border-collapse`, stacking or translucency.** WebKit paints a
+  collapsed table border *beneath* cell backgrounds where Blink paints it above, so an opaque
+  cell erases its own row divider in Safari and nowhere else.
+- **A download.** `URL.createObjectURL` plus a programmatic click is the whole mechanism
+  behind CSV export, and iOS Safari is where a detached anchor, or a `revokeObjectURL` called
+  too early, quietly produces nothing — or opens the file in a tab instead of saving it.
+- **Anything that needs hover.** Touch has none, so the `disabled + tooltip` treatment the
+  RBAC spec mandates is unreachable unless a tap opens it.
+- **`Intl` output.** JSC ships its own ICU: a currency symbol, a narrow space inside a
+  number, or relative-time wording can differ from what Chromium rendered.
+- **Viewport units in the layout shell.** iOS resizes `100vh` as its toolbars collapse.
+
+```ts
+import { devices, webkit } from 'playwright-core'
+
+const browser = await webkit.launch()
+const page = await browser.newPage({ ...devices['iPhone 14 Plus'], locale: 'zh-TW' })
+```
+
+One-time: `pnpm exec playwright install webkit`. Read computed values here too —
+`getComputedStyle(td).backgroundColor` returning `rgba(0, 0, 0, 0)` on an unpinned cell is the
+assertion; the screenshot only tells you where to look.
+
+Playwright's WebKit tracks a current Safari, so it catches **engine** differences, not
+**version** support (`oklch()`, `:has()`, and everything else the palette assumes). Those need
+a real device or a support matrix, and no headless run substitutes for either.
+
 ## CI — GitHub Actions (single workflow)
 
 One workflow, runs on push to `main` and on every PR targeting `main`. It is the
