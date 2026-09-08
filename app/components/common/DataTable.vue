@@ -42,6 +42,13 @@ const slots = useSlots()
 
 const UButton = resolveComponent('UButton')
 
+/**
+ * A pinned cell has to be opaque: it sits over the columns scrolling under it, and Nuxt UI's
+ * own `bg-default/75` lets their text read straight through the pinned one. The attribute
+ * variant outranks the theme's plain class on specificity, so it wins wherever pinning is on.
+ */
+const PINNED_CELL = 'data-pinned:bg-default'
+
 /* ─────────────────────────── Sorting ─────────────────────────── */
 
 function columnId(column: TableColumn<T>): string {
@@ -201,6 +208,7 @@ const forwardedSlots = computed(() =>
         :caption="caption"
         :loading="loading"
         :column-pinning="{ left: pinnedColumns ?? [] }"
+        :ui="{ th: PINNED_CELL, td: PINNED_CELL }"
         :sorting-options="{ manualSorting: true }"
         :pagination-options="{
           manualPagination: true,
