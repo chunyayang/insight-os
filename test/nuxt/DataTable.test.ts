@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { defineComponent, h, ref, type Component } from 'vue'
+import { defineComponent, h, nextTick, ref, type Component } from 'vue'
 import { UApp } from '#components'
 import type { TableColumn } from '@nuxt/ui'
 import DataTable from '../../app/components/common/DataTable.vue'
@@ -158,13 +158,36 @@ describe('DataTable', () => {
 
     /**
      * *Disabled + tooltip*, not hidden: the Viewer keeps the control and can learn why it is
-     * inert. The wrapper element is what receives the tooltip's pointer events.
+     * inert. `aria-disabled` rather than `disabled` is what makes that reachable — a disabled
+     * button leaves the tab order and emits nothing, so the explanation would exist for mouse
+     * users alone.
      */
     it('stays visible but inert for a role that does not', async () => {
       const { wrapper } = await mountTable({ csv }, 'viewer')
+      const button = buttonWithText(wrapper, 'Export CSV')
 
       expect(wrapper.text()).toContain('Export CSV')
-      expect(buttonWithText(wrapper, 'Export CSV')?.attributes('disabled')).toBeDefined()
+      expect(button?.attributes('aria-disabled')).toBe('true')
+      expect(button?.attributes('disabled')).toBeUndefined()
+    })
+
+    /** Touch has no hover and Reka's tooltip ignores it, so activation must say it out loud. */
+    it('explains the denial when a Viewer activates it', async () => {
+      const { wrapper } = await mountTable({ csv }, 'viewer')
+
+      await buttonWithText(wrapper, 'Export CSV')?.trigger('click')
+      await nextTick()
+
+      expect(document.body.textContent).toContain("Your role can't export data.")
+    })
+
+    /** Mid-load there is nothing to explain, so the plain disabled treatment is right. */
+    it('is plainly disabled for a permitted role while rows are loading', async () => {
+      const { wrapper } = await mountTable({ csv, loading: true, rows: [] })
+      const button = buttonWithText(wrapper, 'Export CSV')
+
+      expect(button?.attributes('disabled')).toBeDefined()
+      expect(button?.attributes('aria-disabled')).toBeUndefined()
     })
   })
 })
