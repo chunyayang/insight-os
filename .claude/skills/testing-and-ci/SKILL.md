@@ -198,9 +198,9 @@ const browser = await webkit.launch()
 const page = await browser.newPage({ ...devices['iPhone 14 Plus'], locale: 'zh-TW' })
 ```
 
-One-time: `pnpm exec playwright install webkit`. Read computed values here too —
-`getComputedStyle(td).backgroundColor` returning `rgba(0, 0, 0, 0)` on an unpinned cell is the
-assertion; the screenshot only tells you where to look.
+One-time: `pnpm exec playwright install webkit`. Measure here too, and reach for
+`getComputedStyle()` ahead of `boundingBox()` — a paint difference lives in a colour or a
+layer, not in geometry. The screenshot says where to look; the computed value settles it.
 
 Playwright's WebKit tracks a current Safari, so it catches **engine** differences, not
 **version** support (`oklch()`, `:has()`, and everything else the palette assumes). Those need
