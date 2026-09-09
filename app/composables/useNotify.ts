@@ -34,6 +34,15 @@ export function useNotify() {
     })
   }
 
+  /** A neutral explanation — a role limit or a state, not a failure. */
+  function info(messageKey: string) {
+    toast.add({
+      title: t(messageKey),
+      color: 'info',
+      icon: 'i-lucide-info',
+    })
+  }
+
   function success(messageKey: string) {
     toast.add({
       title: t(messageKey),
@@ -42,5 +51,5 @@ export function useNotify() {
     })
   }
 
-  return { error, success }
+  return { error, info, success }
 }
