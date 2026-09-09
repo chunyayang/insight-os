@@ -127,7 +127,7 @@
   },
   "customers": {
     "title": "Customers",
-    "subtitle": "Every buyer across your four markets, in their own currency.",
+    "subtitle": "Every buyer across your markets, in their own currency.",
     "list": {
       "caption": "Customers, with market, lifetime value, order count, last activity and status.",
       "emptyTitle": "No customers match these filters",
