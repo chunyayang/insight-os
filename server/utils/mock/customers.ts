@@ -173,7 +173,7 @@ function pickRange(key: string, min: number, max: number): number {
 
 function buildCustomer(index: number, today: Date): Customer {
   const id = `cus_${String(index + 1).padStart(4, '0')}`
-  // Round-robin the markets so every one of the four is populated at any pool size.
+  // Round-robin the markets so every one is populated at any pool size.
   const market = MARKETS[index % MARKETS.length]!
   const person = nameFor(market, Math.floor(index / MARKETS.length))
   const segment = pick(SEGMENTS, `cust:seg:${id}`)
@@ -185,7 +185,7 @@ function buildCustomer(index: number, today: Date): Customer {
   /**
    * Lifetime value is the SUM OF DAY-CONVERTED amounts, never a native total times one rate
    * (the API contract's non-negotiable): every monthly bucket converts at its own day's
-   * official rate, so the four currencies that come out are independent totals.
+   * official rate, so every currency that comes out is an independent total.
    */
   const buckets = Array.from({ length: TENURE_MONTHS }, (_, month) => {
     const date = isoDate(addDays(today, -(month * 30 + 15)))

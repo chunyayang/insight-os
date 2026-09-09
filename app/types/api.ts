@@ -151,7 +151,7 @@ export interface Customer {
   market: MarketCode
   segment: CustomerSegment
   status: CustomerStatus
-  /** Lifetime value in all four currencies — each the sum of day-converted amounts. */
+  /** Lifetime value in every currency — each the sum of day-converted amounts. */
   lifetimeValue: Money
   /**
    * Which `lifetimeValue` key to render. Customers has no currency selector, so every

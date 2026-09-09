@@ -36,7 +36,7 @@ describe('customer pool', () => {
     expect(named('DE').every((c) => c.name.includes(' '))).toBe(true)
   })
 
-  it('covers all four markets and gives each record its market currency', () => {
+  it('covers every market and gives each record its market currency', () => {
     expect(new Set(pool.map((c) => c.market))).toEqual(new Set(['US', 'JP', 'TW', 'DE']))
     for (const customer of pool) {
       expect(customer.nativeCurrency).toBe(MARKET_NATIVE_CURRENCY[customer.market])
@@ -67,7 +67,7 @@ describe('customer pool', () => {
    * Each currency is an independent day-converted total, so none is derivable from another by
    * a single rate — which is what a period-end conversion would produce instead.
    */
-  it('carries all four currencies as independent totals', () => {
+  it('carries every currency as an independent total', () => {
     for (const customer of pool.slice(0, 12)) {
       const values = Object.values(customer.lifetimeValue)
       expect(values).toHaveLength(4)
