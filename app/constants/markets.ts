@@ -7,6 +7,12 @@ export const MARKETS: MarketCode[] = ['US', 'JP', 'TW', 'DE']
 export type MarketFilter = MarketCode | 'All'
 
 /**
+ * Every accepted market-filter value, in display order. This is the allow-list a
+ * URL-backed filter validates against — `?market=XX` must fall back, not reach the wire.
+ */
+export const MARKET_FILTERS: readonly MarketFilter[] = ['All', ...MARKETS]
+
+/**
  * Each market's native currency. Off Analytics, monetary values render in the record's
  * native currency — this map is how the client picks which `Money` key to read.
  * Records whose market is "All" display in USD (international/base currency).
