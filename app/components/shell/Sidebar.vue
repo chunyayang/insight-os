@@ -14,6 +14,13 @@ const emit = defineEmits<{ navigate: [] }>()
 const { t } = useI18n()
 const { can } = useCan()
 
+/**
+ * Nav targets carry the market the user is currently scoped to, so walking from
+ * Analytics to Customers keeps investigating the same market rather than silently
+ * resetting to the session default. Only pages with their own market control receive it.
+ */
+const marketLink = useMarketLink()
+
 const visibleGroups = computed(() =>
   NAV_GROUPS.map((group) => ({
     ...group,
@@ -31,7 +38,7 @@ const visibleGroups = computed(() =>
       <ul class="sidebar__list">
         <li v-for="item in group.items" :key="item.key">
           <NuxtLink
-            :to="item.to"
+            :to="marketLink(item.to)"
             class="sidebar__link"
             active-class="sidebar__link--active"
             :aria-label="props.collapsed ? t(`nav.items.${item.key}`) : undefined"
