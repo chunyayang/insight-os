@@ -118,6 +118,18 @@
       "passwordTooShort": "密碼至少需要 6 個字元。"
     }
   },
+  "settings": {
+    "general": {
+      "title": "一般",
+      "saved": "設定已儲存。",
+      "presentationCurrency": {
+        "label": "報表呈現貨幣",
+        "help": "決定跨市場彙總數據，以及「顧客」與「行銷活動」雙貨幣欄位中的主要金額。此設定變更頻率低——功能性貨幣仍會顯示在下方。",
+        "tooltip": "查看功能性貨幣以評估單一市場的營運表現；查看報表呈現貨幣以檢視整體集團視角。",
+        "deniedTooltip": "僅管理員可變更組織的報表呈現貨幣。"
+      }
+    }
+  },
   "errors": {
     "auth": {
       "invalidCredentials": "電子郵件或密碼不正確。"

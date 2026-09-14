@@ -43,6 +43,9 @@ export const MARKET_COLOR: Record<MarketCode, { light: string; dark: string }> =
   DE: { light: '#0d9488', dark: '#2dd4bf' }, // teal-600 / teal-400
 }
 
+/** Every currency the client can render, in the presentation-currency picker's display order. */
+export const CURRENCY_CODES: readonly CurrencyCode[] = ['USD', 'JPY', 'TWD', 'EUR']
+
 /**
  * Currencies with no minor unit. JPY is the one that matters here: it must render with
  * 0 decimals everywhere (the single client-side money rule — conversion is server-side).

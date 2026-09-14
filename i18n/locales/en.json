@@ -118,6 +118,18 @@
       "passwordTooShort": "Password must be at least 6 characters."
     }
   },
+  "settings": {
+    "general": {
+      "title": "General",
+      "saved": "Settings saved.",
+      "presentationCurrency": {
+        "label": "Presentation currency",
+        "help": "Sets the primary figure on cross-market aggregates and dual-currency cells on Customers and Campaigns. Changed rarely — the functional currency stays visible beneath it.",
+        "tooltip": "Read the functional currency to judge one operation's performance; read the presentation currency for the group view.",
+        "deniedTooltip": "Only an Admin can change the organization's presentation currency."
+      }
+    }
+  },
   "errors": {
     "auth": {
       "invalidCredentials": "That email or password isn't right."

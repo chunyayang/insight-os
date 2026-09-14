@@ -1,0 +1,38 @@
+import { useQuery } from '@tanstack/vue-query'
+import type { ApiResponse, OrgSettings } from '~/types/api'
+
+export const orgSettingsKeys = {
+  all: ['org-settings'] as const,
+}
+
+/**
+ * Organization config. Called once from the authenticated layout to seed the
+ * organization store at session start (spec §4.10) — every other surface reads
+ * `useOrganizationStore().presentationCurrency` directly rather than this query, so
+ * a currency read never triggers a request.
+ *
+ * Vue Query 5 dropped `onSuccess` from `useQuery`; the seed happens in a `watch` below
+ * rather than a callback.
+ */
+export function useOrgSettingsQuery() {
+  const { $api } = useNuxtApp()
+  const organization = useOrganizationStore()
+
+  const query = useQuery({
+    queryKey: orgSettingsKeys.all,
+    queryFn: async () => {
+      const response = await $api.get<ApiResponse<OrgSettings>>('/settings/org')
+      return response.data.data
+    },
+  })
+
+  watch(
+    () => query.data.value,
+    (data) => {
+      if (data) organization.setPresentationCurrency(data.presentationCurrency)
+    },
+    { immediate: true },
+  )
+
+  return query
+}
