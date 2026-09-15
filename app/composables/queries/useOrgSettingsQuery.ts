@@ -11,8 +11,8 @@ export const orgSettingsKeys = {
  * `useOrganizationStore().presentationCurrency` directly rather than this query, so
  * a currency read never triggers a request.
  *
- * Vue Query 5 dropped `onSuccess` from `useQuery`; the seed happens in a `watch` below
- * rather than a callback.
+ * `useQuery` in this Vue Query version has no `onSuccess`, so the seed is a `watch`
+ * on the query's data instead of a callback.
  */
 export function useOrgSettingsQuery() {
   const { $api } = useNuxtApp()
