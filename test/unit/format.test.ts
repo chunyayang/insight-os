@@ -3,13 +3,11 @@ import {
   formatCurrency,
   formatDelta,
   formatMoney,
-  formatNativeMoney,
   formatPercent,
   formatRelativeTime,
   intlLocale,
 } from '../../app/utils/format'
 import {
-  currencyForMarket,
   currencyFractionDigits,
   MARKET_COLOR,
   MARKET_CURRENCY,
@@ -39,13 +37,7 @@ describe('currency formatting', () => {
     // one from another, so the rendered figure has to match the map value exactly.
     expect(formatMoney(money, 'USD', 'en-US')).toBe(formatCurrency(money.USD, 'USD', 'en-US'))
     expect(formatMoney(money, 'JPY', 'en-US')).toBe(formatCurrency(money.JPY, 'JPY', 'en-US'))
-  })
-
-  it('renders each record in its native currency off Analytics', () => {
-    expect(formatNativeMoney(money, 'JP', 'en-US')).toBe(formatCurrency(money.JPY, 'JPY', 'en-US'))
-    expect(formatNativeMoney(money, 'DE', 'en-US')).toBe(formatCurrency(money.EUR, 'EUR', 'en-US'))
-    // "All" is treated as the international/base currency.
-    expect(formatNativeMoney(money, 'All', 'en-US')).toBe(formatCurrency(money.USD, 'USD', 'en-US'))
+    expect(formatMoney(money, 'EUR', 'en-US')).toBe(formatCurrency(money.EUR, 'EUR', 'en-US'))
   })
 
   it('formats the same amount differently per locale', () => {
@@ -54,14 +46,9 @@ describe('currency formatting', () => {
 })
 
 describe('markets map', () => {
-  it('gives every market a native currency and a colour in both themes', () => {
+  it('gives every market a functional currency and a colour in both themes', () => {
     expect(Object.keys(MARKET_CURRENCY).sort()).toEqual([...MARKETS].sort())
     expect(Object.keys(MARKET_COLOR).sort()).toEqual([...MARKETS].sort())
-  })
-
-  it('resolves "All" to USD', () => {
-    expect(currencyForMarket('All')).toBe('USD')
-    expect(currencyForMarket('JP')).toBe('JPY')
   })
 })
 

@@ -7,19 +7,18 @@ export const MARKETS: MarketCode[] = ['US', 'JP', 'TW', 'DE']
 export type MarketFilter = MarketCode | 'All'
 
 /**
- * Each market's native currency. Off Analytics, monetary values render in the record's
- * native currency — this map is how the client picks which `Money` key to read.
- * Records whose market is "All" display in USD (international/base currency).
+ * Each market's functional currency, as this organization has configured it — not a
+ * fact about geography (currency-model.md §3). NOT for resolving what currency to
+ * render on the client: a record's own `nativeCurrency`/`functionalCurrency` field is
+ * the source of truth for that, and a cross-market aggregate has no functional
+ * currency at all. Kept as the default a future mock-data generator would assign per
+ * market, absent a real backend to declare it.
  */
 export const MARKET_CURRENCY: Record<MarketCode, CurrencyCode> = {
   US: 'USD',
   JP: 'JPY',
   TW: 'TWD',
   DE: 'EUR',
-}
-
-export function currencyForMarket(market: MarketFilter): CurrencyCode {
-  return market === 'All' ? 'USD' : MARKET_CURRENCY[market]
 }
 
 /**
