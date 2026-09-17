@@ -1,12 +1,5 @@
-import { roleCan } from '../../../app/constants/permissions'
-import type {
-  ApiResponse,
-  OrgSettings,
-  Role,
-  UpdateOrgSettingsRequest,
-} from '../../../app/types/api'
-
-const ROLES: readonly Role[] = ['admin', 'analyst', 'viewer']
+import { ROLES, roleCan } from '../../../app/constants/permissions'
+import type { ApiResponse, OrgSettings, UpdateOrgSettingsRequest } from '../../../app/types/api'
 
 /**
  * The presentation currency is organization policy, Admin only (spec §4.10). The
