@@ -28,16 +28,11 @@ function onChange(next: CurrencyCode) {
       <h2 class="presentation-currency__title">{{ t('settings.general.title') }}</h2>
     </template>
 
-    <UFormField :help="t('settings.general.presentationCurrency.help')" name="presentationCurrency">
-      <template #label>
-        <span class="presentation-currency__label">
-          {{ t('settings.general.presentationCurrency.label') }}
-          <UTooltip :text="t('settings.general.presentationCurrency.tooltip')">
-            <UIcon name="i-lucide-info" class="presentation-currency__hint-icon" />
-          </UTooltip>
-        </span>
-      </template>
-
+    <UFormField
+      :label="t('settings.general.presentationCurrency.label')"
+      :help="t('settings.general.presentationCurrency.help')"
+      name="presentationCurrency"
+    >
       <UTooltip
         :text="t('settings.general.presentationCurrency.deniedTooltip')"
         :disabled="!isDenied"
@@ -61,15 +56,5 @@ function onChange(next: CurrencyCode) {
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--ui-text-highlighted);
-}
-
-.presentation-currency__label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.presentation-currency__hint-icon {
-  color: var(--ui-text-dimmed);
 }
 </style>
