@@ -14,7 +14,6 @@ export const PERMISSIONS = {
   'campaigns:manage': ['admin', 'analyst'],
   'datasources:manage': ['admin'],
   'team:manage': ['admin'],
-  'settings:org': ['admin'],
   'settings:admin': ['admin'],
 } as const satisfies Record<string, readonly Role[]>
 
@@ -28,10 +27,9 @@ export const ABILITIES = Object.keys(PERMISSIONS) as Ability[]
  * 'hidden'   — omit the nav entry, the route, and the controls entirely.
  * 'disabled' — keep the control visible but inert, with an explanatory tooltip.
  *
- * CSV export and the presentation currency are the spec's only 'disabled' cases —
- * both are organization state a denied role should still see explained, not lose
- * sight of. Everything else is hidden outright: getting this wrong (disabling where
- * the spec says hide) leaks the existence of features a role isn't entitled to see.
+ * Only CSV export is 'disabled' per the spec; everything else is hidden outright.
+ * Getting this wrong (disabling where the spec says hide) leaks the existence of
+ * features a role isn't entitled to see.
  */
 export const DENIED_TREATMENT: Record<Ability, 'hidden' | 'disabled'> = {
   'analytics:view': 'hidden',
@@ -40,7 +38,6 @@ export const DENIED_TREATMENT: Record<Ability, 'hidden' | 'disabled'> = {
   'campaigns:manage': 'hidden',
   'datasources:manage': 'hidden',
   'team:manage': 'hidden',
-  'settings:org': 'disabled',
   'settings:admin': 'hidden',
 }
 

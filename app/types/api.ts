@@ -85,19 +85,6 @@ export interface LoginResponse {
   user: SessionUser
 }
 
-/* ─────────────────────────── Organization settings ─────────────────────────── */
-
-/**
- * Organization-level configuration — one value, read by everyone, distinct from any
- * user's session. `presentationCurrency` is the IAS 21 presentation currency
- * (currency-model.md §1); Settings → General is the only surface that writes it.
- */
-export interface OrgSettings {
-  presentationCurrency: CurrencyCode
-}
-
-export type UpdateOrgSettingsRequest = Partial<OrgSettings>
-
 /* ─────────────────────────── Dashboard ─────────────────────────── */
 
 export interface KpiMetric {

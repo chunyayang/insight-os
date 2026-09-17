@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
- * General tab only, for now — org name, default operating market, and timezone are
- * later slices. This exists so Settings has a real seam for the presentation currency
- * rather than a placeholder standing in for it.
+ * Placeholder route. The module lands in a later slice; this exists now so the
+ * navigation is walkable end to end and the RBAC route guard is real rather than
+ * theoretical.
  */
 const { t } = useI18n()
 </script>
@@ -10,6 +10,6 @@ const { t } = useI18n()
 <template>
   <div>
     <CommonPageHeader :title="t('nav.items.settings')" />
-    <SettingsGeneral />
+    <UEmpty icon="i-lucide-wrench" :title="t('common.states.comingSoon')" />
   </div>
 </template>
