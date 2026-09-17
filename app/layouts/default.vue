@@ -9,8 +9,8 @@
 const ui = useUiStore()
 const { t } = useI18n()
 
-// Seeds the organization store's presentation currency once per session (spec §4.10)
-// so it's readable anywhere in the app, not just on Settings.
+// Seeds the organization store's settings once per session (spec §4.10) so they are
+// readable anywhere in the app, not just on Settings.
 useOrgSettingsQuery()
 </script>
 

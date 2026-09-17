@@ -8,8 +8,8 @@ export const orgSettingsKeys = {
 /**
  * Organization config. Called once from the authenticated layout to seed the
  * organization store at session start (spec §4.10) — every other surface reads
- * `useOrganizationStore().presentationCurrency` directly rather than this query, so
- * a currency read never triggers a request.
+ * `useOrganizationStore()` directly rather than this query, so reading a seeded
+ * setting never triggers a request.
  *
  * `useQuery` in this Vue Query version has no `onSuccess`, so the seed is a `watch`
  * on the query's data instead of a callback.
