@@ -1,3 +1,4 @@
+import { DEFAULT_CURRENCY } from '~/constants/markets'
 import type { CurrencyCode } from '~/types/api'
 
 /**
@@ -12,7 +13,7 @@ import type { CurrencyCode } from '~/types/api'
  * of its own (currency-model.md §3) — changing it changes those pages' headline figure.
  */
 export const useOrganizationStore = defineStore('organization', () => {
-  const presentationCurrency = ref<CurrencyCode>('USD')
+  const presentationCurrency = ref<CurrencyCode>(DEFAULT_CURRENCY)
 
   function setPresentationCurrency(next: CurrencyCode) {
     presentationCurrency.value = next

@@ -1,3 +1,4 @@
+import { DEFAULT_CURRENCY } from '../../../app/constants/markets'
 import type { OrgSettings } from '../../../app/types/api'
 
 /**
@@ -6,7 +7,7 @@ import type { OrgSettings } from '../../../app/types/api'
  * only needs GET/PATCH to agree within one running process.
  */
 const state: OrgSettings = {
-  presentationCurrency: 'USD',
+  presentationCurrency: DEFAULT_CURRENCY,
 }
 
 export function getOrgSettings(): OrgSettings {
