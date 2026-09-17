@@ -10,6 +10,6 @@ const { t } = useI18n()
 <template>
   <div>
     <CommonPageHeader :title="t('nav.items.settings')" />
-    <SettingsPresentationCurrencyField />
+    <SettingsGeneral />
   </div>
 </template>

@@ -5,6 +5,6 @@
 
 <template>
   <UApp>
-    <SettingsPresentationCurrencyField />
+    <SettingsGeneral />
   </UApp>
 </template>

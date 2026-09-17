@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import Harness from './support/PresentationCurrencyHarness.vue'
+import Harness from './support/SettingsGeneralHarness.vue'
 import { useAuthStore } from '../../app/stores/auth'
 import { useOrganizationStore } from '../../app/stores/organization'
 import type { Role } from '../../app/types/api'
@@ -17,7 +17,7 @@ function signInAs(role: Role) {
   })
 }
 
-describe('PresentationCurrencyField', () => {
+describe('SettingsGeneral', () => {
   it("renders the organization store's current currency, and lets an Admin change it", async () => {
     const wrapper = await mountSuspended(Harness)
     signInAs('admin')
