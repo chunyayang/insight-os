@@ -152,6 +152,26 @@ export interface RevenueResponse {
   totalsByMarket: { market: MarketCode; total: Money }[] // sum of daily-converted amounts
 }
 
+/* ─────────────────────────── Customers ─────────────────────────── */
+
+export type CustomerSegment = 'vip' | 'loyal' | 'new' | 'at-risk'
+export type CustomerStatus = 'active' | 'dormant' | 'churned'
+
+export interface Customer {
+  id: string
+  name: string
+  email: string
+  market: MarketCode
+  segment: CustomerSegment
+  status: CustomerStatus
+  /** Lifetime value in every currency — each the sum of day-converted amounts. */
+  lifetimeValue: Money
+  /** Which `lifetimeValue` key to render. Each record displays its market's currency per the spec. */
+  functionalCurrency: CurrencyCode
+  totalOrders: number
+  lastActiveAt: string // ISO 8601
+}
+
 /* ─────────────────────────── AI Assistant ─────────────────────────── */
 
 export interface AiChatRequest {
@@ -191,6 +211,15 @@ export interface ListQuery {
   order?: 'asc' | 'desc'
   q?: string
   market?: MarketCode | 'All'
+  /**
+   * Named filters. An endpoint honours only the ones it documents; the rest are ignored.
+   *
+   * Each is the domain union it filters on, the way `market` above is: a value outside the
+   * union matches no record, so the page comes back empty rather than wrong — a bug with no
+   * symptom but a blank table. The wire is still strings; these say which ones mean anything.
+   */
+  segment?: CustomerSegment
+  status?: CustomerStatus
   range?: RangeToken
   from?: string // ISO date (mutually exclusive with `range`)
   to?: string // ISO date
