@@ -234,7 +234,7 @@ export function customerPool(today: Date = new Date()): Customer[] {
 
 /**
  * Fields this endpoint can sort by, and the raw value each sorts on. `lifetimeValue` reads the
- * record's NATIVE amount, so across mixed markets the sort is currency-blind (a JPY total
+ * record's FUNCTIONAL amount, so across mixed markets the sort is currency-blind (a JPY total
  * dwarfs a EUR one) — the documented MVP behaviour; narrow to one market for a real ranking.
  */
 const SORTABLE = {
