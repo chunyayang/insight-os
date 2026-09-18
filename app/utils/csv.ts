@@ -52,11 +52,29 @@ export function toCsv<T>(rows: T[], columns: CsvColumn<T>[]): string {
  *
  * Stamped in the exporter's own date rather than UTC: an evening export in JP or TW would
  * otherwise be filed under the previous day, and an early-morning one in the US under the next.
+ *
+ * The zone floats but the locale is pinned. Left to default, the OS locale picks the calendar
+ * and the digits — a Thai default stamps 2569, a Japanese one Reiwa 8, an Arabic or Persian one
+ * non-ASCII numerals. A filename needs a sortable ASCII Gregorian date in every one of them.
  */
 export function csvFilename(base: string, now: Date = new Date()): string {
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const day = String(now.getDate()).padStart(2, '0')
-  return `${base}-${now.getFullYear()}-${month}-${day}.csv`
+  // Taken explicitly rather than left to the formatter's default, so the zone the export is
+  // dated in is one named thing that can be pinned.
+  const { timeZone } = new Intl.DateTimeFormat().resolvedOptions()
+
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    calendar: 'gregory',
+    numberingSystem: 'latn',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(now)
+
+  // Every one of these is requested above, so the formatter always emits it.
+  const at = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)!.value
+
+  return `${base}-${at('year')}-${at('month')}-${at('day')}.csv`
 }
 
 /**

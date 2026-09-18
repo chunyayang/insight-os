@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { csvFilename, escapeCsvValue, toCsv, type CsvColumn } from '../../app/utils/csv'
 
 interface Row {
@@ -78,17 +78,58 @@ describe('toCsv', () => {
 })
 
 describe('csvFilename', () => {
+  const realResolvedOptions = Intl.DateTimeFormat.prototype.resolvedOptions
+
+  /**
+   * Pins the zone the export reads as being dated in. `csvFilename` asks for it by name, so
+   * this decides the stamp without the runner's own TZ having any say.
+   */
+  function inTimeZone(timeZone: string) {
+    vi.spyOn(Intl.DateTimeFormat.prototype, 'resolvedOptions').mockImplementation(function (
+      this: Intl.DateTimeFormat,
+    ) {
+      return { ...realResolvedOptions.call(this), timeZone }
+    })
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('date-stamps the export, since it is a snapshot of one moment', () => {
-    expect(csvFilename('customers', new Date(2026, 7, 5, 10, 30))).toBe('customers-2026-08-05.csv')
+    inTimeZone('UTC')
+    expect(csvFilename('customers', new Date('2026-08-05T10:30:00Z'))).toBe(
+      'customers-2026-08-05.csv',
+    )
   })
 
   /**
-   * Both dates are constructed in local time, so the stamp has to follow their components in
-   * any zone. A UTC stamp slides the late one onto the 6th west of the meridian and the early
-   * one onto the 4th east of it; a single mid-day instant would hide both.
+   * One instant, two dates: 23:30 UTC is already the 20th in Taipei and still the 19th in New
+   * York. Dating off UTC would file both under the 19th, which is the wrong day for half the
+   * markets this ships to.
    */
-  it("follows the exporter's local date at either end of the day", () => {
-    expect(csvFilename('customers', new Date(2026, 7, 5, 23, 30))).toBe('customers-2026-08-05.csv')
-    expect(csvFilename('customers', new Date(2026, 7, 5, 0, 30))).toBe('customers-2026-08-05.csv')
+  it("follows the exporter's own zone rather than UTC", () => {
+    const instant = new Date('2026-09-19T23:30:00Z')
+
+    inTimeZone('Asia/Taipei')
+    expect(csvFilename('customers', instant)).toBe('customers-2026-09-20.csv')
+
+    inTimeZone('America/New_York')
+    expect(csvFilename('customers', instant)).toBe('customers-2026-09-19.csv')
+  })
+
+  /**
+   * Zero-padded ASCII Gregorian, whatever locale the machine defaults to — the formatter pins
+   * calendar and numbering system precisely so a Thai, Japanese or Persian default cannot put
+   * 2569, Reiwa 8 or ۱۴۰۵ into a filename.
+   */
+  it('stamps a sortable YYYY-MM-DD', () => {
+    inTimeZone('UTC')
+    expect(csvFilename('customers', new Date('2026-01-07T12:00:00Z'))).toBe(
+      'customers-2026-01-07.csv',
+    )
+    expect(csvFilename('customers', new Date('2026-01-07T12:00:00Z'))).toMatch(
+      /^customers-\d{4}-\d{2}-\d{2}\.csv$/,
+    )
   })
 })
