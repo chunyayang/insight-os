@@ -2,7 +2,7 @@
   "name": "insight-os",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@11.14.0",
+  "packageManager": "pnpm@11.24.0",
   "engines": {
     "node": "24"
   },

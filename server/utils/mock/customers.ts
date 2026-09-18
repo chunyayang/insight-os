@@ -233,9 +233,13 @@ export function customerPool(today: Date = new Date()): Customer[] {
 }
 
 /**
- * Fields this endpoint can sort by, and the raw value each sorts on. `lifetimeValue` reads the
- * record's NATIVE amount, so across mixed markets the sort is currency-blind (a JPY total
- * dwarfs a EUR one) — the documented MVP behaviour; narrow to one market for a real ranking.
+ * Fields this endpoint can sort by, and the raw value each one sorts on.
+ *
+ * `lifetimeValue` reads the record's NATIVE amount — the number behind the cell. Across
+ * mixed markets that makes the sort currency-blind (a JPY total dwarfs a EUR one). The
+ * settled design sorts monetary columns on the REPORTING currency instead, which this
+ * endpoint will need to offer as a sort field (issue #41); until then the raw-field sort
+ * stands, and the client must not invent a normalization by re-sorting formatted strings.
  */
 const SORTABLE = {
   name: (c: Customer) => c.name,
