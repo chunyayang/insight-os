@@ -170,7 +170,7 @@ export interface Customer {
    * Which `lifetimeValue` key to render. Customers has no currency selector, so every
    * record shows its own market's currency and ignores the Analytics-scoped one.
    */
-  nativeCurrency: CurrencyCode
+  functionalCurrency: CurrencyCode
   totalOrders: number
   lastActiveAt: string // ISO 8601
 }

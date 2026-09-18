@@ -127,9 +127,13 @@ const csv = computed<CsvExport<Customer>>(() => ({
     {
       key: 'lifetimeValue',
       label: t('customers.columns.lifetimeValue'),
-      value: (row) => row.lifetimeValue[row.nativeCurrency],
+      value: (row) => row.lifetimeValue[row.functionalCurrency],
     },
-    { key: 'currency', label: t('customers.columns.currency'), value: (row) => row.nativeCurrency },
+    {
+      key: 'currency',
+      label: t('customers.columns.currency'),
+      value: (row) => row.functionalCurrency,
+    },
     {
       key: 'totalOrders',
       label: t('customers.columns.totalOrders'),
@@ -196,13 +200,13 @@ const csv = computed<CsvExport<Customer>>(() => ({
       <UBadge color="neutral" variant="subtle" :label="row.original.market" />
     </template>
 
-    <!-- Native currency per record — the market column beside it says which one. -->
+    <!-- Functional currency per record — the market column beside it says which one. -->
     <template #lifetimeValue-cell="{ row }">
       <span class="customers__money">
         {{
           fmt.currency(
-            row.original.lifetimeValue[row.original.nativeCurrency],
-            row.original.nativeCurrency,
+            row.original.lifetimeValue[row.original.functionalCurrency],
+            row.original.functionalCurrency,
           )
         }}
       </span>

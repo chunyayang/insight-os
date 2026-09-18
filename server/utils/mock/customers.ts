@@ -1,5 +1,5 @@
 import type { Customer, CustomerSegment, CustomerStatus, MarketCode } from '../../../app/types/api'
-import { convertDay, MARKET_NATIVE_CURRENCY, roundMoney, sumMoney } from './fx'
+import { convertDay, MARKET_FUNCTIONAL_CURRENCY, roundMoney, sumMoney } from './fx'
 import { seeded } from './seed'
 import { addDays, isoDate } from './dates'
 import { MARKETS } from './markets'
@@ -144,7 +144,7 @@ const SEGMENT_SPEND_FACTOR: Record<CustomerSegment, number> = {
   'at-risk': 1.1,
 }
 
-/** Typical monthly spend per market, in that market's NATIVE currency. */
+/** Typical monthly spend per market, in that market's FUNCTIONAL currency. */
 const BASE_MONTHLY_SPEND: Record<MarketCode, number> = {
   US: 180,
   JP: 21_000,
@@ -179,7 +179,7 @@ function buildCustomer(index: number, today: Date): Customer {
   const segment = pick(SEGMENTS, `cust:seg:${id}`)
   const status = pick(SEGMENT_STATUS[segment], `cust:status:${id}`)
 
-  const nativeCurrency = MARKET_NATIVE_CURRENCY[market]
+  const functionalCurrency = MARKET_FUNCTIONAL_CURRENCY[market]
   const monthly = BASE_MONTHLY_SPEND[market] * SEGMENT_SPEND_FACTOR[segment]
 
   /**
@@ -190,7 +190,7 @@ function buildCustomer(index: number, today: Date): Customer {
   const buckets = Array.from({ length: TENURE_MONTHS }, (_, month) => {
     const date = isoDate(addDays(today, -(month * 30 + 15)))
     const amount = monthly * (0.7 + seeded(`cust:spend:${id}:${month}`) * 0.6)
-    return convertDay(amount, nativeCurrency, date)
+    return convertDay(amount, functionalCurrency, date)
   })
 
   const [minDays, maxDays] = STATUS_RECENCY[status]
@@ -210,7 +210,7 @@ function buildCustomer(index: number, today: Date): Customer {
     segment,
     status,
     lifetimeValue: roundMoney(sumMoney(buckets)),
-    nativeCurrency,
+    functionalCurrency,
     totalOrders: pickRange(`cust:orders:${id}`, 1, Math.round(12 * SEGMENT_SPEND_FACTOR[segment])),
     lastActiveAt: lastActive.toISOString(),
   }
@@ -244,7 +244,7 @@ const SORTABLE = {
   status: (c: Customer) => c.status,
   totalOrders: (c: Customer) => c.totalOrders,
   lastActiveAt: (c: Customer) => c.lastActiveAt,
-  lifetimeValue: (c: Customer) => c.lifetimeValue[c.nativeCurrency],
+  lifetimeValue: (c: Customer) => c.lifetimeValue[c.functionalCurrency],
 } satisfies Record<string, (c: Customer) => string | number>
 
 export type CustomerSortField = keyof typeof SORTABLE

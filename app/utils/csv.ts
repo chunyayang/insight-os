@@ -2,7 +2,7 @@
  * CSV export — a pure transform over rows the client already has.
  *
  * The columns are deliberately NOT the table's display columns: a money cell renders in its
- * record's native currency, and re-parsing "¥1,234" back into a number would be both
+ * record's functional currency, and re-parsing "¥1,234" back into a number would be both
  * locale-dependent and currency-blind. Each CSV column reads the underlying value instead.
  */
 

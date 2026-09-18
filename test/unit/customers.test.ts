@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { customerPool, queryCustomers } from '../../server/utils/mock/customers'
-import { MARKET_NATIVE_CURRENCY } from '../../server/utils/mock/fx'
+import { MARKET_FUNCTIONAL_CURRENCY } from '../../server/utils/mock/fx'
 
 const TODAY = new Date('2026-08-05T00:00:00Z')
 const pool = customerPool(TODAY)
@@ -39,7 +39,7 @@ describe('customer pool', () => {
   it('covers every market and gives each record its market currency', () => {
     expect(new Set(pool.map((c) => c.market))).toEqual(new Set(['US', 'JP', 'TW', 'DE']))
     for (const customer of pool) {
-      expect(customer.nativeCurrency).toBe(MARKET_NATIVE_CURRENCY[customer.market])
+      expect(customer.functionalCurrency).toBe(MARKET_FUNCTIONAL_CURRENCY[customer.market])
     }
   })
 
@@ -116,14 +116,14 @@ describe('queryCustomers — sorting', () => {
   })
 
   /**
-   * Lifetime value sorts on the record's NATIVE amount, which across mixed markets is
+   * Lifetime value sorts on the record's FUNCTIONAL amount, which across mixed markets is
    * currency-blind by design (a JPY total dwarfs a EUR one). If this ever sorts on a shared
    * currency key, the spec changed and this test should fail with it.
    */
-  it('sorts lifetime value on the native amount, currency-blind across markets', () => {
+  it('sorts lifetime value on the functional amount, currency-blind across markets', () => {
     const rows = list({ sort: 'lifetimeValue', order: 'desc', pageSize: pool.length }).rows
-    const natives = rows.map((c) => c.lifetimeValue[c.nativeCurrency])
-    expect(natives).toEqual([...natives].sort((a, b) => b - a))
+    const functionalAmounts = rows.map((c) => c.lifetimeValue[c.functionalCurrency])
+    expect(functionalAmounts).toEqual([...functionalAmounts].sort((a, b) => b - a))
     // JPY amounts are ~150x their USD equivalent, so they dominate an unnormalized sort.
     expect(rows[0]!.market).toBe('JP')
   })
