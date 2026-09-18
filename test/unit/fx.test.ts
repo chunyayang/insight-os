@@ -3,7 +3,7 @@ import {
   convertDay,
   dailyRates,
   emptyMoney,
-  MARKET_NATIVE_CURRENCY,
+  MARKET_FUNCTIONAL_CURRENCY,
   roundMoney,
   sumMoney,
 } from '../../server/utils/mock/fx'
@@ -53,8 +53,8 @@ describe('fx — historical daily conversion', () => {
     expect(emptyMoney()).toEqual({ USD: 0, JPY: 0, TWD: 0, EUR: 0 })
   })
 
-  it('maps each market to its native currency', () => {
-    expect(MARKET_NATIVE_CURRENCY).toEqual({ US: 'USD', JP: 'JPY', TW: 'TWD', DE: 'EUR' })
+  it('maps each market to its functional currency', () => {
+    expect(MARKET_FUNCTIONAL_CURRENCY).toEqual({ US: 'USD', JP: 'JPY', TW: 'TWD', DE: 'EUR' })
   })
 })
 

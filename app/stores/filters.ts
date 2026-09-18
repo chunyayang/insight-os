@@ -17,7 +17,7 @@ export const useFiltersStore = defineStore('filters', () => {
   const range = ref<RangeToken>('30d')
   const market = ref<MarketFilter>('All')
 
-  /** Analytics-only. Do not read this outside Analytics — other pages show native currency. */
+  /** Analytics-only. Do not read this outside Analytics — other pages show functional currency. */
   const displayCurrency = ref<CurrencyCode>('USD')
 
   function setRange(next: RangeToken) {
