@@ -211,9 +211,15 @@ export interface ListQuery {
   order?: 'asc' | 'desc'
   q?: string
   market?: MarketCode | 'All'
-  /** Named filters. An endpoint honours only the ones it documents; the rest are ignored. */
-  segment?: string
-  status?: string
+  /**
+   * Named filters. An endpoint honours only the ones it documents; the rest are ignored.
+   *
+   * Each is the domain union it filters on, the way `market` above is: a value outside the
+   * union matches no record, so the page comes back empty rather than wrong — a bug with no
+   * symptom but a blank table. The wire is still strings; these say which ones mean anything.
+   */
+  segment?: CustomerSegment
+  status?: CustomerStatus
   range?: RangeToken
   from?: string // ISO date (mutually exclusive with `range`)
   to?: string // ISO date
