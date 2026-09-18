@@ -1,11 +1,11 @@
 import type { MarketCode, Money } from '../../../app/types/api'
-import { convertDay, MARKET_NATIVE_CURRENCY, roundMoney } from './fx'
+import { convertDay, MARKET_FUNCTIONAL_CURRENCY, roundMoney } from './fx'
 import { seededRange } from './seed'
 import { isoDate, addDays } from './dates'
 
 export const MARKETS: MarketCode[] = ['US', 'JP', 'TW', 'DE']
 
-/** Typical daily volumes per market, expressed in that market's NATIVE currency. */
+/** Typical daily volumes per market, expressed in that market's FUNCTIONAL currency. */
 const BASELINE: Record<
   MarketCode,
   { revenue: number; orders: number; conv: number; users: number }
@@ -40,7 +40,7 @@ function seasonality(date: string): number {
 export interface DailyMetrics {
   date: string
   market: MarketCode
-  /** In the market's native currency — convert per-day before aggregating. */
+  /** In the market's functional currency — convert per-day before aggregating. */
   revenueNative: number
   orders: number
   conversionRate: number
@@ -66,5 +66,5 @@ export function dailyMetrics(market: MarketCode, date: string, today = new Date(
 /** One day's revenue for a market, converted at THAT day's rates into all four currencies. */
 export function dailyRevenueMoney(market: MarketCode, date: string, today = new Date()): Money {
   const { revenueNative } = dailyMetrics(market, date, today)
-  return roundMoney(convertDay(revenueNative, MARKET_NATIVE_CURRENCY[market], date))
+  return roundMoney(convertDay(revenueNative, MARKET_FUNCTIONAL_CURRENCY[market], date))
 }

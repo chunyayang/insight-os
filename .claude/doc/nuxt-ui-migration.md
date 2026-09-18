@@ -365,7 +365,7 @@ via `manualSorting` / `manualPagination` / `rowCount` passed through `:paginatio
 control needs a wrapper element to receive pointer events.
 
 Sorting must delegate to the server on the raw numeric field: money cells render per-record from
-`nativeCurrency`, and the spec is explicit that mixed-currency sorting is currency-blind with no
+`functionalCurrency`, and the spec is explicit that mixed-currency sorting is currency-blind with no
 cross-currency normalization in the MVP. No client-side coercion of formatted currency strings.
 
 Land this against one real endpoint (Customers list is the natural first) so the contract is

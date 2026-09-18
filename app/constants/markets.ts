@@ -9,7 +9,7 @@ export type MarketFilter = MarketCode | 'All'
 /**
  * Each market's functional currency, as this organization has configured it — not a
  * fact about geography (currency-model.md §3). NOT for resolving what currency to
- * render on the client: a record's own `nativeCurrency`/`functionalCurrency` field is
+ * render on the client: a record's own `functionalCurrency` field is
  * the source of truth for that, and a cross-market aggregate has no functional
  * currency at all. Kept as the default a future mock-data generator would assign per
  * market, absent a real backend to declare it.
