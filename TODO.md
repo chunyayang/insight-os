@@ -74,3 +74,9 @@ Legend: ✅ done · 🔜 next · ⬜ pending
   pnpm's built-in supply-chain guard rejects packages published too recently (currently
   ~24h). Not a bug; re-run CI later rather than investigating. First seen on Dependabot
   PR #13, 2026-07-25. See `.npmrc`.
+- **`vi.mock('axios', …)` in `RevenueTrend.test.ts` is a temporary workaround**, not the
+  pattern to copy: `registerEndpoint` only intercepts Nuxt's `$fetch`, not the Axios
+  instance `$api` (`app/plugins/api.ts`) uses, so a component test that needs real fetched
+  data has to stub Axios directly. This goes away once Axios is retired in favor of
+  `useFetch`/`$fetch` (Nuxt 4's own data-fetching composables) — tracked as a TODO, not yet
+  scheduled.

@@ -163,6 +163,17 @@
       "churned": "已流失"
     }
   },
+  "settings": {
+    "general": {
+      "title": "一般",
+      "saved": "設定已儲存。",
+      "presentationCurrency": {
+        "label": "表達貨幣 (Presentation Currency)",
+        "help": "設定跨市場彙總數據，以及「顧客」與「行銷活動」雙貨幣欄位的主要呈現貨幣。系統將依指定匯率，將各市場金額統一轉換為此貨幣，以利集團合併分析。",
+        "deniedTooltip": "僅管理員可變更組織的報表呈現貨幣。"
+      }
+    }
+  },
   "errors": {
     "auth": {
       "invalidCredentials": "電子郵件或密碼不正確。"
