@@ -18,7 +18,8 @@ const props = defineProps<{
   error?: unknown
   /**
    * Column ids pinned to the left — the "sticky first columns on smaller viewports" rule.
-   * Pinning positions cells by measured offset, so every column needs an explicit `size`.
+   * UTable offsets only the pinned cells and lays the rest out content-sized, so a column's
+   * declared `size` records intent without binding anything until #50 lands.
    * Harmless at desktop widths: with nothing overflowing, nothing has anywhere to stick to.
    */
   pinnedColumns?: string[]
