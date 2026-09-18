@@ -47,9 +47,16 @@ export function toCsv<T>(rows: T[], columns: CsvColumn<T>[]): string {
   return [header, ...body].join(ROW_SEPARATOR)
 }
 
-/** `customers` → `customers-2026-08-05.csv`. Exports are snapshots; the date says which. */
+/**
+ * `customers` → `customers-2026-08-05.csv`. Exports are snapshots; the date says which.
+ *
+ * Stamped in the exporter's own date rather than UTC: an evening export in JP or TW would
+ * otherwise be filed under the previous day, and an early-morning one in the US under the next.
+ */
 export function csvFilename(base: string, now: Date = new Date()): string {
-  return `${base}-${now.toISOString().slice(0, 10)}.csv`
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${base}-${now.getFullYear()}-${month}-${day}.csv`
 }
 
 /**

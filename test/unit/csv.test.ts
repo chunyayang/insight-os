@@ -79,8 +79,16 @@ describe('toCsv', () => {
 
 describe('csvFilename', () => {
   it('date-stamps the export, since it is a snapshot of one moment', () => {
-    expect(csvFilename('customers', new Date('2026-08-05T10:30:00Z'))).toBe(
-      'customers-2026-08-05.csv',
-    )
+    expect(csvFilename('customers', new Date(2026, 7, 5, 10, 30))).toBe('customers-2026-08-05.csv')
+  })
+
+  /**
+   * Both dates are constructed in local time, so the stamp has to follow their components in
+   * any zone. A UTC stamp slides the late one onto the 6th west of the meridian and the early
+   * one onto the 4th east of it; a single mid-day instant would hide both.
+   */
+  it("follows the exporter's local date at either end of the day", () => {
+    expect(csvFilename('customers', new Date(2026, 7, 5, 23, 30))).toBe('customers-2026-08-05.csv')
+    expect(csvFilename('customers', new Date(2026, 7, 5, 0, 30))).toBe('customers-2026-08-05.csv')
   })
 })
