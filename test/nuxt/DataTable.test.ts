@@ -181,12 +181,25 @@ describe('DataTable', () => {
       expect(document.body.textContent).toContain("Your role can't export data.")
     })
 
-    /** Mid-load there is nothing to explain, so the plain disabled treatment is right. */
-    it('is plainly disabled for a permitted role while rows are loading', async () => {
+    /** Nothing in hand yet and nothing to explain, so the plain disabled treatment is right. */
+    it('is plainly disabled for a permitted role before the first page arrives', async () => {
       const { wrapper } = await mountTable({ csv, loading: true, rows: [] })
       const button = buttonWithText(wrapper, 'Export CSV')
 
       expect(button?.attributes('disabled')).toBeDefined()
+      expect(button?.attributes('aria-disabled')).toBeUndefined()
+    })
+
+    /**
+     * `keepPreviousData` holds the current page on screen through a refetch, so `loading` runs
+     * true over rows that are perfectly readable. Gating on it would pull the control away on
+     * every sort and page change, for data sitting right there.
+     */
+    it('stays usable through a refetch that keeps the page on screen', async () => {
+      const { wrapper } = await mountTable({ csv, loading: true })
+      const button = buttonWithText(wrapper, 'Export CSV')
+
+      expect(button?.attributes('disabled')).toBeUndefined()
       expect(button?.attributes('aria-disabled')).toBeUndefined()
     })
   })

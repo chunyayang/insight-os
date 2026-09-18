@@ -159,8 +159,12 @@ const canExport = computed(() => can('export:csv'))
  *
  * Nothing to export YET is the other case: transient, self-explanatory, and nobody needs it
  * spelled out. That one stays truly disabled.
+ *
+ * Read off the rows rather than `loading`, because the two part company: `keepPreviousData`
+ * holds the page on screen through a refetch, and rows a person can read are rows they can
+ * export. Only the very first load has nothing in hand, and that is an empty `rows` already.
  */
-const exportUnavailable = computed(() => Boolean(props.loading) || props.rows.length === 0)
+const exportUnavailable = computed(() => props.rows.length === 0)
 
 const exportTooltip = computed(() =>
   canExport.value ? t('common.table.exportCsvHint') : t('common.table.exportDenied'),
