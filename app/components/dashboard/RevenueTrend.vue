@@ -8,12 +8,14 @@ import type { TrendSeries } from '~/components/charts/TrendLineChart.vue'
  * 30-day revenue trend with market tabs.
  *
  * The market tabs are a DATA-SCOPE control: they flow into the query key and refetch.
- * Amounts render in USD here because the Dashboard is not Analytics — the currency
- * selector lives only there, and a control that isn't on this page must never change
- * this page's numbers.
+ * Every line plots on one shared axis regardless of which market it represents, so all
+ * of them render in the org's presentation currency (currency-model.md §3) — a
+ * cross-market aggregate has no functional currency, and even a single-market line
+ * must match the others' scale. Not the Analytics selector, which is scoped there.
  */
 const { t } = useI18n()
 const fmt = useFormat()
+const organization = useOrganizationStore()
 
 const market = ref<MarketFilter>('All')
 const { data, isPending, isError, error, refetch } = useRevenueSeries({ market })
@@ -33,15 +35,16 @@ const series = computed<TrendSeries[]>(
     data.value?.series.map((s) => ({
       label: t(`common.markets.${s.market.toLowerCase()}`),
       market: s.market as MarketCode,
-      // Read the USD key out of each point's Money map — no client-side conversion.
-      data: s.points.map((p) => p.value.USD),
+      // Read the presentation-currency key out of each point's Money map — no
+      // client-side conversion.
+      data: s.points.map((p) => p.value[organization.presentationCurrency]),
     })) ?? [],
 )
 
 const chartSummary = computed(() =>
   t('dashboard.revenueTrend.chartSummary', {
     days: labels.value.length,
-    currency: 'USD',
+    currency: organization.presentationCurrency,
   }),
 )
 </script>

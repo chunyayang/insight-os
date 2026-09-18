@@ -118,6 +118,17 @@
       "passwordTooShort": "Password must be at least 6 characters."
     }
   },
+  "settings": {
+    "general": {
+      "title": "General",
+      "saved": "Settings saved.",
+      "presentationCurrency": {
+        "label": "Presentation currency",
+        "help": "Set the presentation currency for cross-market aggregated data and dual-currency fields in 'Customers' and 'Campaigns'. Amounts from all markets will be converted to this currency at applicable exchange rates for consolidated analysis.",
+        "deniedTooltip": "Only an Admin can change the organization's presentation currency."
+      }
+    }
+  },
   "errors": {
     "auth": {
       "invalidCredentials": "That email or password isn't right."
