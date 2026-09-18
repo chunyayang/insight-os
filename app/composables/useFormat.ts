@@ -1,5 +1,4 @@
 import type { CurrencyCode, Money } from '~/types/api'
-import type { MarketFilter } from '~/constants/markets'
 import {
   formatCompactNumber,
   formatCurrency,
@@ -7,7 +6,6 @@ import {
   formatDateTime,
   formatDelta,
   formatMoney,
-  formatNativeMoney,
   formatNumber,
   formatPercent,
   formatRelativeTime,
@@ -29,12 +27,12 @@ export function useFormat() {
   const loc = computed(() => intlLocale(locale.value))
 
   return {
-    /** Analytics: render a Money map in the explicitly selected display currency. */
+    /**
+     * Render a Money map in the given currency. The caller reads the right key first:
+     * the presentation currency for a cross-market aggregate or the Analytics
+     * selector, a record's own declared currency everywhere else.
+     */
     money: (money: Money, currency: CurrencyCode) => formatMoney(money, currency, loc.value),
-
-    /** Everywhere else: render a Money map in the record's native currency ("All" -> USD). */
-    nativeMoney: (money: Money, market: MarketFilter) =>
-      formatNativeMoney(money, market, loc.value),
 
     /** A bare amount whose currency is already known. */
     currency: (value: number, currency: CurrencyCode) => formatCurrency(value, currency, loc.value),
