@@ -166,10 +166,7 @@ export interface Customer {
   status: CustomerStatus
   /** Lifetime value in every currency — each the sum of day-converted amounts. */
   lifetimeValue: Money
-  /**
-   * Which `lifetimeValue` key to render. Customers has no currency selector, so every
-   * record shows its own market's currency and ignores the Analytics-scoped one.
-   */
+  /** Which `lifetimeValue` key to render. Each record displays its market's currency per the spec. */
   functionalCurrency: CurrencyCode
   totalOrders: number
   lastActiveAt: string // ISO 8601

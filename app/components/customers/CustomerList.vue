@@ -45,7 +45,7 @@ const query = ref<ListQuery>({
 const search = ref('')
 const segment = ref<CustomerSegment | 'all'>('all')
 
-/** Any filter change resets to page 1 — page 7 of a two-page result renders nothing. */
+/** Any filter change resets to page 1 (e.g., page 7 of a two-page result would render nothing). */
 function applyFilters() {
   query.value = {
     ...query.value,
