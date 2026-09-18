@@ -27,12 +27,10 @@ const DELIMITER = ','
 const ROW_SEPARATOR = '\r\n'
 
 /**
- * Quote a single cell per RFC 4180, and neutralize spreadsheet formula injection.
- *
- * A text cell starting with `=`, `+`, `-` or `@` is evaluated as a formula by Excel and
- * Sheets, which turns an exported customer name into an attack on whoever opens the file.
- * Prefixing an apostrophe forces it back to text. Numbers are exempt — a negative number
- * is a number, and quoting it would break the column type on import.
+ * Quote a single cell per RFC 4180, and neutralize spreadsheet formula injection: a text cell
+ * starting with `=`, `+`, `-` or `@` is evaluated as a formula by Excel and Sheets, which
+ * turns an exported customer name into an attack on whoever opens the file. Numbers are
+ * exempt — quoting a negative number would break the column type on import.
  */
 export function escapeCsvValue(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return ''

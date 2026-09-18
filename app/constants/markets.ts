@@ -7,23 +7,18 @@ export const MARKETS: MarketCode[] = ['US', 'JP', 'TW', 'DE']
 export type MarketFilter = MarketCode | 'All'
 
 /**
- * Each market's functional currency — the currency that market's operation runs on.
- *
- * Deriving a currency from a market in the CLIENT is the defect issue #42 removes: the
- * functional currency is declared per record and must be read off it. This map is also
- * properly the organization's configuration rather than a constant, since two orgs in one
- * market can run on different currencies.
- * Records whose market is "All" display in USD (international/base currency).
+ * Each market's functional currency, as this organization has configured it — not a
+ * fact about geography (currency-model.md §3). NOT for resolving what currency to
+ * render on the client: a record's own `nativeCurrency`/`functionalCurrency` field is
+ * the source of truth for that, and a cross-market aggregate has no functional
+ * currency at all. Kept as the default a future mock-data generator would assign per
+ * market, absent a real backend to declare it.
  */
 export const MARKET_CURRENCY: Record<MarketCode, CurrencyCode> = {
   US: 'USD',
   JP: 'JPY',
   TW: 'TWD',
   DE: 'EUR',
-}
-
-export function currencyForMarket(market: MarketFilter): CurrencyCode {
-  return market === 'All' ? 'USD' : MARKET_CURRENCY[market]
 }
 
 /**
@@ -46,6 +41,12 @@ export const MARKET_COLOR: Record<MarketCode, { light: string; dark: string }> =
   TW: { light: '#7c3aed', dark: '#a78bfa' }, // violet-600 / violet-400
   DE: { light: '#0d9488', dark: '#2dd4bf' }, // teal-600 / teal-400
 }
+
+/** Every currency the client can render, in the presentation-currency picker's display order. */
+export const CURRENCY_CODES: readonly CurrencyCode[] = ['USD', 'JPY', 'TWD', 'EUR']
+
+/** Presentation currency before Settings → General or the mock backend say otherwise. */
+export const DEFAULT_CURRENCY: CurrencyCode = 'USD'
 
 /**
  * Currencies with no minor unit. JPY is the one that matters here: it must render with

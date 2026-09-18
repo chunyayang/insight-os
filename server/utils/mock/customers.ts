@@ -5,12 +5,9 @@ import { addDays, isoDate } from './dates'
 import { MARKETS } from './markets'
 
 /**
- * The Customers list — the first endpoint that exercises the list contract end to end
- * (page / pageSize / sort / order / q / market / segment / status).
- *
- * Names are per-market on purpose: the JP and TW rows put real CJK through the column
- * widths, the sort comparator and the CSV export, which is where locale bugs actually show
- * up. Each carries a romanized handle so the email column stays plausible.
+ * Customer records for the list endpoint. Names are per-market on purpose: the JP and TW rows
+ * put real CJK through the column widths, the sort comparator and the CSV export, which is
+ * where locale bugs show up. Each part carries a romanized handle for the email column.
  */
 
 interface NamePart {
@@ -108,19 +105,24 @@ const GIVEN: Record<MarketCode, NamePart[]> = {
 const FAMILY_NAME_FIRST: Record<MarketCode, boolean> = { US: false, JP: true, TW: true, DE: false }
 
 /**
- * Names are combined by position, not drawn at random: with 8×8 parts per market and 34
- * customers in each, indexing guarantees every row is a distinct person. A seeded draw
- * would collide often enough to put the same name on two rows of one page, which reads as
- * a data bug in a list whose whole job is to look like real records.
+ * What sits between the two halves of a name. A Chinese name is written as one run of
+ * characters; Japanese forms conventionally separate 姓 from 名 with an ideographic space, which
+ * an ASCII space is not — it collapses at CJK widths and reads as a typo to a native speaker.
+ */
+const NAME_JOINER: Record<MarketCode, string> = { US: ' ', JP: '\u3000', TW: '', DE: ' ' }
+
+/**
+ * Names combine by position rather than by draw: 8×8 parts against the 34 rows each market
+ * gets guarantees no two customers share a name.
  */
 function nameFor(market: MarketCode, ordinal: number): { name: string; handle: string } {
   const family = FAMILY[market][ordinal % FAMILY[market].length]!
   const given = GIVEN[market][Math.floor(ordinal / FAMILY[market].length) % GIVEN[market].length]!
 
+  const [first, second] = FAMILY_NAME_FIRST[market] ? [family, given] : [given, family]
+
   return {
-    name: FAMILY_NAME_FIRST[market]
-      ? `${family.text} ${given.text}`
-      : `${given.text} ${family.text}`,
+    name: `${first.text}${NAME_JOINER[market]}${second.text}`,
     handle: `${given.handle}.${family.handle}`,
   }
 }
@@ -171,7 +173,7 @@ function pickRange(key: string, min: number, max: number): number {
 
 function buildCustomer(index: number, today: Date): Customer {
   const id = `cus_${String(index + 1).padStart(4, '0')}`
-  // Round-robin the markets so every one of the four is populated at any pool size.
+  // Round-robin the markets so every one is populated at any pool size.
   const market = MARKETS[index % MARKETS.length]!
   const person = nameFor(market, Math.floor(index / MARKETS.length))
   const segment = pick(SEGMENTS, `cust:seg:${id}`)
@@ -181,10 +183,9 @@ function buildCustomer(index: number, today: Date): Customer {
   const monthly = BASE_MONTHLY_SPEND[market] * SEGMENT_SPEND_FACTOR[segment]
 
   /**
-   * Lifetime value is the SUM OF DAY-CONVERTED amounts, never the native total times one
-   * rate — the non-negotiable rule from the API contract, kept honest here by converting
-   * each monthly bucket at its own day's official rate before summing. The four currencies
-   * that come out are independent totals; the client picks `nativeCurrency` and formats it.
+   * Lifetime value is the SUM OF DAY-CONVERTED amounts, never a native total times one rate
+   * (the API contract's non-negotiable): every monthly bucket converts at its own day's
+   * official rate, so every currency that comes out is an independent total.
    */
   const buckets = Array.from({ length: TENURE_MONTHS }, (_, month) => {
     const date = isoDate(addDays(today, -(month * 30 + 15)))
@@ -193,14 +194,13 @@ function buildCustomer(index: number, today: Date): Customer {
   })
 
   const [minDays, maxDays] = STATUS_RECENCY[status]
-  const lastActive = addDays(today, -pickRange(`cust:seen:${id}`, minDays, maxDays))
-  // Keep a time-of-day component so relative timestamps read naturally ("4 hours ago").
-  lastActive.setUTCHours(
-    pickRange(`cust:hour:${id}`, 1, 22),
-    pickRange(`cust:min:${id}`, 0, 59),
-    0,
-    0,
-  )
+
+  /**
+   * Offsets run backwards from `today`: a "last active" stamp can only be in the past, and
+   * minute resolution across the status band keeps relative timestamps natural.
+   */
+  const minutesBack = pickRange(`cust:seen:${id}`, minDays * 1440, maxDays * 1440)
+  const lastActive = new Date(today.getTime() - minutesBack * 60_000)
 
   return {
     id,
@@ -218,8 +218,8 @@ function buildCustomer(index: number, today: Date): Customer {
 
 /**
  * The pool, memoized per day. Deterministic by contract: the same customer must carry the
- * same figures across requests, or paging through the list would reshuffle under the user.
- * The day is part of the cache key because the seed derives recency from `today`.
+ * same figures across requests, or paging would reshuffle the list under the user. The day is
+ * part of the key because recency is derived from `today`.
  */
 let cache: { day: string; customers: Customer[] } | null = null
 

@@ -85,6 +85,19 @@ export interface LoginResponse {
   user: SessionUser
 }
 
+/* ─────────────────────────── Organization settings ─────────────────────────── */
+
+/**
+ * Organization-level configuration — one value, read by everyone, distinct from any
+ * user's session. `presentationCurrency` is the IAS 21 presentation currency
+ * (currency-model.md §1); Settings → General is the only surface that writes it.
+ */
+export interface OrgSettings {
+  presentationCurrency: CurrencyCode
+}
+
+export type UpdateOrgSettingsRequest = Partial<OrgSettings>
+
 /* ─────────────────────────── Dashboard ─────────────────────────── */
 
 export interface KpiMetric {
@@ -151,7 +164,7 @@ export interface Customer {
   market: MarketCode
   segment: CustomerSegment
   status: CustomerStatus
-  /** Lifetime value in all four currencies — each the sum of day-converted amounts. */
+  /** Lifetime value in every currency — each the sum of day-converted amounts. */
   lifetimeValue: Money
   /**
    * Which `lifetimeValue` key to render. Customers has no currency selector, so every

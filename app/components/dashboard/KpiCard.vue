@@ -5,20 +5,20 @@ const props = defineProps<{ metric: KpiMetric }>()
 
 const { t } = useI18n()
 const fmt = useFormat()
+const organization = useOrganizationStore()
 
 const label = computed(() => t(`dashboard.kpi.${props.metric.key}`))
 
 /**
- * Dashboard KPIs are NOT Analytics: they never react to the Analytics currency selector.
- * The value is read straight out of the Money map — the client picks a key, it never converts.
- *
- * These are cross-market AGGREGATES, which have no functional currency, so the settled
- * design renders them in the org's PRESENTATION currency. `nativeMoney(value, 'All')` below resolves
- * to a hardcoded USD instead — known gap, issue #42.
+ * Every Dashboard KPI is a cross-market aggregate with no functional currency of its
+ * own (currency-model.md §3), so a monetary value renders in the org's presentation
+ * currency and changes with it — not the Analytics selector, which is scoped there.
+ * The value is read straight out of the Money map — the client picks a key, it never
+ * converts.
  */
 const displayValue = computed(() => {
   const value = props.metric.value
-  if (typeof value === 'object') return fmt.nativeMoney(value, 'All')
+  if (typeof value === 'object') return fmt.money(value, organization.presentationCurrency)
   if (props.metric.key === 'conversionRate') return fmt.percent(value)
   return fmt.number(value)
 })

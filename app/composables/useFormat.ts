@@ -1,5 +1,4 @@
 import type { CurrencyCode, Money } from '~/types/api'
-import type { MarketFilter } from '~/constants/markets'
 import {
   formatCompactNumber,
   formatCurrency,
@@ -7,7 +6,6 @@ import {
   formatDateTime,
   formatDelta,
   formatMoney,
-  formatNativeMoney,
   formatNumber,
   formatPercent,
   formatRelativeTime,
@@ -29,16 +27,12 @@ export function useFormat() {
   const loc = computed(() => intlLocale(locale.value))
 
   return {
-    /** Analytics: render a Money map in the explicitly selected display currency. */
-    money: (money: Money, currency: CurrencyCode) => formatMoney(money, currency, loc.value),
-
     /**
-     * Render a Money map in a record's FUNCTIONAL currency. Takes a MARKET, which is the
-     * wrong input — the functional currency is declared per record and must be read off it,
-     * not derived (which is also why "All" wrongly resolves to USD here). Issue #42.
+     * Render a Money map in the given currency. The caller reads the right key first:
+     * the presentation currency for a cross-market aggregate or the Analytics
+     * selector, a record's own declared currency everywhere else.
      */
-    nativeMoney: (money: Money, market: MarketFilter) =>
-      formatNativeMoney(money, market, loc.value),
+    money: (money: Money, currency: CurrencyCode) => formatMoney(money, currency, loc.value),
 
     /** A bare amount whose currency is already known. */
     currency: (value: number, currency: CurrencyCode) => formatCurrency(value, currency, loc.value),

@@ -127,7 +127,7 @@
   },
   "customers": {
     "title": "Customers",
-    "subtitle": "Every buyer across your four markets, in their own currency.",
+    "subtitle": "Every buyer across your markets, in their own currency.",
     "list": {
       "caption": "Customers, with market, lifetime value, order count, last activity and status.",
       "emptyTitle": "No customers match these filters",
@@ -161,6 +161,17 @@
       "active": "Active",
       "dormant": "Dormant",
       "churned": "Churned"
+    }
+  },
+  "settings": {
+    "general": {
+      "title": "General",
+      "saved": "Settings saved.",
+      "presentationCurrency": {
+        "label": "Presentation currency",
+        "help": "Set the presentation currency for cross-market aggregated data and dual-currency fields in 'Customers' and 'Campaigns'. Amounts from all markets will be converted to this currency at applicable exchange rates for consolidated analysis.",
+        "deniedTooltip": "Only an Admin can change the organization's presentation currency."
+      }
     }
   },
   "errors": {

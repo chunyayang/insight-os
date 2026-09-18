@@ -1,5 +1,5 @@
 import type { CurrencyCode, Money } from '~/types/api'
-import { currencyForMarket, currencyFractionDigits, type MarketFilter } from '~/constants/markets'
+import { currencyFractionDigits } from '~/constants/markets'
 
 /**
  * Pure Intl formatters. The locale is passed in explicitly (rather than read from
@@ -32,21 +32,12 @@ export function formatCurrency(
   }).format(value)
 }
 
-/** Read one currency out of a Money map and format it (Analytics: the selected currency). */
-export function formatMoney(money: Money, currency: CurrencyCode, locale: SupportedLocale): string {
-  return formatCurrency(money[currency], currency, locale)
-}
-
 /**
- * Format a Money map in the record's FUNCTIONAL currency — the correct behaviour everywhere
- * except Analytics, where a currency selector normalizes markets. "All" resolves to USD.
+ * Read one currency out of a Money map and format it. The caller decides which key:
+ * the presentation currency for a cross-market aggregate or the Analytics selector, a
+ * record's own declared currency everywhere else — never derived from a market here.
  */
-export function formatNativeMoney(
-  money: Money,
-  market: MarketFilter,
-  locale: SupportedLocale,
-): string {
-  const currency = currencyForMarket(market)
+export function formatMoney(money: Money, currency: CurrencyCode, locale: SupportedLocale): string {
   return formatCurrency(money[currency], currency, locale)
 }
 

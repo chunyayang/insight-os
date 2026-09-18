@@ -153,6 +153,59 @@ test('dashboard loads after login', async ({ page, goto }) => {
 Import `test`/`expect` from `@nuxt/test-utils/playwright` (not bare
 `@playwright/test`) so the Nuxt server is booted for you.
 
+## Checking a change in the app (not the E2E suite)
+
+The suite above is a gate. This is the other use of the same tool: rendering a change you
+just made and reading what the browser actually shows. **Whoever makes a user-visible
+change runs this** — it is not the reviewer's step and not the user's.
+
+- One-time: `pnpm exec playwright install chromium`. The browser build is pinned to the
+  Playwright version in `package.json`, so a system-wide install from a *newer* Playwright
+  will not satisfy it — the launch fails naming the build number it wanted. `channel: 'chrome'`
+  borrows the system Chrome if you need a way through in the meantime.
+- Run throwaway scripts **from the repo root**, so `@playwright/test` resolves; a scratch
+  directory outside the project cannot import it.
+- Log in with `input[type=email]` / `input[type=password]`. `getByLabel('Email')` breaks the
+  moment the session renders in zh-TW, which is what a fresh browser context gets.
+- **Read values, do not eyeball them**: `boundingBox()` for widths, `getBoundingClientRect()`
+  for column offsets, the `datetime` attribute behind a relative timestamp. "Looks right" is
+  not a check; "column 1 is 353px in en and 379px in zh-TW" is.
+- For a question about *generated data*, a unit probe is still the better instrument — it
+  sees every row at full precision where the UI shows twenty, rounded. Diagnose with the
+  probe, confirm in the browser. Both, not either.
+
+### Chromium alone is not enough
+
+Blink and WebKit disagree about painting, and the disagreements stay invisible until someone
+opens the page on an iPhone. Check **both** engines when a change touches:
+
+- **`position: sticky`, `border-collapse`, stacking or translucency.** WebKit paints a
+  collapsed table border *beneath* cell backgrounds where Blink paints it above, so an opaque
+  cell erases its own row divider in Safari and nowhere else.
+- **A download.** `URL.createObjectURL` plus a programmatic click is the whole mechanism
+  behind CSV export, and iOS Safari is where a detached anchor, or a `revokeObjectURL` called
+  too early, quietly produces nothing — or opens the file in a tab instead of saving it.
+- **Anything that needs hover.** Touch has none, so the `disabled + tooltip` treatment the
+  RBAC spec mandates is unreachable unless a tap opens it.
+- **`Intl` output.** JSC ships its own ICU: a currency symbol, a narrow space inside a
+  number, or relative-time wording can differ from what Chromium rendered.
+- **Viewport units in the layout shell.** iOS resizes `100vh` as its toolbars collapse.
+
+```ts
+import { devices, webkit } from 'playwright-core'
+
+const browser = await webkit.launch()
+const page = await browser.newPage({ ...devices['iPhone 14 Plus'], locale: 'zh-TW' })
+```
+
+One-time: `pnpm exec playwright install webkit`. Measure here too, and reach for
+`getComputedStyle()` ahead of `boundingBox()` — a paint difference lives in a colour or a
+layer, not in geometry. The screenshot says where to look; the computed value settles it.
+
+Playwright's WebKit tracks a current Safari, so it catches **engine** differences, not
+**version** support (`oklch()`, `:has()`, and everything else the palette assumes). Those need
+a real device or a support matrix, and no headless run substitutes for either.
+
 ## CI — GitHub Actions (single workflow)
 
 One workflow, runs on push to `main` and on every PR targeting `main`. It is the

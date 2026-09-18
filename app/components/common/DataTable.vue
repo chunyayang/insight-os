@@ -48,9 +48,20 @@ const query = defineModel<ListQuery>('query', { required: true })
 const { t } = useI18n()
 const fmt = useFormat()
 const { can, shouldRender } = useCan()
+const notify = useNotify()
 const slots = useSlots()
 
 const UButton = resolveComponent('UButton')
+
+/**
+ * A pinned cell has to be opaque: it sits over the columns scrolling under it, and Nuxt UI's
+ * own `bg-default/75` lets their text read straight through the pinned one.
+ *
+ * Match the VALUE, not the attribute. UTable renders `data-pinned="false"` on every unpinned
+ * cell, so a presence match (`data-pinned:`) paints the whole table opaque — and an opaque
+ * cell background hides the collapsed row border that `divide-y` draws underneath it.
+ */
+const PINNED_CELL = 'data-[pinned=left]:bg-default data-[pinned=right]:bg-default'
 
 /* ─────────────────────────── Sorting ─────────────────────────── */
 
@@ -89,8 +100,7 @@ function sortIcon(id: string): string {
 
 /**
  * Sorting is opt-in per column (`enableSorting: true`) because the ENDPOINT has to support
- * the field — a header that sorts nothing is worse than no header control at all. Opting in
- * swaps the plain string header for a toggle button; everything else passes through.
+ * the field — a header that sorts nothing is worse than no header control at all.
  */
 const tableColumns = computed<TableColumn<T>[]>(() =>
   props.columns.map((column) => {
@@ -100,7 +110,7 @@ const tableColumns = computed<TableColumn<T>[]>(() =>
     const id = columnId(column)
 
     // Cast: spreading ColumnDef's discriminated union widens it past TS's ability to
-    // re-narrow, though the shape is unchanged apart from `header`.
+    // re-narrow, though nothing but `header` changes shape.
     return {
       ...column,
       header: () =>
@@ -144,31 +154,43 @@ const showing = computed(() => {
 /* ─────────────────────────── CSV export ─────────────────────────── */
 
 /**
- * `export:csv` is the one ability the spec marks *disabled + tooltip* rather than hidden,
- * so the control renders for every role and `shouldRender` keeps that decision in the
- * permission map instead of here. Client-side gating is UX only — the real backend export
- * must re-check the role.
+ * `export:csv` is the one ability the spec marks *disabled + tooltip* rather than hidden, so
+ * `shouldRender` keeps that decision in the permission map instead of here. Client-side
+ * gating is UX only — the real backend export must re-check the role.
  */
 const canExport = computed(() => can('export:csv'))
-const exportDisabled = computed(
-  () => !canExport.value || Boolean(props.loading) || props.rows.length === 0,
-)
+
+/**
+ * A denied control is `aria-disabled`, never `disabled`. A `disabled` button leaves the tab
+ * order and emits no events, which puts the tooltip out of reach of everyone without a mouse —
+ * and the tooltip is a pointer affordance regardless (Reka ignores `pointerType === 'touch'`
+ * by design), so activation has to say it out loud as well.
+ *
+ * Nothing to export YET is the other case: transient, self-explanatory, and nobody needs it
+ * spelled out. That one stays truly disabled.
+ */
+const exportUnavailable = computed(() => Boolean(props.loading) || props.rows.length === 0)
+
 const exportTooltip = computed(() =>
   canExport.value ? t('common.table.exportCsvHint') : t('common.table.exportDenied'),
 )
 
 /** Exports the loaded page. A whole-result export needs a `?format=csv` endpoint variant. */
 function exportCsv() {
-  if (!props.csv || exportDisabled.value) return
+  if (!canExport.value) {
+    notify.info('common.table.exportDenied')
+    return
+  }
+  if (!props.csv || exportUnavailable.value) return
   downloadCsv(csvFilename(props.csv.filename), toCsv(props.rows, props.csv.columns))
 }
 
 /* ─────────────────────────── Slots ─────────────────────────── */
 
 /**
- * Forward `#<column>-cell` / `#<column>-header` straight through to UTable. The three below
- * are ours: each is declared once with a default a caller can override, so forwarding them
- * as well would declare the same slot name twice.
+ * Forward `#<column>-cell` / `#<column>-header` straight through to UTable. Ours are held
+ * back: each is declared below with an overridable default, and forwarding would redeclare
+ * the same slot name twice.
  */
 const OWN_SLOTS = ['toolbar', 'empty', 'loading']
 const forwardedSlots = computed(() =>
@@ -184,26 +206,28 @@ const forwardedSlots = computed(() =>
       </div>
 
       <UTooltip v-if="csv && shouldRender('export:csv')" :text="exportTooltip">
-        <!-- A disabled <button> swallows pointer events, so the tooltip would never open
-             for the role the tooltip exists to explain things to. The wrapper hears them
-             instead. -->
-        <span class="data-table__export">
-          <UButton
-            :label="t('common.table.exportCsv')"
-            icon="i-lucide-download"
-            color="neutral"
-            variant="outline"
-            size="sm"
-            :disabled="exportDisabled"
-            @click="exportCsv"
-          />
-        </span>
+        <!-- The button is the tooltip's own trigger: `focus` does not bubble, so a wrapper
+             around it would leave the tooltip closed for anyone arriving by keyboard. -->
+        <UButton
+          :label="t('common.table.exportCsv')"
+          icon="i-lucide-download"
+          color="neutral"
+          variant="outline"
+          size="sm"
+          class="data-table__export"
+          :disabled="canExport && exportUnavailable"
+          :aria-disabled="canExport ? undefined : true"
+          @click="exportCsv"
+        />
       </UTooltip>
     </div>
 
     <CommonErrorState v-if="error" :error="error" @retry="emit('retry')" />
 
     <template v-else>
+      <!-- `sorting-options` and `pagination-options` are two separate option bags and both are
+           required: missing either lets TanStack re-sort or re-slice the one page in hand and
+           present it as the whole result set. -->
       <UTable
         v-model:sorting="sorting"
         :data="rows"
@@ -211,6 +235,7 @@ const forwardedSlots = computed(() =>
         :caption="caption"
         :loading="loading"
         :column-pinning="{ left: pinnedColumns ?? [] }"
+        :ui="{ th: PINNED_CELL, td: PINNED_CELL }"
         :sorting-options="{ manualSorting: true }"
         :pagination-options="{
           manualPagination: true,
@@ -221,8 +246,8 @@ const forwardedSlots = computed(() =>
           <slot :name="name" v-bind="slotProps ?? {}" />
         </template>
 
-        <!-- First load has no rows to draw yet, so stand in for them rather than flashing
-             the empty state at someone whose data is still on the wire. -->
+        <!-- Only reached with no rows in hand: stand in for them rather than flashing the
+             empty state at someone whose data is still on the wire. -->
         <template #loading>
           <slot name="loading">
             <div class="data-table__skeleton">
