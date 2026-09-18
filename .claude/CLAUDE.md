@@ -22,6 +22,7 @@ i18n JSON: `i18n/locales/`.
 
 ## Hard rules (always apply)
 - **State boundary:** Vue Query owns all server data; Pinia owns UI state only. Never clone server data into Pinia.
+- **Filters live in the URL:** data-scope filters (`market`, `segment`, `status`, `range`, `q`, `page`, `sort`) are per-page and URL-backed via `useUrlFilter`; Pinia may hold a session *default*, never the live value. Omit defaults from the query, validate on read. Why: `.claude/doc/url-backed-filters.md`.
 - **i18n:** no hardcoded user-facing strings; every key exists in BOTH `en.json` and `zh-TW.json`. Format numbers/dates/currency via `composables/useFormat.ts` (JPY = 0 decimals).
 - **Color:** no raw hex, no Tailwind palette colors (`bg-emerald-500` ✗). Use Nuxt UI semantic tokens (`--ui-primary`, `--ui-bg`, `--ui-text-muted`, …) or Tailwind theme vars/utilities for radii, shadow and type. The palette is declared once in `app/app.config.ts`. The **only** sanctioned raw hex is `MARKET_COLOR` / `CHART_CHROME` — Chart.js can't consume `oklch()`; don't "unify" those back into `--ui-*`. Dark mode is the `.dark` class, persisted via cookie.
 - **Money:** conversion is server-side (historical daily rates); the client only formats. The currency selector is Analytics-only — elsewhere show each record's native currency.

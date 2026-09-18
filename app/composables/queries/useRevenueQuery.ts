@@ -20,8 +20,9 @@ export function useRevenueSeries(options?: {
 }) {
   const { $api } = useNuxtApp()
   const filters = useFiltersStore()
+  const pageMarket = useMarketFilter()
 
-  const market = computed(() => options?.market?.value ?? filters.market)
+  const market = computed(() => options?.market?.value ?? pageMarket.value)
   const range = computed(() => options?.range?.value ?? filters.range)
 
   return useQuery({
