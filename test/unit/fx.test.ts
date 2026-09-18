@@ -9,6 +9,7 @@ import {
 } from '../../server/utils/mock/fx'
 import { dailyMetrics, dailyRevenueMoney, isAnomalousDay } from '../../server/utils/mock/markets'
 import { eachDay, resolveRange } from '../../server/utils/mock/dates'
+import { currencyFractionDigits } from '../../app/constants/markets'
 
 describe('fx — historical daily conversion', () => {
   it('is deterministic: the same day reproduces the same rates and totals', () => {
@@ -51,6 +52,21 @@ describe('fx — historical daily conversion', () => {
     expect(Number.isInteger(rounded.JPY)).toBe(true)
     expect(rounded.JPY).toBe(1235)
     expect(emptyMoney()).toEqual({ USD: 0, JPY: 0, TWD: 0, EUR: 0 })
+  })
+
+  /**
+   * STORAGE precision is not display precision, and TWD is where they part company.
+   * `ZERO_DECIMAL_CURRENCIES` renders TWD with no decimals because Taiwanese prices are
+   * quoted in whole dollars — but the minor unit exists (ISO 4217 says 2), and these are
+   * converted figures with real precision. Rounding them here would discard data for a
+   * presentation reason. If this test fails because TWD became integer, the two lists were
+   * wrongly unified: fix the storage side back, not this test.
+   */
+  it('keeps TWD sub-units in storage even though it displays with none', () => {
+    const rounded = roundMoney({ USD: 1.005, JPY: 1234.7, TWD: 10.123, EUR: 2.345 })
+    expect(rounded.TWD).toBe(10.12)
+    expect(Number.isInteger(rounded.TWD)).toBe(false)
+    expect(currencyFractionDigits('TWD')).toBe(0)
   })
 
   it('maps each market to its native currency', () => {

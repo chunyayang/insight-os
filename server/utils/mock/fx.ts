@@ -69,7 +69,13 @@ export function sumMoney(items: Money[]): Money {
   return items.reduce(addMoney, emptyMoney())
 }
 
-/** JPY has no minor unit; the rest carry 2 decimals. Display formatting still happens client-side. */
+/**
+ * STORAGE precision, which is not the same as display precision.
+ *
+ * JPY has no minor unit, so integer is the true value. TWD keeps 2 decimals even though it
+ * DISPLAYS with none (`ZERO_DECIMAL_CURRENCIES` in `app/constants/markets.ts`): whole-dollar
+ * NT$ is a quoting convention, and these are converted figures with real precision to keep.
+ */
 export function roundMoney(money: Money): Money {
   return {
     USD: Math.round(money.USD * 100) / 100,
