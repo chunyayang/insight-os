@@ -4,9 +4,12 @@ import { seededRange } from './seed'
 export const CURRENCIES: CurrencyCode[] = ['USD', 'JPY', 'TWD', 'EUR']
 
 /**
- * Each market's functional currency. The API declares this per monetary record so the client
- * can render functional-currency amounts off-Analytics without any currency selector.
- * Records whose market is "All" use USD (international/base currency).
+ * Each market's functional currency — what that market's operation runs on. The API declares it
+ * per monetary record so the client can render the operating figure without a selector.
+ *
+ * Stands in for the ORGANIZATION'S configuration, not a fact about geography: two orgs in the
+ * same market can run on different currencies (currency-model.md §1). A cross-market aggregate
+ * has no functional currency at all, which is why this map has no "All" key to look up.
  */
 export const MARKET_FUNCTIONAL_CURRENCY: Record<MarketCode, CurrencyCode> = {
   US: 'USD',
