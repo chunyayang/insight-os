@@ -5,9 +5,19 @@ import { csvFilename, downloadCsv, toCsv, type CsvExport } from '~/utils/csv'
 
 /**
  * The project's one table. Pages and feature components never reach for `UTable` directly.
- * It binds to the API contract rather than to a row array: `query` is the `ListQuery` that
- * goes on the wire and `pagination` is the envelope's own block off `ApiListResponse`, so
- * sorting and paging are SERVER concerns — the component only writes back into `query`.
+ *
+ * What makes it more than a pass-through: it is bound to the API contract rather than to a
+ * row array. `query` is the `ListQuery` that goes on the wire and `pagination` is the
+ * envelope's own block off `ApiListResponse`, so sorting and paging are SERVER concerns —
+ * the component writes back into `query` and the caller's Vue Query composable refetches.
+ * `manualSorting` / `manualPagination` tell TanStack to keep its hands off, which is the
+ * whole point: without them a 20-row page would silently sort and slice itself and pretend
+ * to be the entire result set.
+ *
+ * Sorting therefore always happens on the server against the RAW field — never coerce
+ * formatted strings back into numbers to sort them client-side. This table stays
+ * domain-agnostic and knows nothing about currency; how money cells render and which
+ * currency they sort on is settled in currency-model.md and decided by the caller.
  */
 const props = defineProps<{
   columns: TableColumn<T>[]

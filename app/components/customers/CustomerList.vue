@@ -79,6 +79,10 @@ const rows = computed(() => data.value?.data ?? [])
 const columns = computed<TableColumn<Customer>[]>(() => [
   { accessorKey: 'name', header: t('customers.columns.name'), enableSorting: true, size: 240 },
   { accessorKey: 'market', header: t('customers.columns.market'), size: 130 },
+  // LTV renders in the functional currency alone and sorts on that amount, so across markets it
+  // ranks raw numbers and a JPY total always wins. The settled design is a dual-currency cell
+  // sorted on the PRESENTATION currency, which makes the cross-market ranking correct rather than
+  // gating it away — currency-model.md §3–4, tracked in issue #41. Known gap, not a bug.
   {
     accessorKey: 'lifetimeValue',
     header: t('customers.columns.lifetimeValue'),
