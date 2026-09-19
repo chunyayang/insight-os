@@ -47,6 +47,14 @@ export default defineNuxtConfig({
   },
 
   primevue: {
+    // Nuxt UI also registers a `useToast` composable; without this, the auto-import
+    // registry has two candidates for the same global name and Nuxt warns about the
+    // duplicate at build/dev time. useNotify.ts already imports @nuxt/ui's version
+    // explicitly, so excluding PrimeVue's here just silences the warning — no runtime
+    // change. Drop this once PrimeVue is gone.
+    composables: {
+      exclude: ['useToast'],
+    },
     options: {
       // Aura preset; token alignment to the design system lands in Phase 1a via definePreset().
       theme: {
