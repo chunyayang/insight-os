@@ -436,27 +436,31 @@ Targeted checks, ordered by risk:
 
 ## Open items (flagging, not fixing)
 
-- **Moved out — everything about currency.** Two open items lived here: the Settings→General
-  currency setting that looked like it contradicted the Analytics-only selector, and gating the
-  monetary sort control. Both were symptoms of currency rules being spread across four documents.
-  They are settled in one place now — **`/product-spec` → `currency-model.md`** (the spec repo),
-  which names that setting the organization's **presentation currency** and withdraws the
-  sort-gating rule in favour of sorting on the presentation currency with dual-currency cells.
-  Nothing currency-related belongs here; this doc is trimmed at PR 7.
-- Nuxt UI's docs have no worked example of server-side pagination, though the full TanStack option
-  set passes through `:pagination-options`. PR 6 exists to prove this out before any module depends
-  on it.
 - Nuxt UI's major cadence is fast (v3→v4 inside a year). MIT with a public repo, so a future major
   is a migration, never a licensing event.
 - **Typography is now Tailwind's system stack**, matching what actually renders today. If the
   Figtree + Noto Sans TC look is wanted later it is a deliberate, separate change (`@nuxt/fonts`,
   self-hosted, with a zh-TW subsetting check) — not something to reintroduce as a bare CSS
   variable that names fonts nobody loads.
-- Chart colors are now sky/amber/violet/teal rather than the inherited PrimeUI pastels, so the
-  Dashboard trend and sparklines will look different by design. Worth a look in the PR 1 preview
-  before the Analytics module builds on them.
-- I'll record the commercial-SaaS trajectory and this framework decision to project memory, since
-  both are inputs no future session can derive from the code.
+- **Next up: Chart.js → Apache ECharts.** That migration was decided and recorded
+  ([`.claude/doc/echarts-migration.md`](echarts-migration.md)) while this one was still in
+  flight, explicitly sequenced to start **after PR 7** — which is now landing. Analytics and AI
+  Assistant are still both unbuilt stubs, so nothing has been built against Chart.js that
+  shouldn't have been; the sequencing held. Chart colors (sky/amber/violet/teal) were confirmed
+  correct on the Dashboard in both themes during PR 7's own verification, so that earlier "worth a
+  look" flag is closed — but those colors and `useChartTheme()` are Chart.js-specific and go away
+  with that migration, not something to hand-carry into the ECharts work.
+
+### Closed since this doc was written
+
+- ~~Nuxt UI's docs have no worked example of server-side pagination~~ — PR 6 proved it out
+  end-to-end against the Customers list (`app/components/common/DataTable.vue`, consumed by
+  `CustomerList.vue`), so this is resolved, not just de-risked.
+- ~~Currency open items (Settings→General setting vs. the Analytics-only selector, sort-gating)~~
+  — moved to and settled in `/product-spec` → `currency-model.md`, as planned. Nothing
+  currency-related belongs in this doc.
+- ~~Record the commercial-SaaS trajectory and this framework decision to project memory~~ — done
+  (`commercial-saas-trajectory.md`, `charting-echarts-decision.md`).
 
 ---
 
