@@ -1,20 +1,8 @@
 /*
  * Insight OS — global stylesheet.
- *
- * Layer order is load-bearing while PrimeVue and Nuxt UI coexist (PRs 1–7 of the
- * Nuxt UI migration). These are Tailwind v4's own canonical layers with `primevue`
- * slotted between `base` and `components`, so Tailwind utilities — which land in
- * `utilities`, last — still override PrimeVue component styles. The
- * `primevue.options.theme.options.cssLayer.order` in nuxt.config.ts must match this
- * list exactly. Both go away when PrimeVue is removed.
  */
-@layer theme, base, primevue, components, utilities;
-
 @import 'tailwindcss';
 @import '@nuxt/ui';
-
-/* Bridges PrimeVue design tokens into Tailwind utilities. Removed with PrimeVue. */
-@plugin 'tailwindcss-primeui';
 
 /*
  * The only hand-written CSS in the app.
