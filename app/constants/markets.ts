@@ -49,19 +49,9 @@ export const CURRENCY_CODES: readonly CurrencyCode[] = ['USD', 'JPY', 'TWD', 'EU
 export const DEFAULT_CURRENCY: CurrencyCode = 'USD'
 
 /**
- * Currencies rendered with 0 decimals. DISPLAY ONLY — this is not storage precision, and
- * the two are deliberately different (see `roundMoney` in `server/utils/mock/fx.ts`).
- *
- * The two entries are here for different reasons:
- * - JPY has no minor unit at all (ISO 4217 minor unit 0), so a fractional yen is
- *   meaningless. Integer is correct in storage AND display.
- * - TWD *does* have a minor unit (ISO 4217 says 2, and Intl formats `NT$1,234.50` by
- *   default), but Taiwanese prices are quoted in whole dollars. This is convention
- *   overriding the standard, so it applies to display only: our TWD figures are converted
- *   values carrying real precision, and rounding them at the data layer would discard it.
- *
- * Do not "unify" this list with `roundMoney`'s per-currency rounding. They encode
- * different facts and are pinned apart by tests.
+ * Currencies rendered with 0 decimals. DISPLAY ONLY — see currency-model.md §3 for why
+ * JPY and TWD land here for different reasons. Deliberately distinct from `roundMoney`'s
+ * per-currency rounding (storage precision); do not unify — pinned apart by tests.
  */
 export const ZERO_DECIMAL_CURRENCIES: readonly CurrencyCode[] = ['JPY', 'TWD']
 

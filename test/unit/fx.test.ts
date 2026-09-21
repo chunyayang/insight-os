@@ -55,12 +55,9 @@ describe('fx — historical daily conversion', () => {
   })
 
   /**
-   * STORAGE precision is not display precision, and TWD is where they part company.
-   * `ZERO_DECIMAL_CURRENCIES` renders TWD with no decimals because Taiwanese prices are
-   * quoted in whole dollars — but the minor unit exists (ISO 4217 says 2), and these are
-   * converted figures with real precision. Rounding them here would discard data for a
-   * presentation reason. If this test fails because TWD became integer, the two lists were
-   * wrongly unified: fix the storage side back, not this test.
+   * Storage precision != display precision (currency-model.md §3). If this fails because
+   * TWD became integer, `roundMoney` was wrongly unified with `ZERO_DECIMAL_CURRENCIES` —
+   * fix the storage side back, not this test.
    */
   it('keeps TWD sub-units in storage even though it displays with none', () => {
     const rounded = roundMoney({ USD: 1.005, JPY: 1234.7, TWD: 10.123, EUR: 2.345 })
