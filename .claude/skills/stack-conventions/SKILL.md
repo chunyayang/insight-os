@@ -31,7 +31,7 @@ app/
 │   ├── useNotify.ts           # Toasts, wrapping Nuxt UI's useToast()
 │   └── useTheme.ts            # Dark mode
 ├── layouts/default.vue        # Sidebar + topbar shell
-├── middleware/auth.ts         # Route guards (auth + role)
+├── middleware/auth.global.ts  # Route guards (auth + role) — global: applies to every route by default
 ├── pages/                     # File-based routes mirroring the sidebar IA
 ├── stores/                    # Pinia (auth, ui, filters)
 └── types/                     # Shared TS types, incl. API response types
@@ -62,7 +62,7 @@ Rules:
   - Semantic: `--ui-primary`, `--ui-success`, `--ui-info`, `--ui-warning`, `--ui-error`
   - Steps within a ramp when you need one: `--ui-color-primary-600`, `--ui-color-error-50`, …
 - **Typography, radii and elevation come from Tailwind, not Nuxt UI.** Nuxt UI adds only `--ui-radius`, `--ui-container` and `--ui-header-height` on top of color. Use Tailwind's `--font-sans`, `--radius-sm/md/lg/xl`, `--shadow-sm/md/lg` (or the matching utilities). Fonts are the system stack — if a webfont is ever wanted, add `@nuxt/fonts` deliberately; do not declare a `--font-sans` naming fonts nothing loads.
-- Dark mode: `.dark` on `<html>`, owned by our cookie-based `useTheme()`. Set `ui: { colorMode: false }` in nuxt.config so `@nuxtjs/color-mode` does not take over (it defaults to localStorage, which is not SSR-readable and reintroduces the light-flash). Declare `@custom-variant dark (&:where(.dark, .dark *));` in `main.css` explicitly. `--ui-*` re-declares itself under `.dark`, so component CSS is written once.
+- Dark mode: `.dark` on `<html>`, owned by our cookie-based `useTheme()`. Set `ui: { colorMode: false }` in nuxt.config so `@nuxtjs/color-mode` does not take over (it defaults to localStorage, which is not SSR-readable and reintroduces the light-flash). `@import '@nuxt/ui'` in `main.css` already registers the `dark:` variant on `.dark` — do not also declare `@custom-variant dark (&:where(.dark, .dark *));`, it's redundant. `--ui-*` re-declares itself under `.dark`, so component CSS is written once.
 - Prefer Nuxt UI components over custom ones: `UTable`, `UCard`, `USelect`, `UTabs`, `UDrawer`, `UModal`, `UBadge`, `USkeleton`, `UDropdownMenu`, `UEmpty`, `UAlert`, `UStepper`, `UTimeline`. Build custom only when there is no equivalent, and put it in `components/common/`.
 - Restyle components through the `ui` prop or `app.config.ts` slot overrides — Nuxt UI exposes every internal slot by name. `:deep()` is a last resort.
 - Toasts go through `useNotify()` (`app/composables/useNotify.ts`), which wraps Nuxt UI's `useToast()`. Never reach for `nuxt.vueApp.config.globalProperties`.
@@ -107,6 +107,12 @@ Hard boundary — violating it is the most common review rejection:
 - Client-side checks are UX, not security — note this in comments; the real backend must re-enforce.
 
 ## Charts (Chart.js)
+
+> **Migration decided, not started.** Chart.js is being replaced by Apache ECharts (`vue-echarts`),
+> sequenced after PR 7 of the Nuxt UI migration — the product spec needs visuals (funnel, cohort
+> heatmap, gauges, AI annotations) Chart.js can't draw. Everything below is current until then.
+> Do not start the Analytics or AI Assistant charts on Chart.js. Rationale:
+> [`.claude/doc/echarts-migration.md`](../../doc/echarts-migration.md).
 
 - All charts go through wrapper components in `components/charts/` (e.g. `TrendLineChart.vue`, `MarketBarChart.vue`). Pages never import Chart.js directly.
 - Register Chart.js controllers/elements once in a client-side plugin, not per component.
