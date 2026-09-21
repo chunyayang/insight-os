@@ -17,7 +17,7 @@ export function intlLocale(code: string): SupportedLocale {
   return code === 'zh-TW' ? 'zh-TW' : 'en-US'
 }
 
-/** Currency amount. JPY renders with 0 decimals; USD/TWD/EUR with 2. */
+/** Currency amount. JPY and TWD render with 0 decimals; USD/EUR with 2. */
 export function formatCurrency(
   value: number,
   currency: CurrencyCode,

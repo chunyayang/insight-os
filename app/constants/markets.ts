@@ -49,10 +49,11 @@ export const CURRENCY_CODES: readonly CurrencyCode[] = ['USD', 'JPY', 'TWD', 'EU
 export const DEFAULT_CURRENCY: CurrencyCode = 'USD'
 
 /**
- * Currencies with no minor unit. JPY is the one that matters here: it must render with
- * 0 decimals everywhere (the single client-side money rule — conversion is server-side).
+ * Currencies rendered with 0 decimals. DISPLAY ONLY — see currency-model.md §3 for why
+ * JPY and TWD land here for different reasons. Deliberately distinct from `roundMoney`'s
+ * per-currency rounding (storage precision); do not unify — pinned apart by tests.
  */
-export const ZERO_DECIMAL_CURRENCIES: readonly CurrencyCode[] = ['JPY']
+export const ZERO_DECIMAL_CURRENCIES: readonly CurrencyCode[] = ['JPY', 'TWD']
 
 export function currencyFractionDigits(currency: CurrencyCode): number {
   return ZERO_DECIMAL_CURRENCIES.includes(currency) ? 0 : 2

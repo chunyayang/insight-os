@@ -96,7 +96,7 @@ Hard boundary — violating it is the most common review rejection:
 - `@nuxtjs/i18n` with lazy-loaded JSON per locale; default locale `en`, no prefix strategy decided in nuxt.config — don't change it casually, it affects every route.
 - Key naming: `module.page.element` — e.g. `dashboard.kpi.revenue`, `team.members.inviteButton`. Shared strings go under `common.*`.
 - **Zero hardcoded user-facing strings in templates or scripts.** Every new string is added to BOTH `en.json` and `zh-TW.json` in the same commit — a missing zh-TW key is a bug, not a TODO.
-- Numbers, currency, and dates go through `Intl`-based formatters in `composables/useFormat.ts` (currency varies by market: USD/JPY/TWD/EUR; JPY has no decimals).
+- Numbers, currency, and dates go through `Intl`-based formatters in `composables/useFormat.ts` (currency varies by market: USD/JPY/TWD/EUR; JPY and TWD render with no decimals — see `ZERO_DECIMAL_CURRENCIES`, which is display precision only and deliberately differs from storage).
 - Layout must tolerate CJK: avoid fixed widths on text containers; test toggling to zh-TW when touching any layout.
 
 ## Roles & permissions (Admin / Analyst / Viewer)
