@@ -1,14 +1,10 @@
 /**
  * CSV export — a pure transform over rows the client already has.
  *
- * The columns are deliberately NOT the table's display columns. A money cell renders per record
- * in its functional currency ("¥1,234" / "1.234,00 €"), and re-parsing that back into a number
- * would be both locale-dependent and currency-blind. Each CSV column reads the underlying value
- * instead — the raw number, the ISO timestamp, the code — so a spreadsheet gets something it can
- * actually sum and sort. Formatting stays a display concern.
- *
- * Once money cells carry two currencies (issue #41), a dual cell exports as separate raw columns
- * for both amounts and both currency codes — never one column holding two numbers.
+ * The columns are deliberately NOT the table's display columns: re-parsing a formatted money cell
+ * ("¥1,234") back into a number is locale-dependent and currency-blind, so each column reads the
+ * underlying raw value. A cell rendering two currencies exports as separate columns for both
+ * amounts and both codes, never one column holding two numbers.
  */
 
 export interface CsvColumn<T> {

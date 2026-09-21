@@ -18,14 +18,10 @@ export const useFiltersStore = defineStore('filters', () => {
   const market = ref<MarketFilter>('All')
 
   /**
-   * Analytics-only. A PRESENTATION-currency override: it re-presents already-fetched figures for
-   * that page and nothing else, so do not read it anywhere but Analytics. The organization's own
-   * presentation currency lives in `organization.ts` and is what every other surface reads.
-   *
-   * `'USD'` is the fallback for "no organization setting", not a fixed default: Analytics must
-   * seed this from `organization.presentationCurrency` when it mounts, and the user's selection
-   * owns it for the session thereafter (currency-model.md §3). Seeding only — reading the org's
-   * initial value is not licence to mirror server data into Pinia.
+   * Analytics-only: a presentation-currency override for that one page. Every other surface reads
+   * `organization.presentationCurrency` instead. `'USD'` is the unconfigured fallback, not a fixed
+   * default — Analytics must seed this from the org store on mount, and the user's selection owns
+   * it for the rest of the session.
    */
   const displayCurrency = ref<CurrencyCode>('USD')
 
