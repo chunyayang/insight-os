@@ -57,6 +57,11 @@ commit message and the PR description — never in a code comment. `git log -S` 
 `git blame` will always find them there; a comment narrating a past bug just rots in
 place. See `stack-conventions` (Comments) for what a comment should say instead.
 
+**Break work into smaller logical commits** to help speed up review — split unrelated
+changes (e.g. a rename vs. the behavior change it enables) into separate commits
+rather than one large one. Orthogonal to squash-merging — the PR still lands on
+`main` as one Conventional Commit.
+
 ## Local hooks — Husky + lint-staged + commitlint
 
 Fast local feedback before code leaves the machine. Setup:
@@ -78,12 +83,12 @@ pnpm exec lint-staged
 pnpm exec commitlint --edit "$1"
 ```
 
-`lint-staged` config (in `package.json` or `.lintstagedrc.json`):
+`lint-staged` config (`.lintstagedrc.json`):
 
 ```json
-"lint-staged": {
+{
   "*.{ts,vue}": ["eslint --fix", "prettier --write"],
-  "*.{json,css,md}": ["prettier --write"]
+  "*.{json,css,md,yaml,yml}": ["prettier --write"]
 }
 ```
 
