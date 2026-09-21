@@ -7,11 +7,6 @@ description: Project conventions and integration gotchas for the Insight OS AI A
 
 Conventions for the AI Analytics Platform codebase. When these rules conflict with a generic best practice, these rules win. Verify exact package versions against package.json before installing anything new.
 
-> **Migration in flight (started 2026-07-30).** The UI layer is moving from PrimeVue 4 to Nuxt UI 4.10.
-> This skill describes the **target** state. Until the final PR lands, code you open may still use
-> PrimeVue components — migrate what you touch rather than matching it. Rationale, PR sequence and
-> the rejected alternatives are in [`.claude/doc/nuxt-ui-migration.md`](../../doc/nuxt-ui-migration.md).
-
 ## Project structure (Nuxt 4)
 
 Nuxt 4 uses the `app/` source directory. Keep this layout:

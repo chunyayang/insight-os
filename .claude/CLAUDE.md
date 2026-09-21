@@ -8,10 +8,6 @@ Nuxt 4 (`app/` dir) · TypeScript · Vue 3 `<script setup>` · Nuxt UI 4 ·
 Tailwind CSS v4 · Pinia · TanStack Vue Query · Axios ·
 Chart.js · `@nuxtjs/i18n`. Verify exact versions in `package.json` before adding deps.
 
-> **Migration in flight (started 2026-07-30):** PrimeVue 4 → Nuxt UI 4.10. This file describes the
-> target state; code you open may still use PrimeVue until the last PR lands. Rationale and PR
-> sequence: `.claude/doc/nuxt-ui-migration.md`.
-
 Package manager: **pnpm** (commit `pnpm-lock.yaml`; set the `packageManager` field in `package.json`). Node: **24**.
 
 ## Layout (Nuxt 4)

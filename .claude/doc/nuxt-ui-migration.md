@@ -1,13 +1,11 @@
 # Migrate Insight OS from PrimeVue 4 to Nuxt UI 4.10
 
-> **Status:** in flight, started 2026-07-30. **Landed:** PR 0 (#25), PR 1 (#26), PR 2 (#29),
-> PR 3 (#30), PR 4 (#32), PR 5 (#33), PR 6 (this one).
-> **Remaining:** PR 7. Until PR 7 merges, the skills describe Nuxt UI while
-> parts of the code still run PrimeVue — that gap is deliberate and tracked here, not an
-> inconsistency to "fix".
+> **Status:** done. **Landed:** PR 0 (#25), PR 1 (#26), PR 2 (#29), PR 3 (#30), PR 4 (#32),
+> PR 5 (#33), PR 6 (#34), PR 7 (chore/drop-primevue). PrimeVue is fully removed; the skills and
+> the code agree again.
 >
-> **Decision record.** Written before implementation and kept as the reference each PR is
-> reviewed against. PR 7 appends what actually shipped.
+> **Decision record.** Written before implementation and kept as the reference each PR was
+> reviewed against. See "What actually shipped" at the end for where PR 7 diverged from the plan.
 
 ## Context
 
@@ -459,3 +457,28 @@ Targeted checks, ordered by risk:
   before the Analytics module builds on them.
 - I'll record the commercial-SaaS trajectory and this framework decision to project memory, since
   both are inputs no future session can derive from the code.
+
+---
+
+## What actually shipped (PR 7)
+
+Verified against the plan before starting: PR 0–6 had landed cleanly on `main`, no stray PrimeVue
+component tags or `pi pi-*` icons remained in `app/`, and the only live PrimeVue wiring left was
+exactly what this section describes — `nuxt.config.ts`'s `primevue` block, `main.css`'s
+coexistence layer order, and the five packages. Two places diverged from the plan as written:
+
+- **No `@custom-variant dark (&:where(.dark, .dark *));` line was ever added to `main.css`**, in
+  PR 1 or here. Nuxt UI 4 already ships class-based dark-mode variants through its own import, so
+  the line the plan called for was unnecessary — dark mode has worked via the `.dark` cookie class
+  since PR 1 without it. `main.css` stays two `@import` lines plus the `:focus-visible` rule.
+- **The `:focus-visible` base rule was kept**, not dropped. The plan's illustrative "whole CSS
+  entry" snippet showed three lines with no room for it, but an earlier section of this same doc
+  (Token replacement → Files deleted) always intended it to survive permanently as the one
+  hand-written a11y rule. Deleting it would have been a real accessibility regression with no
+  connection to removing PrimeVue, so it stayed.
+- `.github/dependabot.yml` had no PrimeVue-related `ignore` entries to drop — nothing to do there.
+
+Verification: `pnpm lint && pnpm typecheck && pnpm test && pnpm build` all green;
+`grep -ri primevue .output/` returns only two historical code comments (`useTheme.ts`,
+`login.vue`) explaining past PrimeVue behavior, no framework code; `pnpm why primevue` resolves
+nothing.
