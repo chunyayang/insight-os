@@ -1,20 +1,11 @@
-import { InsightPreset } from './app/theme/insight-preset'
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-01',
   devtools: { enabled: true },
 
-  css: ['primeicons/primeicons.css', '~/assets/css/main.css'],
+  css: ['~/assets/css/main.css'],
 
-  modules: [
-    '@nuxt/ui',
-    '@primevue/nuxt-module',
-    '@pinia/nuxt',
-    '@nuxtjs/i18n',
-    '@nuxt/eslint',
-    '@nuxt/test-utils/module',
-  ],
+  modules: ['@nuxt/ui', '@pinia/nuxt', '@nuxtjs/i18n', '@nuxt/eslint', '@nuxt/test-utils/module'],
 
   // @nuxt/ui registers the Tailwind v4 Vite plugin itself — do NOT also add
   // @tailwindcss/vite, or Tailwind runs twice.
@@ -44,33 +35,6 @@ export default defineNuxtConfig({
   // composables in composables/queries/, so opt the nested directories in.
   imports: {
     dirs: ['composables/**'],
-  },
-
-  primevue: {
-    // Nuxt UI also registers a `useToast` composable; without this, the auto-import
-    // registry has two candidates for the same global name and Nuxt warns about the
-    // duplicate at build/dev time. useNotify.ts already imports @nuxt/ui's version
-    // explicitly, so excluding PrimeVue's here just silences the warning — no runtime
-    // change. Drop this once PrimeVue is gone.
-    composables: {
-      exclude: ['useToast'],
-    },
-    options: {
-      // Aura preset; token alignment to the design system lands in Phase 1a via definePreset().
-      theme: {
-        preset: InsightPreset,
-        options: {
-          // Manual dark mode — never media-query. Toggled by the `.dark` class on <html>.
-          darkModeSelector: '.dark',
-          // Order so Tailwind utilities can override PrimeVue component styles.
-          // Must match the @layer declaration in app/assets/css/main.css exactly.
-          cssLayer: {
-            name: 'primevue',
-            order: 'theme, base, primevue, components, utilities',
-          },
-        },
-      },
-    },
   },
 
   i18n: {
