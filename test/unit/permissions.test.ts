@@ -21,6 +21,7 @@ const MATRIX: Record<Ability, Record<Role, boolean>> = {
   'campaigns:manage': { admin: true, analyst: true, viewer: false },
   'datasources:manage': { admin: true, analyst: false, viewer: false },
   'team:manage': { admin: true, analyst: false, viewer: false },
+  'settings:org': { admin: true, analyst: false, viewer: false },
   'settings:admin': { admin: true, analyst: false, viewer: false },
 }
 
@@ -45,6 +46,7 @@ describe('RBAC matrix (spec §3)', () => {
       'campaigns:manage',
       'datasources:manage',
       'team:manage',
+      'settings:org',
       'settings:admin',
     ]
     for (const ability of forbidden) expect(roleCan('viewer', ability)).toBe(false)
@@ -54,7 +56,12 @@ describe('RBAC matrix (spec §3)', () => {
   })
 
   it('analyst is blocked from admin-only surfaces', () => {
-    for (const ability of ['datasources:manage', 'team:manage', 'settings:admin'] as Ability[]) {
+    for (const ability of [
+      'datasources:manage',
+      'team:manage',
+      'settings:org',
+      'settings:admin',
+    ] as Ability[]) {
       expect(roleCan('analyst', ability)).toBe(false)
     }
   })
@@ -63,12 +70,14 @@ describe('RBAC matrix (spec §3)', () => {
 describe('denied-ability treatment', () => {
   /**
    * *(Hidden)* must mean hidden, not merely disabled — disabling would leak the
-   * existence of features a role isn't entitled to see. Only CSV export is the
-   * spec's "visible but inert + tooltip" case.
+   * existence of features a role isn't entitled to see. CSV export and the
+   * presentation currency are the spec's only "visible but inert + tooltip" cases —
+   * both are organization state a denied role should still see explained.
    */
-  it('hides everything except CSV export, which is disabled with a tooltip', () => {
-    expect(DENIED_TREATMENT['export:csv']).toBe('disabled')
-    for (const ability of ABILITIES.filter((a) => a !== 'export:csv')) {
+  it('hides everything except CSV export and presentation currency, which are disabled with a tooltip', () => {
+    const disabled: Ability[] = ['export:csv', 'settings:org']
+    for (const ability of disabled) expect(DENIED_TREATMENT[ability]).toBe('disabled')
+    for (const ability of ABILITIES.filter((a) => !disabled.includes(a))) {
       expect(DENIED_TREATMENT[ability]).toBe('hidden')
     }
   })

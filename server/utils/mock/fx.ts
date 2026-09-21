@@ -4,11 +4,11 @@ import { seededRange } from './seed'
 export const CURRENCIES: CurrencyCode[] = ['USD', 'JPY', 'TWD', 'EUR']
 
 /**
- * Each market's native currency. The API declares this per monetary record so the client
- * can render native amounts off-Analytics without any currency selector.
- * Records whose market is "All" use USD (international/base currency).
+ * Each market's functional currency, standing in for the ORGANIZATION'S configuration rather than
+ * a fact about geography: two orgs in the same market can run on different currencies. A
+ * cross-market aggregate has no functional currency, which is why there is no "All" key here.
  */
-export const MARKET_NATIVE_CURRENCY: Record<MarketCode, CurrencyCode> = {
+export const MARKET_FUNCTIONAL_CURRENCY: Record<MarketCode, CurrencyCode> = {
   US: 'USD',
   JP: 'JPY',
   TW: 'TWD',

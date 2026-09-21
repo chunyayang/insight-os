@@ -17,7 +17,12 @@ export const useFiltersStore = defineStore('filters', () => {
   const range = ref<RangeToken>('30d')
   const market = ref<MarketFilter>('All')
 
-  /** Analytics-only. Do not read this outside Analytics — other pages show native currency. */
+  /**
+   * Analytics-only: a presentation-currency override for that one page. Every other surface reads
+   * `organization.presentationCurrency` instead. `'USD'` is the unconfigured fallback, not a fixed
+   * default — Analytics must seed this from the org store on mount, and the user's selection owns
+   * it for the rest of the session.
+   */
   const displayCurrency = ref<CurrencyCode>('USD')
 
   function setRange(next: RangeToken) {

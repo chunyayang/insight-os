@@ -31,7 +31,7 @@ app/
 │   ├── useNotify.ts           # Toasts, wrapping Nuxt UI's useToast()
 │   └── useTheme.ts            # Dark mode
 ├── layouts/default.vue        # Sidebar + topbar shell
-├── middleware/auth.ts         # Route guards (auth + role)
+├── middleware/auth.global.ts  # Route guards (auth + role) — global: applies to every route by default
 ├── pages/                     # File-based routes mirroring the sidebar IA
 ├── stores/                    # Pinia (auth, ui, filters)
 └── types/                     # Shared TS types, incl. API response types
@@ -62,7 +62,7 @@ Rules:
   - Semantic: `--ui-primary`, `--ui-success`, `--ui-info`, `--ui-warning`, `--ui-error`
   - Steps within a ramp when you need one: `--ui-color-primary-600`, `--ui-color-error-50`, …
 - **Typography, radii and elevation come from Tailwind, not Nuxt UI.** Nuxt UI adds only `--ui-radius`, `--ui-container` and `--ui-header-height` on top of color. Use Tailwind's `--font-sans`, `--radius-sm/md/lg/xl`, `--shadow-sm/md/lg` (or the matching utilities). Fonts are the system stack — if a webfont is ever wanted, add `@nuxt/fonts` deliberately; do not declare a `--font-sans` naming fonts nothing loads.
-- Dark mode: `.dark` on `<html>`, owned by our cookie-based `useTheme()`. Set `ui: { colorMode: false }` in nuxt.config so `@nuxtjs/color-mode` does not take over (it defaults to localStorage, which is not SSR-readable and reintroduces the light-flash). Declare `@custom-variant dark (&:where(.dark, .dark *));` in `main.css` explicitly. `--ui-*` re-declares itself under `.dark`, so component CSS is written once.
+- Dark mode: `.dark` on `<html>`, owned by our cookie-based `useTheme()`. Set `ui: { colorMode: false }` in nuxt.config so `@nuxtjs/color-mode` does not take over (it defaults to localStorage, which is not SSR-readable and reintroduces the light-flash). `@import '@nuxt/ui'` in `main.css` already registers the `dark:` variant on `.dark` — do not also declare `@custom-variant dark (&:where(.dark, .dark *));`, it's redundant. `--ui-*` re-declares itself under `.dark`, so component CSS is written once.
 - Prefer Nuxt UI components over custom ones: `UTable`, `UCard`, `USelect`, `UTabs`, `UDrawer`, `UModal`, `UBadge`, `USkeleton`, `UDropdownMenu`, `UEmpty`, `UAlert`, `UStepper`, `UTimeline`. Build custom only when there is no equivalent, and put it in `components/common/`.
 - Restyle components through the `ui` prop or `app.config.ts` slot overrides — Nuxt UI exposes every internal slot by name. `:deep()` is a last resort.
 - Toasts go through `useNotify()` (`app/composables/useNotify.ts`), which wraps Nuxt UI's `useToast()`. Never reach for `nuxt.vueApp.config.globalProperties`.
@@ -78,7 +78,7 @@ Rules:
 Hard boundary — violating it is the most common review rejection:
 
 - **Vue Query owns all server data.** Anything fetched from an API lives in query cache, never copied into Pinia.
-- **Pinia owns client/UI state only**: auth session + current role, locale, theme, sidebar collapsed, global filters (date range, selected markets). **Display currency is *not* a global filter** — it is an Analytics-scoped display/normalization control (the selector appears only on Analytics). Off Analytics, monetary values render in each record's native currency. See `mock-api-contract.md` (*Currency & money conversion → Display scope*).
+- **Pinia owns client/UI state only**: auth session + current role, locale, theme, sidebar collapsed, global filters (date range, selected markets). **Display currency is *not* a global filter** — it is an Analytics-scoped display/normalization control (the selector appears only on Analytics), distinct from the organization's presentation currency, which every surface without a selector of its own reads. Off Analytics there is no selector; what renders is settled in `/product-spec` → `currency-model.md` (§3).
 - Query conventions:
   - Every query lives in `composables/queries/`, one file per domain.
   - Use a query-key factory per domain: `revenueKeys.byMarket(market, range)` — never inline array keys in components.
@@ -108,6 +108,12 @@ Hard boundary — violating it is the most common review rejection:
 
 ## Charts (Chart.js)
 
+> **Migration decided, not started.** Chart.js is being replaced by Apache ECharts (`vue-echarts`),
+> sequenced after PR 7 of the Nuxt UI migration — the product spec needs visuals (funnel, cohort
+> heatmap, gauges, AI annotations) Chart.js can't draw. Everything below is current until then.
+> Do not start the Analytics or AI Assistant charts on Chart.js. Rationale:
+> [`.claude/doc/echarts-migration.md`](../../doc/echarts-migration.md).
+
 - All charts go through wrapper components in `components/charts/` (e.g. `TrendLineChart.vue`, `MarketBarChart.vue`). Pages never import Chart.js directly.
 - Register Chart.js controllers/elements once in a client-side plugin, not per component.
 - **Chart colors are hex in TypeScript, not CSS custom properties — and this is deliberate.** `MARKET_COLOR` in `app/constants/markets.ts` and `CHART_CHROME` in `app/composables/useChartTheme.ts` hold light/dark hex pairs. Chart.js needs real color strings on a canvas, and `withAlpha()` parses **hex only**: Nuxt UI's tokens resolve to `oklch()`, which `withAlpha` passes through unfaded, silently turning every area fill opaque. `color-mix()` is not a fix — canvas `fillStyle` will not reliably parse it. **Do not "unify" these values back into `--ui-*`.** They are the one sanctioned exception to the no-raw-hex rule; keep them visually coordinated with the `app.config.ts` palette by hand.
@@ -118,10 +124,22 @@ Hard boundary — violating it is the most common review rejection:
 ## Table conventions
 
 - Tables go through `app/components/common/DataTable.vue`, a thin `UTable` wrapper bound to the `ApiListResponse<T>` / `ListQuery` contract in `types/api.ts`. Pages do not use `UTable` directly.
-- `UTable` is built on TanStack Table (`useVueTable`), so server-side paging is `manualPagination` + `manualSorting` + `rowCount` passed through `:pagination-options`. Use it for any list that can grow; client-side mode is fine for small fixed sets.
+- `UTable` is built on TanStack Table (`useVueTable`), so going server-side means `:pagination-options="{ manualPagination: true, rowCount }"` **and** `:sorting-options="{ manualSorting: true }"` — they are two separate option bags, and missing either lets the table quietly re-sort or re-slice the one page it holds. Use this for any list that can grow; client-side mode is fine for small fixed sets.
 - Standard features on analytics tables: sortable columns, column filters, global search, CSV export, an empty state via the `#empty` slot, and `column-pinning` for the sticky first columns on narrow viewports (pinning needs explicit column `size` values).
-- **Sorting delegates to the server on the raw numeric field.** Money cells render per record in `nativeCurrency`, and mixed-currency sorting is currency-blind by design in the MVP — never coerce formatted currency strings client-side.
+- **Sorting delegates to the server on the raw numeric field** — never coerce formatted currency strings client-side. Monetary columns sort on the **presentation-currency** amount, and the column states which currency it sorted on. How money cells render and sort is one decision, recorded once in **`/product-spec` → `currency-model.md`** (§3–4); read it before building any table with a money column. **Not yet implemented** — `CustomerList.vue` renders LTV in the functional currency only and sorts on that amount; tracked in issue #41.
 - Export actions are permission-gated (`can('export:csv')`). Where the treatment is *disabled + tooltip* rather than hidden, the disabled control needs a wrapper element to receive pointer events.
+
+## Comments
+
+This codebase leans on comments to carry design intent, which only works while they stay true. Hold them to the same bar as the code.
+
+- **Why, not what.** If a comment restates the line below it, delete it. `// Round-robin the markets so every one of the four is populated at any pool size` earns its place; `// build the customer` does not.
+- **No history.** Never describe how the code used to behave, which bug prompted the change, or what was tried and rejected. That is what the commit message and the PR are for — a reader debugging under pressure needs the current contract, not a changelog. Rejected *designs* with lasting consequences go in [`.claude/doc/`](../../doc/README.md), never inline.
+- **State the constraint, not the incident.** *"Offsets run backwards from `today`: a last-active stamp can only be in the past"* survives a rewrite of the arithmetic below it. *"The old version stamped a clock time and overshot"* is stale the moment anyone reads it.
+- **Scannable.** One or two lines above the code they guard. A block running past ~5 lines is usually a design record filed in the wrong place.
+- **Comment the surprising line, not the file.** A note at the point of the constraint beats a preamble the reader has to hold in their head.
+
+A comment that would go stale if the code below changed shape is already a liability: tie it to the invariant, or drop it.
 
 ## Accessibility & quality floor
 

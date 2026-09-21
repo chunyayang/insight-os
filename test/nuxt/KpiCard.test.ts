@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import KpiCard from '../../app/components/dashboard/KpiCard.vue'
+import { useOrganizationStore } from '../../app/stores/organization'
 import type { KpiMetric, Money } from '../../app/types/api'
 
 const money: Money = { USD: 240_499.66, JPY: 38_304_797, TWD: 7_671_166.43, EUR: 223_875.69 }
@@ -16,13 +18,25 @@ function metric(overrides: Partial<KpiMetric> = {}): KpiMetric {
 }
 
 describe('KpiCard', () => {
-  it('renders a monetary KPI from the Money map', async () => {
+  it('renders a monetary KPI in the presentation currency, USD by default', async () => {
     const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() } })
     const text = wrapper.text()
 
-    // Reads the USD key; the Dashboard has no currency selector.
     expect(text).toContain('240,499.66')
     expect(text).toContain('+5.0%')
+  })
+
+  it('re-renders the KPI when the presentation currency changes — no selector on this page', async () => {
+    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() } })
+    expect(wrapper.text()).toContain('240,499.66') // USD default
+
+    // Settings → General is the only writer; the store is shared across the app, so a
+    // Dashboard KPI reacts even though it has no currency control of its own.
+    useOrganizationStore().setPresentationCurrency('EUR')
+    await nextTick()
+
+    expect(wrapper.text()).toContain('223,875.69')
+    expect(wrapper.text()).not.toContain('240,499.66')
   })
 
   it('formats a percentage KPI as a ratio, not a raw number', async () => {

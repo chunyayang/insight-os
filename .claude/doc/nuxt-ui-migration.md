@@ -1,7 +1,8 @@
 # Migrate Insight OS from PrimeVue 4 to Nuxt UI 4.10
 
 > **Status:** in flight, started 2026-07-30. **Landed:** PR 0 (#25), PR 1 (#26), PR 2 (#29),
-> PR 3 (this one). **Remaining:** PRs 4–7. Until PR 7 merges, the skills describe Nuxt UI while
+> PR 3 (#30), PR 4 (#32), PR 5 (#33), PR 6 (this one).
+> **Remaining:** PR 7. Until PR 7 merges, the skills describe Nuxt UI while
 > parts of the code still run PrimeVue — that gap is deliberate and tracked here, not an
 > inconsistency to "fix".
 >
@@ -364,9 +365,11 @@ via `manualSorting` / `manualPagination` / `rowCount` passed through `:paginatio
 [permissions.ts](../../app/constants/permissions.ts) `DENIED_TREATMENT` — a tooltip on a disabled
 control needs a wrapper element to receive pointer events.
 
-Sorting must delegate to the server on the raw numeric field: money cells render per-record from
-`nativeCurrency`, and the spec is explicit that mixed-currency sorting is currency-blind with no
-cross-currency normalization in the MVP. No client-side coercion of formatted currency strings.
+Sorting must delegate to the server on the raw numeric field, with no client-side coercion of
+formatted currency strings. Which raw field a money column sorts on is a currency decision, not a
+table one: `currency-model.md` §4 settles it on the presentation-currency amount, so the ranking
+holds across markets. The wrapper itself stays currency-agnostic — it sorts whatever field the
+caller names — and the Customers list still names the functional amount until insight-os#41 lands.
 
 Land this against one real endpoint (Customers list is the natural first) so the contract is
 exercised end to end.
@@ -435,9 +438,13 @@ Targeted checks, ordered by risk:
 
 ## Open items (flagging, not fixing)
 
-- **Pre-existing spec conflict, unrelated to this migration:** Settings→General specifies a
-  "default currency" setting while spec.md:46/121 insist the currency selector is Analytics-only.
-  The spec never reconciles these. Needs a product decision; I have not changed either statement.
+- **Moved out — everything about currency.** Two open items lived here: the Settings→General
+  currency setting that looked like it contradicted the Analytics-only selector, and gating the
+  monetary sort control. Both were symptoms of currency rules being spread across four documents.
+  They are settled in one place now — **`/product-spec` → `currency-model.md`** (the spec repo),
+  which names that setting the organization's **presentation currency** and withdraws the
+  sort-gating rule in favour of sorting on the presentation currency with dual-currency cells.
+  Nothing currency-related belongs here; this doc is trimmed at PR 7.
 - Nuxt UI's docs have no worked example of server-side pagination, though the full TanStack option
   set passes through `:pagination-options`. PR 6 exists to prove this out before any module depends
   on it.
