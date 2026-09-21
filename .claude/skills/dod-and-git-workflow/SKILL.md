@@ -83,12 +83,12 @@ pnpm exec lint-staged
 pnpm exec commitlint --edit "$1"
 ```
 
-`lint-staged` config (in `package.json` or `.lintstagedrc.json`):
+`lint-staged` config (`.lintstagedrc.json`):
 
 ```json
-"lint-staged": {
+{
   "*.{ts,vue}": ["eslint --fix", "prettier --write"],
-  "*.{json,css,md}": ["prettier --write"]
+  "*.{json,css,md,yaml,yml}": ["prettier --write"]
 }
 ```
 
