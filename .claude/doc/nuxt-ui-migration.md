@@ -1,13 +1,11 @@
 # Migrate Insight OS from PrimeVue 4 to Nuxt UI 4.10
 
-> **Status:** in flight, started 2026-07-30. **Landed:** PR 0 (#25), PR 1 (#26), PR 2 (#29),
-> PR 3 (#30), PR 4 (#32), PR 5 (#33), PR 6 (this one).
-> **Remaining:** PR 7. Until PR 7 merges, the skills describe Nuxt UI while
-> parts of the code still run PrimeVue — that gap is deliberate and tracked here, not an
-> inconsistency to "fix".
+> **Status:** done. **Landed:** PR 0 (#25), PR 1 (#26), PR 2 (#29), PR 3 (#30), PR 4 (#32),
+> PR 5 (#33), PR 6 (#34), PR 7 (chore/drop-primevue). PrimeVue is fully removed; the skills and
+> the code agree again.
 >
-> **Decision record.** Written before implementation and kept as the reference each PR is
-> reviewed against. PR 7 appends what actually shipped.
+> **Decision record.** Written before implementation and kept as the reference each PR was
+> reviewed against. See "What actually shipped" at the end for where PR 7 diverged from the plan.
 
 ## Context
 
@@ -438,24 +436,53 @@ Targeted checks, ordered by risk:
 
 ## Open items (flagging, not fixing)
 
-- **Moved out — everything about currency.** Two open items lived here: the Settings→General
-  currency setting that looked like it contradicted the Analytics-only selector, and gating the
-  monetary sort control. Both were symptoms of currency rules being spread across four documents.
-  They are settled in one place now — **`/product-spec` → `currency-model.md`** (the spec repo),
-  which names that setting the organization's **presentation currency** and withdraws the
-  sort-gating rule in favour of sorting on the presentation currency with dual-currency cells.
-  Nothing currency-related belongs here; this doc is trimmed at PR 7.
-- Nuxt UI's docs have no worked example of server-side pagination, though the full TanStack option
-  set passes through `:pagination-options`. PR 6 exists to prove this out before any module depends
-  on it.
 - Nuxt UI's major cadence is fast (v3→v4 inside a year). MIT with a public repo, so a future major
   is a migration, never a licensing event.
 - **Typography is now Tailwind's system stack**, matching what actually renders today. If the
   Figtree + Noto Sans TC look is wanted later it is a deliberate, separate change (`@nuxt/fonts`,
   self-hosted, with a zh-TW subsetting check) — not something to reintroduce as a bare CSS
   variable that names fonts nobody loads.
-- Chart colors are now sky/amber/violet/teal rather than the inherited PrimeUI pastels, so the
-  Dashboard trend and sparklines will look different by design. Worth a look in the PR 1 preview
-  before the Analytics module builds on them.
-- I'll record the commercial-SaaS trajectory and this framework decision to project memory, since
-  both are inputs no future session can derive from the code.
+- **Next up: Chart.js → Apache ECharts.** That migration was decided and recorded
+  ([`.claude/doc/echarts-migration.md`](echarts-migration.md)) while this one was still in
+  flight, explicitly sequenced to start **after PR 7** — which is now landing. Analytics and AI
+  Assistant are still both unbuilt stubs, so nothing has been built against Chart.js that
+  shouldn't have been; the sequencing held. Chart colors (sky/amber/violet/teal) were confirmed
+  correct on the Dashboard in both themes during PR 7's own verification, so that earlier "worth a
+  look" flag is closed — but those colors and `useChartTheme()` are Chart.js-specific and go away
+  with that migration, not something to hand-carry into the ECharts work.
+
+### Closed since this doc was written
+
+- ~~Nuxt UI's docs have no worked example of server-side pagination~~ — PR 6 proved it out
+  end-to-end against the Customers list (`app/components/common/DataTable.vue`, consumed by
+  `CustomerList.vue`), so this is resolved, not just de-risked.
+- ~~Currency open items (Settings→General setting vs. the Analytics-only selector, sort-gating)~~
+  — moved to and settled in `/product-spec` → `currency-model.md`, as planned. Nothing
+  currency-related belongs in this doc.
+- ~~Record the commercial-SaaS trajectory and this framework decision to project memory~~ — done
+  (`commercial-saas-trajectory.md`, `charting-echarts-decision.md`).
+
+---
+
+## What actually shipped (PR 7)
+
+Verified against the plan before starting: PR 0–6 had landed cleanly on `main`, no stray PrimeVue
+component tags or `pi pi-*` icons remained in `app/`, and the only live PrimeVue wiring left was
+exactly what this section describes — `nuxt.config.ts`'s `primevue` block, `main.css`'s
+coexistence layer order, and the five packages. Two places diverged from the plan as written:
+
+- **No `@custom-variant dark (&:where(.dark, .dark *));` line was ever added to `main.css`**, in
+  PR 1 or here. Nuxt UI 4 already ships class-based dark-mode variants through its own import, so
+  the line the plan called for was unnecessary — dark mode has worked via the `.dark` cookie class
+  since PR 1 without it. `main.css` stays two `@import` lines plus the `:focus-visible` rule.
+- **The `:focus-visible` base rule was kept**, not dropped. The plan's illustrative "whole CSS
+  entry" snippet showed three lines with no room for it, but an earlier section of this same doc
+  (Token replacement → Files deleted) always intended it to survive permanently as the one
+  hand-written a11y rule. Deleting it would have been a real accessibility regression with no
+  connection to removing PrimeVue, so it stayed.
+- `.github/dependabot.yml` had no PrimeVue-related `ignore` entries to drop — nothing to do there.
+
+Verification: `pnpm lint && pnpm typecheck && pnpm test && pnpm build` all green;
+`grep -ri primevue .output/` returns only two historical code comments (`useTheme.ts`,
+`login.vue`) explaining past PrimeVue behavior, no framework code; `pnpm why primevue` resolves
+nothing.
