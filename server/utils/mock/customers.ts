@@ -233,13 +233,10 @@ export function customerPool(today: Date = new Date()): Customer[] {
 }
 
 /**
- * Fields this endpoint can sort by, and the raw value each one sorts on.
- *
- * `lifetimeValue` reads the record's FUNCTIONAL amount, so across mixed markets the sort is
- * currency-blind — a JPY total dwarfs a EUR one. The settled design sorts monetary columns on
- * the PRESENTATION-currency amount instead (currency-model.md §4), which this endpoint will need
- * to offer as a sort field; issue #41 tracks it. Until then the functional-amount sort stands,
- * and the client must not invent a normalization by re-sorting formatted strings.
+ * Fields this endpoint can sort by, and the raw value each one sorts on. `lifetimeValue` sorts on
+ * the functional amount, so a mixed-market sort is currency-blind — a JPY total dwarfs a EUR one.
+ * The presentation-currency sort field that fixes it arrives with #41; the client must not
+ * substitute its own normalization by re-sorting formatted strings.
  */
 const SORTABLE = {
   name: (c: Customer) => c.name,
