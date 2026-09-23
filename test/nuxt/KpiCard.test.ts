@@ -17,9 +17,15 @@ function metric(overrides: Partial<KpiMetric> = {}): KpiMetric {
   } as KpiMetric
 }
 
+// happy-dom's canvas.getContext('2d') returns null, which zrender doesn't tolerate: it
+// throws "Cannot set properties of null (setting 'dpr')" as an unhandled rejection that
+// fails the run. vue-echarts names its component "Echarts" (not the local `VChart`
+// import), so that's the key the stub has to match.
+const stubs = { global: { stubs: { Echarts: true } } }
+
 describe('KpiCard', () => {
   it('renders a monetary KPI in the presentation currency, USD by default', async () => {
-    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() } })
+    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() }, ...stubs })
     const text = wrapper.text()
 
     expect(text).toContain('240,499.66')
@@ -27,7 +33,7 @@ describe('KpiCard', () => {
   })
 
   it('re-renders the KPI when the presentation currency changes — no selector on this page', async () => {
-    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() } })
+    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() }, ...stubs })
     expect(wrapper.text()).toContain('240,499.66') // USD default
 
     // Settings → General is the only writer; the store is shared across the app, so a
@@ -42,6 +48,7 @@ describe('KpiCard', () => {
   it('formats a percentage KPI as a ratio, not a raw number', async () => {
     const wrapper = await mountSuspended(KpiCard, {
       props: { metric: metric({ key: 'conversionRate', value: 0.0263, deltaPct: -0.18 }) },
+      ...stubs,
     })
     expect(wrapper.text()).toContain('2.6%')
   })
@@ -49,6 +56,7 @@ describe('KpiCard', () => {
   it('signs a negative delta and marks it as a downward trend', async () => {
     const wrapper = await mountSuspended(KpiCard, {
       props: { metric: metric({ key: 'orders', value: 3332, deltaPct: -0.18 }) },
+      ...stubs,
     })
 
     expect(wrapper.text()).toContain('-18.0%')
@@ -59,13 +67,14 @@ describe('KpiCard', () => {
   it('renders a whole-number KPI with grouping', async () => {
     const wrapper = await mountSuspended(KpiCard, {
       props: { metric: metric({ key: 'activeUsers', value: 67_000, deltaPct: 0 }) },
+      ...stubs,
     })
     expect(wrapper.text()).toContain('67,000')
   })
 
   it('gives the sparkline an accessible text summary', async () => {
-    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() } })
-    // The canvas is aria-hidden, so the meaning must live in the caption.
+    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() }, ...stubs })
+    // The chart root is aria-hidden, so the meaning must live in the caption.
     expect(wrapper.html()).toContain('aria-hidden="true"')
     expect(wrapper.text()).toMatch(/14-day trend/i)
   })

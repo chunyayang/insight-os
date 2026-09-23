@@ -24,13 +24,14 @@ export const MARKET_CURRENCY: Record<MarketCode, CurrencyCode> = {
 /**
  * ONE fixed colour per market, used everywhere the market appears (charts, tags,
  * legends) so a market reads the same across the whole app. A market's colour must
- * never depend on how many series a chart happens to render — which is why Chart.js's
- * built-in `Colors` plugin is not used: it assigns by dataset index.
+ * never depend on how many series a chart happens to render — which is why ECharts'
+ * built-in `theme.color` array is never used for market series: it assigns by series
+ * index, and colors are always resolved explicitly via `colorForMarket()` instead.
  *
- * HEX, not a CSS custom property, and deliberately so. Chart.js draws on a canvas and
- * needs a real colour string; `withAlpha()` in useChartTheme parses **hex only**, and
- * Nuxt UI's tokens resolve to `oklch()`, which it would pass through unfaded — silently
- * turning every area fill opaque. Do not "unify" these into `--ui-*`.
+ * HEX, not a CSS custom property, and deliberately so. zrender's color parser only
+ * understands hex/`rgb()`/`hsl()`/the CSS named-color table — no `oklch()`, no `var()`
+ * resolution — and Nuxt UI's tokens resolve to `oklch()`, which would pass through
+ * unresolved. Do not "unify" these into `--ui-*`.
  *
  * Values are Tailwind palette steps (600 light / 400 dark) chosen to sit beside the
  * emerald-and-slate identity in app.config.ts. Keep them coordinated by hand.

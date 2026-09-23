@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { ChartConfiguration } from 'chart.js'
-import type { MarketCode } from '~/types/api'
-import { withAlpha } from '~/composables/useChartTheme'
+import type { ChartOption } from '~/utils/echarts'
+import type { CurrencyCode, MarketCode } from '~/types/api'
 
 export interface TrendSeries {
   /** Already-localized series label. */
@@ -18,59 +17,75 @@ const props = defineProps<{
   height?: string
   /** Render as a filled area (single-series trends read better filled). */
   fill?: boolean
+  /** Every value is money in this currency; the axis and tooltip format it as such. */
+  currency?: CurrencyCode
 }>()
 
 const { theme, colorForMarket, colorAt } = useChartTheme()
+const fmt = useFormat()
+const { locale } = useI18n()
 
-const data = computed<ChartConfiguration['data']>(() => ({
-  labels: props.labels,
-  datasets: props.series.map((s, i) => {
-    const color = s.market ? colorForMarket(s.market) : colorAt(i)
-    return {
-      label: s.label,
-      data: s.data,
-      borderColor: color,
-      backgroundColor: props.fill ? withAlpha(color, 0.18) : color,
-      fill: props.fill ?? false,
-      tension: 0.35,
-      borderWidth: 2,
-      pointRadius: 0,
-      pointHoverRadius: 4,
-    }
-  }),
-}))
+const option = computed<ChartOption>(() => {
+  // ECharts calls these formatters at paint time, outside Vue's tracking. Reading the
+  // locale here rebuilds the option, and so repaints them, when the language switches.
+  void locale.value
+  const { currency } = props
+  const formatValue = (value: number) =>
+    currency ? fmt.currency(value, currency) : fmt.number(value)
+  const formatAxis = (value: number) =>
+    currency ? fmt.compactCurrency(value, currency) : fmt.compact(value)
 
-const options = computed<ChartConfiguration['options']>(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  interaction: { mode: 'index', intersect: false },
-  plugins: {
+  return {
     legend: {
-      display: props.series.length > 1,
-      labels: { color: theme.value.text, usePointStyle: true, boxWidth: 8 },
+      show: props.series.length > 1,
+      // Pinned to the band `grid.top` reserves; ECharts 6 otherwise lays it over the x-axis.
+      top: 0,
+      textStyle: { color: theme.value.text },
+      icon: 'circle',
     },
-  },
-  scales: {
-    x: {
-      grid: { display: false },
-      ticks: { color: theme.value.text, maxRotation: 0, autoSkipPadding: 16 },
-      border: { color: theme.value.grid },
+    grid: {
+      left: 8,
+      right: 8,
+      top: props.series.length > 1 ? 32 : 8,
+      bottom: 8,
     },
-    y: {
-      grid: { color: theme.value.grid },
-      ticks: { color: theme.value.text },
-      border: { display: false },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: theme.value.surface,
+      borderColor: theme.value.grid,
+      textStyle: { color: theme.value.text },
+      valueFormatter: (value) => (typeof value === 'number' ? formatValue(value) : String(value)),
     },
-  },
-}))
+    xAxis: {
+      type: 'category',
+      data: props.labels,
+      axisLine: { lineStyle: { color: theme.value.grid } },
+      axisTick: { show: false },
+      axisLabel: { color: theme.value.text, hideOverlap: true },
+    },
+    yAxis: {
+      type: 'value',
+      splitLine: { lineStyle: { color: theme.value.grid } },
+      axisLabel: { color: theme.value.text, formatter: formatAxis },
+    },
+    series: props.series.map((s, i) => {
+      const color = s.market ? colorForMarket(s.market) : colorAt(i)
+      return {
+        type: 'line',
+        name: s.label,
+        data: s.data,
+        color,
+        smooth: 0.4,
+        symbolSize: 8,
+        showSymbol: false,
+        // The gradient carries its own alpha; ECharts' 0.7 default would fade it twice.
+        areaStyle: props.fill ? { color: areaGradient(color), opacity: 1 } : undefined,
+      }
+    }),
+  }
+})
 </script>
 
 <template>
-  <ChartsBaseChart
-    type="line"
-    :data="data"
-    :options="options"
-    :summary="summary"
-    :height="height ?? '18rem'"
-  />
+  <ChartsBaseChart :option="option" :summary="summary" :height="height ?? '18rem'" />
 </template>

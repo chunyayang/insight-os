@@ -80,6 +80,7 @@ const chartSummary = computed(() =>
       :labels="labels"
       :series="series"
       :summary="chartSummary"
+      :currency="organization.presentationCurrency"
       :fill="series.length === 1"
     />
   </section>
