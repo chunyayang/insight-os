@@ -32,6 +32,9 @@
       "tw": "台灣",
       "de": "德國"
     },
+    "timeZones": {
+      "utc": "UTC"
+    },
     "table": {
       "sortBy": "依「{column}」排序",
       "showing": "第 {from}–{to} 筆，共 {total} 筆",
@@ -93,7 +96,15 @@
     },
     "revenueTrend": {
       "title": "營收趨勢",
-      "chartSummary": "各市場 {days} 天的營收，以 {currency} 顯示。",
+      "period": {
+        "last7Days": "近 7 天",
+        "last30Days": "近 30 天",
+        "last90Days": "近 90 天",
+        "monthToDate": "本月至今",
+        "yearToDate": "今年至今"
+      },
+      "periodInZone": "{period}（{zone}）",
+      "chartSummary": "各市場 {days} 天的每日營收（依 {zone} 日期計），以 {currency} 顯示。",
       "allMarkets": "全部"
     },
     "aiSummary": {

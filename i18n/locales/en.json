@@ -32,6 +32,9 @@
       "tw": "TW",
       "de": "DE"
     },
+    "timeZones": {
+      "utc": "UTC"
+    },
     "table": {
       "sortBy": "Sort by {column}",
       "showing": "{from}–{to} of {total}",
@@ -93,7 +96,15 @@
     },
     "revenueTrend": {
       "title": "Revenue trend",
-      "chartSummary": "Revenue over {days} days by market, shown in {currency}.",
+      "period": {
+        "last7Days": "last 7 days",
+        "last30Days": "last 30 days",
+        "last90Days": "last 90 days",
+        "monthToDate": "month to date",
+        "yearToDate": "year to date"
+      },
+      "periodInZone": "{period} ({zone})",
+      "chartSummary": "Revenue by market for each {zone} day over {days} days, shown in {currency}.",
       "allMarkets": "All"
     },
     "aiSummary": {

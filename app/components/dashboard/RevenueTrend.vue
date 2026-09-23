@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TabsItem } from '@nuxt/ui'
-import type { MarketCode } from '~/types/api'
+import type { MarketCode, RangeToken } from '~/types/api'
 import { MARKETS, type MarketFilter } from '~/constants/markets'
 import type { TrendSeries } from '~/components/charts/TrendLineChart.vue'
 
@@ -16,9 +16,25 @@ import type { TrendSeries } from '~/components/charts/TrendLineChart.vue'
 const { t } = useI18n()
 const fmt = useFormat()
 const organization = useOrganizationStore()
+const filters = useFiltersStore()
 
 const market = ref<MarketFilter>('All')
 const { data, isPending, isError, error, refetch } = useRevenueSeries({ market })
+
+// The query scopes itself to the global range, so the title names that range rather
+// than assuming 30 days. Keyed by RangeToken so a new token can't ship without a label.
+const PERIOD_KEY: Record<RangeToken, string> = {
+  '7d': 'dashboard.revenueTrend.period.last7Days',
+  '30d': 'dashboard.revenueTrend.period.last30Days',
+  '90d': 'dashboard.revenueTrend.period.last90Days',
+  mtd: 'dashboard.revenueTrend.period.monthToDate',
+  ytd: 'dashboard.revenueTrend.period.yearToDate',
+}
+const period = computed(() => t(PERIOD_KEY[filters.range]))
+
+// The server buckets every series by UTC day, so the title names the zone the dates are in
+// rather than letting them read as local (`/product-spec` → `timezone-utc-buckets-for-mvp.md`).
+const zone = computed(() => t('common.timeZones.utc'))
 
 const tabs = computed<TabsItem[]>(() => [
   { label: t('dashboard.revenueTrend.allMarkets'), value: 'All' },
@@ -28,7 +44,8 @@ const tabs = computed<TabsItem[]>(() => [
   })),
 ])
 
-const labels = computed(() => data.value?.series[0]?.points.map((p) => fmt.date(p.t)) ?? [])
+// The title already names the period, so axis and tooltip dates drop the year.
+const labels = computed(() => data.value?.series[0]?.points.map((p) => fmt.monthDay(p.t)) ?? [])
 
 const series = computed<TrendSeries[]>(
   () =>
@@ -44,6 +61,7 @@ const series = computed<TrendSeries[]>(
 const chartSummary = computed(() =>
   t('dashboard.revenueTrend.chartSummary', {
     days: labels.value.length,
+    zone: zone.value,
     currency: organization.presentationCurrency,
   }),
 )
@@ -52,7 +70,12 @@ const chartSummary = computed(() =>
 <template>
   <section class="trend" aria-labelledby="trend-heading">
     <header class="trend__header">
-      <h2 id="trend-heading" class="trend__title">{{ t('dashboard.revenueTrend.title') }}</h2>
+      <h2 id="trend-heading" class="trend__title">
+        {{ t('dashboard.revenueTrend.title') }}
+        <span class="trend__period">
+          {{ t('dashboard.revenueTrend.periodInZone', { period, zone }) }}
+        </span>
+      </h2>
       <!--
         `:content="false"` makes this a toggle-only tablist: the chart below is the
         panel, and it is one element re-fetched per market rather than four mounted
@@ -109,5 +132,15 @@ const chartSummary = computed(() =>
   font-size: 1rem;
   font-weight: 700;
   color: var(--ui-text-highlighted);
+}
+
+.trend__period {
+  font-weight: 400;
+  color: var(--ui-text-muted);
+}
+
+/* The separator is typography, not copy, so it stays out of the translations. */
+.trend__period::before {
+  content: '· ';
 }
 </style>
