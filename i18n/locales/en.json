@@ -27,10 +27,10 @@
     },
     "markets": {
       "all": "All markets",
-      "us": "United States",
-      "jp": "Japan",
-      "tw": "Taiwan",
-      "de": "Germany"
+      "us": "US",
+      "jp": "JP",
+      "tw": "TW",
+      "de": "DE"
     },
     "table": {
       "sortBy": "Sort by {column}",
