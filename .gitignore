@@ -42,3 +42,6 @@ playwright-report
 # Internal-only skill — distributed out-of-band, see .claude/CLAUDE.md
 # No trailing slash: that form would not match if this becomes a symlink.
 .claude/skills/product-spec
+
+# Cline
+.cline/
