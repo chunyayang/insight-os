@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  formatCompactCurrency,
   formatCurrency,
   formatDelta,
   formatMoney,
+  formatMonthDay,
   formatPercent,
   formatRelativeTime,
   intlLocale,
@@ -49,6 +51,52 @@ describe('currency formatting', () => {
 
   it('formats the same amount differently per locale', () => {
     expect(formatCurrency(1234.5, 'USD', 'en-US')).not.toBe(formatCurrency(1234.5, 'USD', 'zh-TW'))
+  })
+
+  it('abbreviates axis amounts with K/M/B and the locale’s own symbol', () => {
+    expect(formatCompactCurrency(100_000, 'USD', 'en-US')).toBe('$100K')
+    expect(formatCompactCurrency(100_000, 'USD', 'zh-TW')).toBe('US$100K')
+    expect(formatCompactCurrency(15_000_000, 'JPY', 'en-US')).toBe('¥15M')
+    expect(formatCompactCurrency(-100_000, 'EUR', 'en-US')).toBe('-€100K')
+  })
+
+  it('never abbreviates with 萬/億, even for TWD in zh-TW', () => {
+    expect(formatCompactCurrency(3_000_000, 'TWD', 'zh-TW')).toBe('$3M')
+    expect(formatCompactCurrency(250_000_000, 'TWD', 'zh-TW')).not.toMatch(/[萬億]/)
+  })
+
+  it('never shows a zero-decimal minor unit below the first abbreviation step', () => {
+    expect(formatCompactCurrency(999.5, 'JPY', 'en-US')).toBe('¥1K')
+    expect(formatCompactCurrency(999.4, 'TWD', 'zh-TW')).toBe('$999')
+  })
+})
+
+describe('calendar dates', () => {
+  // Simulates the viewer's ambient zone without touching TZ: any formatter that doesn't
+  // pin its own zone picks this one up, as it would in the browser.
+  function inAmbientZone(timeZone: string) {
+    const RealDateTimeFormat = Intl.DateTimeFormat
+    return vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(function (
+      locale?: string | string[],
+      options?: Intl.DateTimeFormatOptions,
+    ) {
+      return new RealDateTimeFormat(locale, { timeZone, ...options })
+    } as unknown as typeof Intl.DateTimeFormat)
+  }
+
+  afterEach(() => vi.restoreAllMocks())
+
+  it('drops the year for dense axes', () => {
+    expect(formatMonthDay('2026-09-17', 'en-US')).toBe('Sep 17')
+    expect(formatMonthDay('2026-09-17', 'zh-TW')).toBe('9月17日')
+  })
+
+  it('renders the same calendar day on both sides of UTC', () => {
+    for (const zone of ['America/Los_Angeles', 'Asia/Taipei']) {
+      inAmbientZone(zone)
+      expect(formatMonthDay('2026-09-17', 'en-US')).toBe('Sep 17')
+      vi.restoreAllMocks()
+    }
   })
 })
 
