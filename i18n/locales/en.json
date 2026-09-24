@@ -27,6 +27,13 @@
     },
     "markets": {
       "all": "All markets",
+      "us": "United States",
+      "jp": "Japan",
+      "tw": "Taiwan",
+      "de": "Germany"
+    },
+    "marketCode": {
+      "all": "All",
       "us": "US",
       "jp": "JP",
       "tw": "TW",
@@ -104,8 +111,7 @@
         "yearToDate": "year to date"
       },
       "periodInZone": "{period} ({zone})",
-      "chartSummary": "Revenue by market for each {zone} day over {days} days, shown in {currency}.",
-      "allMarkets": "All"
+      "chartSummary": "Revenue by market for each {zone} day over {days} days, shown in {currency}."
     },
     "aiSummary": {
       "title": "AI daily summary",

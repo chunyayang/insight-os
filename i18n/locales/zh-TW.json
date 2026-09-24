@@ -32,6 +32,13 @@
       "tw": "台灣",
       "de": "德國"
     },
+    "marketCode": {
+      "all": "全部",
+      "us": "美國",
+      "jp": "日本",
+      "tw": "台灣",
+      "de": "德國"
+    },
     "timeZones": {
       "utc": "UTC"
     },
@@ -104,8 +111,7 @@
         "yearToDate": "今年至今"
       },
       "periodInZone": "{period}（{zone}）",
-      "chartSummary": "各市場 {days} 天的每日營收（依 {zone} 日期計），以 {currency} 顯示。",
-      "allMarkets": "全部"
+      "chartSummary": "各市場 {days} 天的每日營收（依 {zone} 日期計），以 {currency} 顯示。"
     },
     "aiSummary": {
       "title": "AI 每日摘要",

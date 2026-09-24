@@ -36,13 +36,15 @@ const period = computed(() => t(PERIOD_KEY[filters.range]))
 // rather than letting them read as local (`/product-spec` → `timezone-utc-buckets-for-mvp.md`).
 const zone = computed(() => t('common.timeZones.utc'))
 
-const tabs = computed<TabsItem[]>(() => [
-  { label: t('dashboard.revenueTrend.allMarkets'), value: 'All' },
-  ...MARKETS.map((m) => ({
-    label: t(`common.markets.${m.toLowerCase()}`),
+// Tabs are compact, so they read market codes (US/JP/TW/DE) rather than full
+// names — `common.marketCode` covers "All" too, so the filter list needs no
+// special-cased first entry.
+const tabs = computed<TabsItem[]>(() =>
+  (['All', ...MARKETS] as const).map((m) => ({
+    label: t(`common.marketCode.${m.toLowerCase()}`),
     value: m,
   })),
-])
+)
 
 // The title already names the period, so axis and tooltip dates drop the year.
 const labels = computed(() => data.value?.series[0]?.points.map((p) => fmt.monthDay(p.t)) ?? [])
