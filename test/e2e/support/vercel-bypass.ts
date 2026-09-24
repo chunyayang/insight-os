@@ -18,10 +18,13 @@ export default async function globalSetup() {
   const context = await request.newContext({ baseURL })
   const response = await context.get('/', {
     headers: { 'x-vercel-protection-bypass': secret, 'x-vercel-set-bypass-cookie': 'true' },
-    maxRedirects: 0,
   })
-  // A 3xx here is Vercel's SSO redirect, i.e. the secret was refused.
-  if (!response.ok()) throw new Error(`Bypass refused: ${response.status()} from ${baseURL}`)
+  // An accepted secret sets the cookie on a redirect back to the same URL; a refused one
+  // redirects to Vercel's SSO login, so where the redirects end is the verdict.
+  const landed = new URL(response.url())
+  if (!response.ok() || landed.host !== new URL(baseURL).host) {
+    throw new Error(`Bypass refused: ${baseURL} ended at ${landed.origin}${landed.pathname}`)
+  }
 
   await mkdir(dirname(BYPASS_STATE), { recursive: true })
   await context.storageState({ path: BYPASS_STATE })
