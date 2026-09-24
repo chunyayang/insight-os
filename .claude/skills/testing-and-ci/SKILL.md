@@ -128,6 +128,16 @@ Set it up so the muscle exists, but keep it **out of the blocking CI gate** for 
 MVP — a browser build + run is slow, and one smoke test isn't worth gating merges on
 yet. Promote it to required once the suite is meaningful.
 
+It runs in two places, on both the `chromium` and `webkit-iphone` projects:
+
+- **Locally**, `pnpm test:e2e` builds and boots the app itself.
+- **Against each Vercel preview**, `.github/workflows/e2e-preview.yml` runs on
+  `deployment_status` and sets `E2E_BASE_URL`, which switches the fixture to `nuxt.host`.
+  Previews sit behind Deployment Protection, so `test/e2e/support/vercel-bypass.ts` trades
+  the `VERCEL_AUTOMATION_BYPASS_SECRET` repo secret for a bypass cookie once, in
+  `globalSetup`. Don't pass the secret as `extraHTTPHeaders`: that attaches it to every
+  request the page makes, third-party ones included.
+
 ```ts
 // playwright.config.ts
 import { fileURLToPath } from 'node:url'
@@ -206,11 +216,12 @@ Playwright's WebKit tracks a current Safari, so it catches **engine** difference
 **version** support (`oklch()`, `:has()`, and everything else the palette assumes). Those need
 a real device or a support matrix, and no headless run substitutes for either.
 
-## CI — GitHub Actions (single workflow)
+## CI — GitHub Actions (one gating workflow)
 
-One workflow, runs on push to `main` and on every PR targeting `main`. It is the
+One gating workflow, runs on push to `main` and on every PR targeting `main`. It is the
 **real quality gate** — local Husky hooks are convenience, this is enforcement
-(see `dod-and-git-workflow`). CI **does not deploy** — Vercel does (below).
+(see `dod-and-git-workflow`). CI **does not deploy** — Vercel does (below). The preview
+E2E workflow (above) runs alongside it and gates nothing.
 
 ```yaml
 # .github/workflows/ci.yml

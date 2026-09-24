@@ -1,0 +1,42 @@
+name: E2E (preview)
+
+# Runs the Playwright smoke against each Vercel preview once it is live. Not a required
+# check: the E2E suite stays out of the blocking gate for the MVP (see testing-and-ci).
+on: deployment_status
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Preview'
+    runs-on: ubuntu-latest
+    steps:
+      # A deployment_status run checks out the deployed commit, so the tests match the preview.
+      - uses: actions/checkout@v7
+
+      # pnpm/action-setup MUST run before setup-node, or `cache: pnpm` can't find pnpm.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec playwright install --with-deps chromium webkit
+
+      - run: pnpm test:e2e
+        env:
+          E2E_BASE_URL: ${{ github.event.deployment_status.environment_url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
