@@ -1,11 +1,13 @@
 import type { CurrencyCode, Money } from '~/types/api'
 import {
+  formatCompactCurrency,
   formatCompactNumber,
   formatCurrency,
   formatDate,
   formatDateTime,
   formatDelta,
   formatMoney,
+  formatMonthDay,
   formatNumber,
   formatPercent,
   formatRelativeTime,
@@ -19,7 +21,7 @@ import {
  * never touch Intl directly and never hand-format. Reactive: switching language
  * re-renders every formatted value with the right separators and date order.
  *
- * Money rules enforced here: JPY has 0 decimals, and the client only ever PICKS a
+ * Money rules enforced here: JPY and TWD have 0 decimals, and the client only ever PICKS a
  * currency key out of a `Money` map — it never converts between currencies.
  */
 export function useFormat() {
@@ -36,6 +38,9 @@ export function useFormat() {
 
     /** A bare amount whose currency is already known. */
     currency: (value: number, currency: CurrencyCode) => formatCurrency(value, currency, loc.value),
+    /** Abbreviated amount for chart axes; tooltips and cells use the full `currency`. */
+    compactCurrency: (value: number, currency: CurrencyCode) =>
+      formatCompactCurrency(value, currency, loc.value),
 
     number: (value: number, options?: Intl.NumberFormatOptions) =>
       formatNumber(value, loc.value, options),
@@ -49,6 +54,8 @@ export function useFormat() {
       formatDelta(value, loc.value, fractionDigits),
 
     date: (iso: string) => formatDate(iso, loc.value),
+    /** Calendar date without the year, for dense axes: "Sep 17". */
+    monthDay: (isoDate: string) => formatMonthDay(isoDate, loc.value),
     dateTime: (iso: string) => formatDateTime(iso, loc.value),
     relativeTime: (iso: string, now?: Date) => formatRelativeTime(iso, loc.value, now),
   }

@@ -1,29 +1,34 @@
+import { color as zrColor } from 'echarts/core'
 import type { MarketCode } from '~/types/api'
 import { MARKET_COLOR, MARKETS } from '~/constants/markets'
 
 /**
- * Fade a resolved token to an alpha fill. Canvas colour parsing is narrower than CSS —
- * color-mix() isn't reliably supported for fillStyle — so convert to rgba() explicitly.
- * Every colour we hand Chart.js is 6-digit hex for exactly this reason; non-hex input
- * passes through unchanged, which would read as a fully opaque fill.
+ * Vertical area fill that fades a series colour out towards the x-axis. The stops go
+ * through zrender's own alpha math, which is one more reason chart colours stay hex.
  */
-export function withAlpha(color: string, alpha: number): string {
-  const hex = color.trim().replace('#', '')
-  if (!/^[0-9a-f]{6}$/i.test(hex)) return color
-  const r = Number.parseInt(hex.slice(0, 2), 16)
-  const g = Number.parseInt(hex.slice(2, 4), 16)
-  const b = Number.parseInt(hex.slice(4, 6), 16)
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+export function areaGradient(color: string, topAlpha = 0.3) {
+  return {
+    type: 'linear' as const,
+    x: 0,
+    y: 0,
+    x2: 0,
+    y2: 1,
+    colorStops: [
+      { offset: 0, color: zrColor.modifyAlpha(color, topAlpha) },
+      { offset: 1, color: zrColor.modifyAlpha(color, 0) },
+    ],
+  }
 }
 
 /**
- * Chart chrome — the non-series colours Chart.js draws (axes, ticks, tooltip surface)
- * plus the two trend-direction colours.
+ * Chart chrome — the non-series colours ECharts draws (axes, ticks, tooltip surface and
+ * text) plus the two trend-direction colours.
  *
- * Hex for the same reason as MARKET_COLOR: Chart.js cannot consume `oklch()`, which is
- * what Nuxt UI's `--ui-*` tokens resolve to. These mirror the slate/emerald/red steps
- * Nuxt UI derives from app.config.ts — keep them in step by hand rather than reading
- * them back out of the DOM.
+ * Hex for the same reason as MARKET_COLOR: zrender's color parser only understands
+ * hex/`rgb()`/`hsl()`/the CSS named-color table — no `oklch()`, no `var()` resolution —
+ * so it cannot consume what Nuxt UI's `--ui-*` tokens resolve to. These mirror the
+ * slate/emerald/red steps Nuxt UI derives from app.config.ts — keep them in step by
+ * hand rather than reading them back out of the DOM.
  */
 const CHART_CHROME = {
   light: {
@@ -50,8 +55,7 @@ const SERIES_RAMP = MARKETS
  *
  * Purely derived from `isDark` — no `getComputedStyle`, no DOM access, no lifecycle
  * hooks. That makes it SSR-safe: charts paint the right colours on the first frame
- * instead of flipping after hydration, which the previous CSS-custom-property version
- * needed a `nextTick` workaround to approximate.
+ * instead of flipping after hydration.
  */
 export function useChartTheme() {
   const { isDark } = useTheme()

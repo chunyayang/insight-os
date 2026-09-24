@@ -46,11 +46,15 @@ What does split out on its own timeline is the four net-new chart types the prod
 exist yet — Analytics and AI Assistant are still unbuilt stubs, and Settings only has the General
 tab. Building a chart component ahead of a real page to mount it in is exactly what
 `/stack-conventions` and this repo's own precedent (PR 7 was gated on real consumers existing) say
-not to do. So PRs 3–6 are **gated, not scheduled** — each names its data contract and component
+not to do. So PRs 4–7 are **gated, not scheduled** — each names its data contract and component
 shape now (cheap, low-risk, and `AiChatResponse.chart.type` already commits to `'funnel'`), but is
 marked "do not open until `<module>`'s build begins." Their relative order follows `spec.md`'s own
 Hero Flow list (AI Assistant, then Analytics; Billing isn't a hero flow), not a committed roadmap —
 flagged again in Open items.
+
+PR 3, the renderer spike, is the one scheduled PR after the swap. It needs no new surface, and it
+runs before any gated PR so the new chart types are built on the renderer we keep rather than
+ported onto it afterwards.
 
 ## PR sequence
 
@@ -100,26 +104,82 @@ The atomic swap:
 ### PR 2 — `docs/echarts-conventions`
 - `.claude/skills/stack-conventions/SKILL.md` Charts section: drop the "migration decided, not
   started" blockquote; rewrite the Chart.js-specific rules as their ECharts-true equivalents — the
-  rules mostly survive verbatim, only the library name and the "why hex" sentence change.
+  rules mostly survive verbatim, only the library name and the "why hex" sentence change. One
+  rule does change shape: registration is no longer "once in a client-side plugin" but once in
+  `app/utils/echarts.ts`, a side-effect module `BaseChart.vue` imports, so ECharts ships only in
+  the chunks of routes that render a chart.
 - `.claude/CLAUDE.md`: stack line `Chart.js` → `Apache ECharts (vue-echarts)`; correct the
   "can't consume oklch()" line.
-- Append a "What shipped" section to this doc once PR 1 + 2 land.
+- Retire the PrimeVue / `tokens.css` comments left over from the Nuxt UI migration. Each either
+  states something no longer true or narrates history, which `/stack-conventions` § Comments
+  rules out. Restate the constraint where one survives; drop the comment where none does:
+  - `app/composables/useTheme.ts:8-9`: "PrimeVue's darkModeSelector ('.dark') and tokens.css
+    both key off that same class" is false now. Name what does key off `.dark` today: Nuxt UI's
+    `--ui-*` tokens. `useChartTheme()` reads the same cookie through `isDark`.
+  - `app/composables/useNotify.ts:1-4`: the explicit import existed to win an auto-import race
+    against PrimeVue's `useToast`. The race is gone, so the comment goes. The import can stay
+    explicit or fall back to auto-import; either is correct.
+  - `app/app.config.ts:9-10`: "the same values the retired tokens.css resolved by hand" is
+    history; `nuxt-ui-migration.md` already records it. Drop the sentence.
+  - `app/components/dashboard/AnomalyAlerts.vue:53-54`: keep the constraint (`to` makes the
+    UButton its own NuxtLink, so wrapping it would nest a `<button>` in an `<a>`) and drop "the
+    PrimeVue version needed".
+  - `app/pages/login.vue:18`: "UInput has no equivalent of PrimeVue's `toggle-mask`" becomes
+    "UInput has no built-in reveal toggle".
+- `test/e2e/smoke.test.ts:7`: "Chart.js" → "ECharts" in the stack list.
+- PR 4 below says "the plugin's `use()` list", and PRs 5–6 say "add to `use()`". Point all three
+  at `app/utils/echarts.ts`.
+- Append a "What shipped" section to this doc once PR 1 + 2 land. Record where PR 1 departed from
+  the plan above: registration in `app/utils/echarts.ts` instead of a plugin, a `ChartOption`
+  type composed from the registered modules instead of `EChartsOption`, `toPlainData()` dropped
+  (QA showed zrender doesn't need it), and the test stub keyed `Echarts` (vue-echarts' component
+  name) instead of `VChart`.
 
-### PRs 3–6 — net-new chart types (gated, not scheduled)
+### PR 3 — `chore/echarts-svg-renderer` (scheduled: after PR 2, before any gated PR)
 
-- **PR 3 `feature/ai-point-annotations`** (gate: AI Assistant Chat build) — §4.4.1. Extend
+Spike `SVGRenderer` against `CanvasRenderer`, then keep whichever the numbers favor.
+
+- **Why SVG is a candidate.** Every chart here is small. The densest planned chart is the Dashboard
+  trend: 4 series × at most 366 daily points (YTD), with symbols off. The Dashboard's four KPI
+  sparklines hold about 30 points each, and the weekly retention cohort grid (§4.3.4) has a few
+  hundred cells at most. ECharts' own guidance is Canvas for thousands of elements or heavy
+  effects, and SVG for many small instances, mobile and low memory. Each canvas also holds a
+  backing bitmap at `devicePixelRatio`: about 5.5 MB for the trend chart at 2×, where SVG holds a
+  handful of nodes. SVG also stays sharp when zoomed or printed, which matters for report export.
+- **The swap.** Register `SVGRenderer` instead of `CanvasRenderer` in `app/utils/echarts.ts`, and
+  pass `init-options` with `renderer: 'svg'` from `BaseChart.vue`. ECharts initializes with Canvas
+  by default and fails when Canvas isn't registered. Register one renderer. Register both only if
+  a specific chart needs Canvas, and record the bundle cost if so.
+- **Measure on the prod build, before and after.** Put the numbers in the PR:
+  1. ECharts chunk size (gzip).
+  2. Dashboard memory with all five charts mounted.
+  3. Frame time for tooltip hover and market-tab switching at 4× CPU throttle.
+  4. Visual parity: light/dark, en/zh-TW, 390px. Cover the gradient area, legend, `hideOverlap`
+     axis labels and tooltip.
+- **Unchanged either way.** `MARKET_COLOR`/`CHART_CHROME` stay hex, because zrender computes
+  colors internally whatever the renderer (see Open items). The happy-dom test stub probably
+  stays: whether zrender still measures text on a canvas under SVG is unverified. Remove the stub
+  once to find out, as PR 1 did.
+- **Outcome.** Adopt SVG if memory drops with no regression elsewhere, and update
+  `/stack-conventions` § Charts. Otherwise close the PR and record the measurements here, so the
+  question isn't re-spiked. Server-side SVG rendering (drawing the chart into the SSR HTML) is out
+  of scope. Note it as a follow-up only if `vue-echarts` turns out to support it.
+
+### PRs 4–7 — net-new chart types (gated, not scheduled)
+
+- **PR 4 `feature/ai-point-annotations`** (gate: AI Assistant Chat build) — §4.4.1. Extend
   `TrendLineChart.vue` (or a thin sibling) with `annotations?: {t,label}[]` → ECharts `markPoint`.
   Add `MarkPointComponent` to the plugin's `use()` list. `AiChatResponse.chart.annotations`
   already matches this shape — no type change needed for this PR specifically.
-- **PR 4 `feature/analytics-funnel-chart`** (gate: Analytics → Conversion Funnel tab) — §4.3.3. New
+- **PR 5 `feature/analytics-funnel-chart`** (gate: Analytics → Conversion Funnel tab) — §4.3.3. New
   `FunnelStage`/`FunnelSeries`/`FunnelResponse` types; new `FunnelChart.vue` using ECharts
   `series.funnel`, one per market, colored via `colorForMarket()`. Add `FunnelChart` to `use()`.
-- **PR 5 `feature/analytics-retention-heatmap`** (gate: Analytics → User Retention tab) — §4.3.4.
+- **PR 6 `feature/analytics-retention-heatmap`** (gate: Analytics → User Retention tab) — §4.3.4.
   New `CohortRetentionCell`/`CohortRetentionResponse` types; new `RetentionHeatmap.vue` using
   ECharts `series.heatmap` + `visualMap`. Add `HeatmapChart` + `VisualMapComponent` to `use()`.
   Needs a new theming primitive — `useChartTheme()` gains a *sequential* palette (low→high), since
   the existing categorical per-market palette doesn't fit a heatmap.
-- **PR 6 `feature/billing-usage-gauge`** (gate: Settings → Billing tab; lowest priority — not a
+- **PR 7 `feature/billing-usage-gauge`** (gate: Settings → Billing tab; lowest priority — not a
   hero flow) — §4.10.4. New `UsageGauge`/`BillingUsageResponse` types; new `UsageGauge.vue` using
   ECharts `series.gauge`. Gated in the page on `can('settings:admin')` —
   `DENIED_TREATMENT['settings:admin'] = 'hidden'` in `app/constants/permissions.ts`, so the tab is
@@ -144,20 +204,20 @@ PR 1 manual QA, risk-ordered:
    imports).
 7. Accessibility: `vue-echarts`'s rendered DOM subtree doesn't introduce ARIA roles that fight the
    `<figure>`/hidden-`<figcaption>` pattern.
-8. `pnpm test:e2e` still green; update `test/e2e/smoke.test.ts`'s Chart.js comment once PR 2 lands.
+8. `pnpm test:e2e` still green (the smoke test's Chart.js comment is PR 2's).
 
 ## Open items (flagging, not fixing)
 
-- `SVGRenderer` is a real, unexplored alternative that would let *flat* fills reference `--ui-*`
-  directly (SVG participates in the CSS cascade) — not adopted here, since every planned chart type
-  uses at least one zrender-internal color computation that the renderer choice doesn't route
-  around. Worth a standalone spike if hex-constant maintenance ever becomes a real cost.
+- `SVGRenderer` is scheduled as PR 3 for performance and memory, not for color. In theory it would
+  let *flat* fills reference `--ui-*` directly, since SVG participates in the CSS cascade. That
+  isn't pursued: every planned chart type uses at least one zrender-internal color computation the
+  renderer choice doesn't route around, so the hex constants stay whichever renderer PR 3 keeps.
 - `AiChatResponse.chart`'s union doesn't actually discriminate: `type: 'line'|'bar'|'funnel'` but
   `series: MarketSeries[]` is fixed regardless of type, and `MarketSeries.points` has no field for a
-  funnel stage name. Doesn't block PRs 3–6 as scoped (PR 4 defines a separate `FunnelResponse` type
+  funnel stage name. Doesn't block PRs 4–7 as scoped (PR 5 defines a separate `FunnelResponse` type
   for the Analytics tab), but blocks an AI-generated funnel chart specifically, and predates this
   migration.
-- PRs 3–6's relative order is inferred from `spec.md`'s Hero Flow list, not a committed roadmap
+- PRs 4–7's relative order is inferred from `spec.md`'s Hero Flow list, not a committed roadmap
   (none exists as of this writing) — revisit when a module's build is actually scheduled.
 - `vue-echarts`/`echarts` version compatibility with Vue 3.5.42 / Nuxt 4 is verified on paper
   (registry peer ranges) only, not hands-on — first real check is PR 1's manual QA.

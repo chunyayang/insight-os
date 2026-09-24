@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChartConfiguration } from 'chart.js'
+import type { ChartOption } from '~/utils/echarts'
 
 /**
  * Tiny inline trend for KPI tiles — no axes, no legend, no tooltip.
@@ -18,37 +18,41 @@ const props = defineProps<{
 const { theme, colorAt } = useChartTheme()
 
 const strokeColor = computed(() => {
-  // Resolved token VALUES, not var() — Chart.js paints to canvas and cannot resolve
-  // CSS custom properties. Trend direction carries meaning, so it uses the semantic
+  // Resolved token VALUES, not var() — zrender's color parser cannot resolve CSS
+  // custom properties. Trend direction carries meaning, so it uses the semantic
   // colours rather than the categorical ramp (which distinguishes series, not status).
   if (props.trend === 'up') return theme.value.positive
   if (props.trend === 'down') return theme.value.negative
   return colorAt(props.colorIndex ?? 0)
 })
 
-const data = computed<ChartConfiguration['data']>(() => ({
-  labels: props.data.map((_, i) => String(i)),
-  datasets: [
+const option = computed<ChartOption>(() => ({
+  grid: { left: 0, right: 0, top: 0, bottom: 0 },
+  tooltip: { show: false },
+  xAxis: {
+    type: 'category',
+    show: false,
+    data: props.data.map((_, i) => String(i)),
+  },
+  // Fit the axis to the data: a sparkline is shape-only, and a zero baseline flattens
+  // a series that moves a few percent around a large value into a few pixels.
+  yAxis: { type: 'value', show: false, scale: true },
+  series: [
     {
+      type: 'line',
       data: props.data,
-      borderColor: strokeColor.value,
-      borderWidth: 1.5,
-      pointRadius: 0,
-      tension: 0.4,
-      fill: false,
+      color: strokeColor.value,
+      lineStyle: { width: 1.5, join: 'round' },
+      smooth: 0.4,
+      showSymbol: false,
+      // Nothing on a sparkline responds to the pointer, so it takes no mouse events:
+      // otherwise ECharts shows a pointer cursor and thickens the line on hover.
+      silent: true,
     },
   ],
-}))
-
-const options = computed<ChartConfiguration['options']>(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { display: false }, tooltip: { enabled: false } },
-  scales: { x: { display: false }, y: { display: false } },
-  elements: { line: { borderJoinStyle: 'round' } },
 }))
 </script>
 
 <template>
-  <ChartsBaseChart type="line" :data="data" :options="options" :summary="summary" height="2.5rem" />
+  <ChartsBaseChart :option="option" :summary="summary" height="2.5rem" />
 </template>

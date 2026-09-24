@@ -27,10 +27,11 @@
     "@pinia/nuxt": "^1.0.2",
     "@tanstack/vue-query": "^5.103.1",
     "axios": "^1.20.0",
-    "chart.js": "^4.5.1",
+    "echarts": "^6.1.0",
     "nuxt": "^4.5.2",
     "pinia": "^4.0.3",
     "vue": "^3.5.42",
+    "vue-echarts": "^8.3.0",
     "vue-router": "^5.3.1"
   },
   "devDependencies": {

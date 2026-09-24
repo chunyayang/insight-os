@@ -36,7 +36,11 @@ vi.mock('axios', () => ({
 
 describe('RevenueTrend', () => {
   it("plots every line in the organization's presentation currency, not a hardcoded USD", async () => {
-    const wrapper = await mountSuspended(RevenueTrend)
+    // happy-dom's canvas.getContext('2d') returns null, which zrender doesn't tolerate:
+    // it throws "Cannot set properties of null (setting 'dpr')" as an unhandled rejection
+    // that fails the run. vue-echarts names its component "Echarts" (not the local
+    // `VChart` import), so that's the key the stub has to match.
+    const wrapper = await mountSuspended(RevenueTrend, { global: { stubs: { Echarts: true } } })
 
     await vi.waitFor(() => {
       if (wrapper.find('[aria-busy="true"]').exists()) throw new Error('still loading')
@@ -47,8 +51,39 @@ describe('RevenueTrend', () => {
     useOrganizationStore().setPresentationCurrency('EUR')
     await nextTick()
 
-    // The chart caption is the accessible summary Chart.js's canvas can't provide.
+    // The chart caption is the accessible summary the chart's canvas can't provide.
     expect(wrapper.text()).toContain('shown in EUR')
     expect(wrapper.text()).not.toContain('shown in USD')
+  })
+
+  it('formats tooltip and axis values as money in the presentation currency', async () => {
+    useOrganizationStore().setPresentationCurrency('JPY')
+    const wrapper = await mountSuspended(RevenueTrend, { global: { stubs: { Echarts: true } } })
+    await vi.waitFor(() => {
+      if (!wrapper.findComponent({ name: 'Echarts' }).exists()) throw new Error('still loading')
+    })
+
+    const option = wrapper.findComponent({ name: 'Echarts' }).props('option') as {
+      tooltip: { valueFormatter: (value: number) => string }
+      yAxis: { axisLabel: { formatter: (value: number) => string } }
+    }
+    // JPY is zero-decimal on screen, whatever precision the payload carries.
+    expect(option.tooltip.valueFormatter(193_456.7)).toBe('¥193,457')
+    expect(option.yAxis.axisLabel.formatter(15_000_000)).toBe('¥15M')
+  })
+
+  it('keeps the lines out of pointer interaction while the axis tooltip stays on', async () => {
+    const wrapper = await mountSuspended(RevenueTrend, { global: { stubs: { Echarts: true } } })
+    await vi.waitFor(() => {
+      if (!wrapper.findComponent({ name: 'Echarts' }).exists()) throw new Error('still loading')
+    })
+
+    const option = wrapper.findComponent({ name: 'Echarts' }).props('option') as {
+      tooltip: { trigger: string }
+      series: { silent?: boolean }[]
+    }
+    // A non-silent line gets ECharts' pointer cursor, and clicking a line does nothing.
+    expect(option.series.every((s) => s.silent === true)).toBe(true)
+    expect(option.tooltip.trigger).toBe('axis')
   })
 })

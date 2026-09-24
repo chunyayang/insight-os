@@ -56,6 +56,46 @@ export function formatCompactNumber(value: number, locale: SupportedLocale): str
   )
 }
 
+/**
+ * Abbreviated currency for chart axes: "$100K" in en-US, "US$100K" in zh-TW. The locale
+ * picks the symbol and sign; the suffix is K/M/B in every locale (currency-model.md §3).
+ */
+export function formatCompactCurrency(
+  value: number,
+  currency: CurrencyCode,
+  locale: SupportedLocale,
+): string {
+  // Below 1K nothing is abbreviated, so a zero-decimal currency would show its minor unit.
+  const amount = currencyFractionDigits(currency) === 0 ? Math.round(value) : value
+  const abbreviated = new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(Math.abs(amount))
+
+  // Keep the locale's symbol, sign and spacing; swap its digits for the abbreviation.
+  let digitsPlaced = false
+  return new Intl.NumberFormat(locale, { style: 'currency', currency })
+    .formatToParts(amount)
+    .map((part) => {
+      if (!['integer', 'group', 'decimal', 'fraction'].includes(part.type)) return part.value
+      if (digitsPlaced) return ''
+      digitsPlaced = true
+      return abbreviated
+    })
+    .join('')
+}
+
+/** A calendar date (YYYY-MM-DD) as month and day: "Sep 17" / "9月17日". */
+export function formatMonthDay(isoDate: string, locale: SupportedLocale): string {
+  // A date-only string parses as UTC midnight; formatting it in the viewer's zone would
+  // show the previous day anywhere west of UTC.
+  return new Intl.DateTimeFormat(locale, {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(isoDate))
+}
+
 /** `value` is a RATIO (0.031 -> "3.1%"), matching how the API returns conversion rates. */
 export function formatPercent(value: number, locale: SupportedLocale, fractionDigits = 1): string {
   return new Intl.NumberFormat(locale, {
