@@ -45,6 +45,9 @@ const option = computed<ChartOption>(() => ({
       lineStyle: { width: 1.5, join: 'round' },
       smooth: 0.4,
       showSymbol: false,
+      // Nothing on a sparkline responds to the pointer, so it takes no mouse events:
+      // otherwise ECharts shows a pointer cursor and thickens the line on hover.
+      silent: true,
     },
   ],
 }))

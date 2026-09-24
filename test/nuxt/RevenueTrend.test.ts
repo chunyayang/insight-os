@@ -71,4 +71,19 @@ describe('RevenueTrend', () => {
     expect(option.tooltip.valueFormatter(193_456.7)).toBe('¥193,457')
     expect(option.yAxis.axisLabel.formatter(15_000_000)).toBe('¥15M')
   })
+
+  it('keeps the lines out of pointer interaction while the axis tooltip stays on', async () => {
+    const wrapper = await mountSuspended(RevenueTrend, { global: { stubs: { Echarts: true } } })
+    await vi.waitFor(() => {
+      if (!wrapper.findComponent({ name: 'Echarts' }).exists()) throw new Error('still loading')
+    })
+
+    const option = wrapper.findComponent({ name: 'Echarts' }).props('option') as {
+      tooltip: { trigger: string }
+      series: { silent?: boolean }[]
+    }
+    // A non-silent line gets ECharts' pointer cursor, and clicking a line does nothing.
+    expect(option.series.every((s) => s.silent === true)).toBe(true)
+    expect(option.tooltip.trigger).toBe('axis')
+  })
 })

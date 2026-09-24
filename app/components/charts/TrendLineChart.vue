@@ -78,6 +78,10 @@ const option = computed<ChartOption>(() => {
         smooth: 0.4,
         symbolSize: 8,
         showSymbol: false,
+        // Clicking a line does nothing, so the line takes no mouse events. Without this,
+        // ECharts shows a pointer cursor over it. The axis tooltip still works, because it
+        // tracks the pointer across the grid rather than over the line.
+        silent: true,
         // The gradient carries its own alpha; ECharts' 0.7 default would fade it twice.
         areaStyle: props.fill ? { color: areaGradient(color), opacity: 1 } : undefined,
       }

@@ -78,4 +78,12 @@ describe('KpiCard', () => {
     expect(wrapper.html()).toContain('aria-hidden="true"')
     expect(wrapper.text()).toMatch(/14-day trend/i)
   })
+
+  it('keeps the sparkline out of pointer interaction', async () => {
+    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() }, ...stubs })
+    const option = wrapper.findComponent({ name: 'Echarts' }).props('option')
+    // A non-silent series gets ECharts' pointer cursor and hover emphasis, and a
+    // sparkline has nothing to click.
+    expect(option.series[0].silent).toBe(true)
+  })
 })
