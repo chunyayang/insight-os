@@ -57,17 +57,15 @@ export function formatCompactNumber(value: number, locale: SupportedLocale): str
 }
 
 /**
- * Abbreviated currency for dense chart axes: "US$100K" in zh-TW, "$100K" in en-US.
- *
- * The symbol and sign follow the locale, but the abbreviation is K/M/B in every locale —
- * 萬/億 on a dashboard axis reads as traditional banking style. Below 1K nothing is
- * abbreviated, so a zero-decimal currency is rounded first to keep its minor unit hidden.
+ * Abbreviated currency for chart axes: "$100K" in en-US, "US$100K" in zh-TW. The locale
+ * picks the symbol and sign; the suffix is K/M/B in every locale (currency-model.md §3).
  */
 export function formatCompactCurrency(
   value: number,
   currency: CurrencyCode,
   locale: SupportedLocale,
 ): string {
+  // Below 1K nothing is abbreviated, so a zero-decimal currency would show its minor unit.
   const amount = currencyFractionDigits(currency) === 0 ? Math.round(value) : value
   const abbreviated = new Intl.NumberFormat('en-US', {
     notation: 'compact',
