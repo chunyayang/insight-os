@@ -52,7 +52,7 @@ const labels = computed(() => data.value?.series[0]?.points.map((p) => fmt.month
 const series = computed<TrendSeries[]>(
   () =>
     data.value?.series.map((s) => ({
-      label: t(`common.markets.${s.market.toLowerCase()}`),
+      label: t(`common.marketCode.${s.market.toLowerCase()}`),
       market: s.market as MarketCode,
       // Read the presentation-currency key out of each point's Money map — no
       // client-side conversion.
