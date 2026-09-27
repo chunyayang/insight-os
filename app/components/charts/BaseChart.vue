@@ -31,7 +31,13 @@ const resolvedOption = computed<ChartOption>(() => ({
 
 <template>
   <figure class="chart" :style="height ? { height } : undefined">
-    <VChart class="chart__canvas" :option="resolvedOption" autoresize aria-hidden="true" />
+    <VChart
+      class="chart__surface"
+      :option="resolvedOption"
+      :init-options="{ renderer: 'svg' }"
+      autoresize
+      aria-hidden="true"
+    />
     <figcaption class="chart__caption">{{ summary }}</figcaption>
   </figure>
 </template>
@@ -43,7 +49,7 @@ const resolvedOption = computed<ChartOption>(() => ({
   min-width: 0;
 }
 
-.chart__canvas {
+.chart__surface {
   width: 100%;
   height: 100%;
 }
