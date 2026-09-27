@@ -50,8 +50,8 @@ function askAiLink(alert: AnomalyAlert) {
 
         <p class="alerts__message">{{ alert.message }}</p>
 
-        <!-- `to` renders the UButton as a NuxtLink itself — the wrapper the PrimeVue
-             version needed would have nested a <button> inside an <a>. -->
+        <!-- `to` makes the UButton its own NuxtLink — wrapping it would nest a
+             <button> inside an <a>. -->
         <UButton
           :to="askAiLink(alert)"
           :label="t('dashboard.alerts.askAi')"

@@ -15,7 +15,7 @@ const password = ref('')
 const selectedRole = ref<Role>('admin')
 /** Validation stays quiet until the first submit, then becomes live. */
 const submitted = ref(false)
-/** Reveal toggle: UInput has no equivalent of PrimeVue's `toggle-mask`, so we swap `type`. */
+/** Reveal toggle: UInput has no built-in reveal toggle, so we swap `type`. */
 const passwordVisible = ref(false)
 
 /**

@@ -5,9 +5,6 @@
  * two aliases, in both light and dark. There is deliberately no custom token stylesheet
  * alongside it: a private parallel vocabulary would drift from what Nuxt UI's own
  * components use the moment either side changed.
- *
- * emerald/slate are the same values the retired tokens.css resolved by hand, so the
- * identity is unchanged — see .claude/doc/nuxt-ui-migration.md.
  */
 export default defineAppConfig({
   ui: {

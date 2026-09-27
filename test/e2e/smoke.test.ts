@@ -4,7 +4,7 @@ import { expect, test } from '@nuxt/test-utils/playwright'
  * The one end-to-end happy path: sign in, land on the Dashboard, and see real data.
  *
  * This is the only place the whole stack runs together in a browser — middleware,
- * Pinia session, Axios, Vue Query, Chart.js, i18n and the design tokens. Deliberately
+ * Pinia session, Axios, Vue Query, ECharts, i18n and the design tokens. Deliberately
  * one flow, not exhaustive coverage (see testing-and-ci).
  */
 test.describe('Insight OS smoke', () => {
