@@ -112,7 +112,7 @@ Migrated from Chart.js — rationale and PR sequence in
 - Each market has ONE fixed color used everywhere it appears (charts, tags, legends), keyed by market in `MARKET_COLOR`. A market's color must never depend on how many series a chart happens to render — which is also why **ECharts' built-in `theme.color` array is not used**: it cycles by series index, so the same market changes color between charts. Always resolve explicitly via `colorForMarket()`.
 - `useChartTheme()` derives everything from `isDark` as a `computed`. It must stay free of `getComputedStyle` and DOM reads so charts paint correctly during SSR and on first frame.
 - Every chart has an accessible fallback: a hidden `<figcaption>` summarizing the data (see `BaseChart.vue`), and where the design calls for it, a toggleable data table.
-- `vitest`'s `happy-dom` environment returns `null` from `canvas.getContext('2d')`; stub `Echarts` (vue-echarts' component name, not the local `VChart` import) in component tests that mount a chart — see `BaseChart.test.ts`.
+- No component-test stub needed for `VChart` (rendered as `Echarts` — vue-echarts' component name, not the local import): `SVGRenderer` never calls `canvas.getContext('2d')`, so it doesn't hit `happy-dom`'s `null` return the way `CanvasRenderer` did. If a future chart type forces `CanvasRenderer` back on, re-add the stub — see PR 3 in `echarts-migration.md` for why it mattered then.
 
 ## Table conventions
 

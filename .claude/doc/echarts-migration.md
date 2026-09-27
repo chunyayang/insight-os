@@ -1,9 +1,10 @@
 # Replace Chart.js with Apache ECharts
 
 > **Status:** PR 1 and PR 2 merged (`chore(charts): replace Chart.js with ECharts (#86)`). PR 3
-> (renderer spike) ran, closed with `CanvasRenderer` kept — see its section below for the measured
-> numbers. PRs 4–7 remain gated on their consuming module's build, per the Approach section. See
-> "What shipped" at the end of this document for where PR 1 departed from the plan below.
+> (renderer spike) ran and shipped — `SVGRenderer` replaced `CanvasRenderer` on
+> `chore/echarts-svg-renderer` — see its section below for the measured numbers and the reasoning
+> that decided it. PRs 4–7 remain gated on their consuming module's build, per the Approach section.
+> See "What shipped" at the end of this document for where PR 1 departed from the plan below.
 
 ## Decision
 
@@ -121,12 +122,14 @@ The atomic swap:
 - PR 4 below said "the plugin's `use()` list", and PRs 5–6 said "add to `use()`" — all three now
   point at `app/utils/echarts.ts` explicitly (see below).
 
-### PR 3 — `chore/echarts-svg-renderer` — spiked and closed, kept `CanvasRenderer`
+### PR 3 — `chore/echarts-svg-renderer` — adopted, switched to `SVGRenderer`
 
 Spiked `SVGRenderer` against `CanvasRenderer` on the current build (5 Dashboard charts: 1 trend +
-4 sparklines). Numbers didn't clear the bar the Why section below expected, so the PR is closed
-without merging the swap — recorded here so the question isn't re-spiked without new evidence
-(e.g., a materially denser chart type landing in PRs 4–7).
+4 sparklines). The measurements below read as a wash against this doc's original decision rule
+("adopt SVG if memory drops with no regression elsewhere") — JS heap was flat and bundle size grew.
+On reconsideration, the DPR-scaling risk the Why bullet below flags was judged to matter more than
+that flat JS-heap reading suggests, given most of the audience is expected on Retina or
+high-density mobile hardware — so the swap shipped. See **Outcome** below for the full reasoning.
 
 - **Why SVG looked like a candidate.** Every chart here is small. The densest planned chart is the
   Dashboard trend: 4 series × at most 366 daily points (YTD), with symbols off. The Dashboard's
@@ -134,9 +137,9 @@ without merging the swap — recorded here so the question isn't re-spiked witho
   a few hundred cells at most. ECharts' own guidance is Canvas for thousands of elements or heavy
   effects, and SVG for many small instances, mobile and low memory. Each canvas also holds a
   backing bitmap at `devicePixelRatio`, so a bigger a-priori concern than the point counts alone.
-- **The swap (spiked, then reverted).** `SVGRenderer` in `app/utils/echarts.ts` in place of
-  `CanvasRenderer`, plus `init-options: { renderer: 'svg' }` from `BaseChart.vue`. Both renderers
-  need registering only one at a time — confirmed no runtime error either way.
+- **The swap.** `SVGRenderer` registered in `app/utils/echarts.ts` in place of `CanvasRenderer`,
+  plus `init-options: { renderer: 'svg' }` from `BaseChart.vue`. Both renderers need registering
+  only one at a time — confirmed no runtime error either way.
 - **Measured, on the prod build (`pnpm build` + `node .output/server/index.mjs`), Playwright +
   CDP, headless Chromium, `devicePixelRatio: 1`:**
   1. **Bundle (gzip):** Canvas 183,898 B → SVG 187,489 B — **+3,591 B (+2.0%), SVG is bigger.**
@@ -163,21 +166,26 @@ without merging the swap — recorded here so the question isn't re-spiked witho
      combination checked. No regression found.
 - **Unchanged either way.** `MARKET_COLOR`/`CHART_CHROME` stay hex, confirmed — zrender computes
   colors internally whatever the renderer (see Open items).
-- **Verified, not just flagged: the happy-dom test stub is *not* needed under SVG.** Removed the
-  `Echarts: true` stub from `BaseChart.test.ts`, `KpiCard.test.ts` and `RevenueTrend.test.ts`
-  against the SVG build — all 11 previously-stubbed tests passed unstubbed, confirming
-  `SVGRenderer` never calls `canvas.getContext('2d')`. Not adopted now (PR 3 closed keeping
-  Canvas, where the stub is still load-bearing), but worth knowing if SVG is ever re-spiked: it
-  would simplify these three test files.
-- **Outcome: closed, kept `CanvasRenderer`.** The decision rule was "adopt SVG if memory drops
-  with no regression elsewhere." Memory didn't drop by the only method available to measure it
-  live (JS heap is flat); the real backing-bitmap saving is genuine but modest (~1–5 MB depending
-  on DPR) and unmeasured here, while bundle size measurably *grew* (+2%). That's a net negative on
-  the numbers actually in hand, so `/stack-conventions` § Charts is not updated and `main` keeps
-  `CanvasRenderer`. Re-open this spike only if a future gated PR (funnel, heatmap, gauge) turns out
-  to render enough elements that Canvas's own guidance threshold ("thousands of elements") starts
-  to apply, or if a way to measure real GPU/compositor memory (not just JS heap) becomes available
-  and is worth the extra confidence. Server-side SVG rendering was and remains out of scope.
+- **The happy-dom test stub is removed.** `SVGRenderer` never calls `canvas.getContext('2d')`, so
+  the `Echarts: true` stub is gone from `BaseChart.test.ts`, `KpiCard.test.ts` and
+  `RevenueTrend.test.ts` — confirmed first by running all 11 previously-stubbed tests unstubbed
+  against the SVG build, then removed for real.
+- **Outcome: adopted, switched to `SVGRenderer`.** The originally-stated decision rule — "adopt SVG
+  if memory drops with no regression elsewhere" — reads as a no on the numbers alone: JS heap is
+  flat and bundle size measurably grew (+2%). What moved the decision past that reading is what the
+  JS-heap number can't see: a canvas's backing bitmap is real GPU/compositor memory that scales with
+  `devicePixelRatio²`, not something `Performance.getMetrics` reports. Computed analytically
+  (§ measurement 2 above), that's ~1.2 MB at DPR 1 rising to ~5 MB at DPR 2 across today's 5
+  Dashboard charts, and steeper still at DPR 3 — and most of this product's audience is expected on
+  Retina laptops or high-density mobile screens, not DPR-1 hardware. SVG's cost (a few hundred DOM
+  nodes) doesn't scale with pixel density the way a canvas bitmap does, and SVG stays vector-sharp
+  under pinch-zoom or display scaling where a canvas bitmap can blur until it's redrawn. Weighed
+  against a bundle cost of +3,591 B gzip (+2.0%) and zero visual-parity regressions across
+  theme/locale/viewport, that trade-off favors SVG for this vector-first dashboard. `app/utils/echarts.ts`
+  now registers `SVGRenderer`; `CanvasRenderer` is no longer registered anywhere in the app. Revisit
+  only if a future gated PR (funnel, heatmap, gauge) renders enough elements that Canvas's own
+  guidance threshold ("thousands of elements") starts to apply. Server-side SVG rendering remains
+  out of scope.
 
 ### PRs 4–7 — net-new chart types (gated, not scheduled)
 
@@ -224,11 +232,11 @@ PR 1 manual QA, risk-ordered:
 
 ## Open items (flagging, not fixing)
 
-- `SVGRenderer` was spiked in PR 3 for performance and memory, not for color. In theory it would
-  let *flat* fills reference `--ui-*` directly, since SVG participates in the CSS cascade. That
-  wasn't pursued: every planned chart type uses at least one zrender-internal color computation
-  the renderer choice doesn't route around, so the hex constants stay put regardless (PR 3 kept
-  `CanvasRenderer` anyway).
+- `SVGRenderer` was adopted in PR 3 for performance and memory, not for color, and it doesn't
+  change the color story. In theory SVG participating in the CSS cascade would let *flat* fills
+  reference `--ui-*` directly, but every chart here uses at least one zrender-internal color
+  computation (hover shading, `areaStyle` gradients) that zrender's own parser must resolve
+  regardless of renderer — so `MARKET_COLOR`/`CHART_CHROME` stay hex.
 - `AiChatResponse.chart`'s union doesn't actually discriminate: `type: 'line'|'bar'|'funnel'` but
   `series: MarketSeries[]` is fixed regardless of type, and `MarketSeries.points` has no field for a
   funnel stage name. Doesn't block PRs 4–7 as scoped (PR 5 defines a separate `FunnelResponse` type
@@ -259,9 +267,8 @@ actual diff departed from the plan above:
   was dropped. Manual QA confirmed zrender doesn't need it.
 - The happy-dom test stub is keyed `Echarts` (vue-echarts' rendered component name), not the local
   `VChart` import name the plan assumed. `happy-dom`'s `canvas.getContext('2d')` does return `null`
-  in this repo, so the stub is load-bearing under `CanvasRenderer` — confirmed necessary, not
-  speculative (and confirmed *not* necessary under `SVGRenderer`, per PR 3, though that renderer
-  wasn't adopted).
+  in this repo, so the stub was load-bearing under `CanvasRenderer` — confirmed necessary at the
+  time, and confirmed removable once PR 3 adopted `SVGRenderer`, which never hits this code path.
 - `withAlpha()` was dropped from `useChartTheme.ts`: PR 1's grep confirmed its one call site
   (`TrendLineChart.vue`) was gone, since ECharts' `areaStyle: { color, opacity }` takes flat color
   + separate opacity directly.

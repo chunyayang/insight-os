@@ -36,11 +36,7 @@ vi.mock('axios', () => ({
 
 describe('RevenueTrend', () => {
   it("plots every line in the organization's presentation currency, not a hardcoded USD", async () => {
-    // happy-dom's canvas.getContext('2d') returns null, which zrender doesn't tolerate:
-    // it throws "Cannot set properties of null (setting 'dpr')" as an unhandled rejection
-    // that fails the run. vue-echarts names its component "Echarts" (not the local
-    // `VChart` import), so that's the key the stub has to match.
-    const wrapper = await mountSuspended(RevenueTrend, { global: { stubs: { Echarts: true } } })
+    const wrapper = await mountSuspended(RevenueTrend)
 
     await vi.waitFor(() => {
       if (wrapper.find('[aria-busy="true"]').exists()) throw new Error('still loading')
@@ -58,7 +54,7 @@ describe('RevenueTrend', () => {
 
   it('formats tooltip and axis values as money in the presentation currency', async () => {
     useOrganizationStore().setPresentationCurrency('JPY')
-    const wrapper = await mountSuspended(RevenueTrend, { global: { stubs: { Echarts: true } } })
+    const wrapper = await mountSuspended(RevenueTrend)
     await vi.waitFor(() => {
       if (!wrapper.findComponent({ name: 'Echarts' }).exists()) throw new Error('still loading')
     })
@@ -73,7 +69,7 @@ describe('RevenueTrend', () => {
   })
 
   it('keeps the lines out of pointer interaction while the axis tooltip stays on', async () => {
-    const wrapper = await mountSuspended(RevenueTrend, { global: { stubs: { Echarts: true } } })
+    const wrapper = await mountSuspended(RevenueTrend)
     await vi.waitFor(() => {
       if (!wrapper.findComponent({ name: 'Echarts' }).exists()) throw new Error('still loading')
     })
