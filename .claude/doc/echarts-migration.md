@@ -1,9 +1,10 @@
 # Replace Chart.js with Apache ECharts
 
 > **Status:** PR 1 and PR 2 merged (`chore(charts): replace Chart.js with ECharts (#86)`). PR 3
-> (renderer spike) ran and shipped — `SVGRenderer` replaced `CanvasRenderer` on
-> `chore/echarts-svg-renderer` — see its section below for the measured numbers and the reasoning
-> that decided it. PRs 4–7 remain gated on their consuming module's build, per the Approach section.
+> (renderer spike) ran and merged (`chore(echarts): switch to SVGRenderer for DPR-independent
+> memory and crisp scaling (#90)`) — `SVGRenderer` replaced `CanvasRenderer` on `main` — see its
+> section below for the measured numbers and the reasoning that decided it. PRs 4–7 remain gated
+> on their consuming module's build, per the Approach section.
 > See "What shipped" at the end of this document for where PR 1 departed from the plan below.
 
 ## Decision

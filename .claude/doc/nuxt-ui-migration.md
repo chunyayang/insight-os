@@ -442,16 +442,15 @@ Targeted checks, ordered by risk:
   Figtree + Noto Sans TC look is wanted later it is a deliberate, separate change (`@nuxt/fonts`,
   self-hosted, with a zh-TW subsetting check) — not something to reintroduce as a bare CSS
   variable that names fonts nobody loads.
-- **Next up: Chart.js → Apache ECharts.** That migration was decided and recorded
-  ([`.claude/doc/echarts-migration.md`](echarts-migration.md)) while this one was still in
-  flight, explicitly sequenced to start **after PR 7** — which is now landing. Analytics and AI
-  Assistant are still both unbuilt stubs, so nothing has been built against Chart.js that
-  shouldn't have been; the sequencing held. Chart colors (sky/amber/violet/teal) were confirmed
-  correct on the Dashboard in both themes during PR 7's own verification, so that earlier "worth a
-  look" flag is closed — but those colors and `useChartTheme()` are Chart.js-specific and go away
-  with that migration, not something to hand-carry into the ECharts work.
 
 ### Closed since this doc was written
+
+- ~~Next up: Chart.js → Apache ECharts~~ — landed as its own decision record
+  ([`.claude/doc/echarts-migration.md`](echarts-migration.md)), sequenced to start after PR 7 as
+  planned. PR 1+2 shipped together (`chore(charts): replace Chart.js with ECharts (#86)`), and PR 3
+  (the renderer spike) also shipped, adopting `SVGRenderer` over `CanvasRenderer`. Chart colors
+  (sky/amber/violet/teal) and `useChartTheme()` were Chart.js-specific and were rewritten for
+  ECharts as part of that migration, not hand-carried — see that doc for the full record.
 
 - ~~Nuxt UI's docs have no worked example of server-side pagination~~ — PR 6 proved it out
   end-to-end against the Customers list (`app/components/common/DataTable.vue`, consumed by
