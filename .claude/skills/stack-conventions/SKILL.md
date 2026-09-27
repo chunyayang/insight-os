@@ -1,6 +1,6 @@
 ---
 name: stack-conventions
-description: Project conventions and integration gotchas for the Insight OS AI Analytics Platform — Nuxt 4 + TypeScript + Nuxt UI 4 + Tailwind CSS v4 + Pinia + TanStack Vue Query + Axios + Chart.js + @nuxtjs/i18n, with EN/zh-TW i18n and Admin/Analyst/Viewer roles. ALWAYS consult this skill before writing, reviewing, or refactoring ANY code in this project — scaffolding pages or components, configuring nuxt.config, styling and design tokens, dark mode, fetching data or creating stores, adding UI strings, permissions checks, or building charts. Also use it when debugging styling conflicts, SSR hydration issues, or dark-mode flashes.
+description: Project conventions and integration gotchas for the Insight OS AI Analytics Platform — Nuxt 4 + TypeScript + Nuxt UI 4 + Tailwind CSS v4 + Pinia + TanStack Vue Query + Axios + Apache ECharts (vue-echarts) + @nuxtjs/i18n, with EN/zh-TW i18n and Admin/Analyst/Viewer roles. ALWAYS consult this skill before writing, reviewing, or refactoring ANY code in this project — scaffolding pages or components, configuring nuxt.config, styling and design tokens, dark mode, fetching data or creating stores, adding UI strings, permissions checks, or building charts. Also use it when debugging styling conflicts, SSR hydration issues, or dark-mode flashes.
 ---
 
 # Insight OS — Stack Conventions
@@ -101,20 +101,18 @@ Hard boundary — violating it is the most common review rejection:
 - Route-level checks: `definePageMeta({ ability: 'team:manage' })` + the auth middleware redirects unauthorized roles.
 - Client-side checks are UX, not security — note this in comments; the real backend must re-enforce.
 
-## Charts (Chart.js)
+## Charts (Apache ECharts)
 
-> **Migration decided, not started.** Chart.js is being replaced by Apache ECharts (`vue-echarts`),
-> sequenced after PR 7 of the Nuxt UI migration — the product spec needs visuals (funnel, cohort
-> heatmap, gauges, AI annotations) Chart.js can't draw. Everything below is current until then.
-> Do not start the Analytics or AI Assistant charts on Chart.js. Rationale:
-> [`.claude/doc/echarts-migration.md`](../../doc/echarts-migration.md).
+Migrated from Chart.js — rationale and PR sequence in
+[`.claude/doc/echarts-migration.md`](../../doc/echarts-migration.md).
 
-- All charts go through wrapper components in `components/charts/` (e.g. `TrendLineChart.vue`, `MarketBarChart.vue`). Pages never import Chart.js directly.
-- Register Chart.js controllers/elements once in a client-side plugin, not per component.
-- **Chart colors are hex in TypeScript, not CSS custom properties — and this is deliberate.** `MARKET_COLOR` in `app/constants/markets.ts` and `CHART_CHROME` in `app/composables/useChartTheme.ts` hold light/dark hex pairs. Chart.js needs real color strings on a canvas, and `withAlpha()` parses **hex only**: Nuxt UI's tokens resolve to `oklch()`, which `withAlpha` passes through unfaded, silently turning every area fill opaque. `color-mix()` is not a fix — canvas `fillStyle` will not reliably parse it. **Do not "unify" these values back into `--ui-*`.** They are the one sanctioned exception to the no-raw-hex rule; keep them visually coordinated with the `app.config.ts` palette by hand.
-- Each market has ONE fixed color used everywhere it appears (charts, tags, legends), keyed by market in `MARKET_COLOR`. A market's color must never depend on how many series a chart happens to render — which is also why **Chart.js's built-in `Colors` plugin is not used**: it assigns by dataset index, so the same market changes color between charts.
+- All charts go through wrapper components in `components/charts/` (e.g. `TrendLineChart.vue`, `Sparkline.vue`). Pages never import ECharts directly — everything renders through `BaseChart.vue`.
+- Register chart types/components once in `app/utils/echarts.ts`, a side-effect module `BaseChart.vue` imports — not per component, and not a Nuxt plugin. Because it's an import rather than an app-wide plugin, ECharts only ships in the chunks of routes that actually render a chart. Each new chart type extends this one `use()` call and the `ChartOption` union beside it, never a second registration site.
+- **Chart colors are hex in TypeScript, not CSS custom properties — and this is deliberate.** `MARKET_COLOR` in `app/constants/markets.ts` and `CHART_CHROME` in `app/composables/useChartTheme.ts` hold light/dark hex pairs. zrender's color parser only understands hex/`rgb()`/`hsl()`/the CSS named-color table — no `oklch()`, no `var()` resolution — so it cannot consume what Nuxt UI's `--ui-*` tokens resolve to. This is independent of which ECharts renderer is registered (Canvas or SVG): every chart uses at least one zrender-internal color computation (hover shading, `areaStyle` gradients) that needs a literal string either way. **Do not "unify" these values back into `--ui-*`.** They are the one sanctioned exception to the no-raw-hex rule; keep them visually coordinated with the `app.config.ts` palette by hand.
+- Each market has ONE fixed color used everywhere it appears (charts, tags, legends), keyed by market in `MARKET_COLOR`. A market's color must never depend on how many series a chart happens to render — which is also why **ECharts' built-in `theme.color` array is not used**: it cycles by series index, so the same market changes color between charts. Always resolve explicitly via `colorForMarket()`.
 - `useChartTheme()` derives everything from `isDark` as a `computed`. It must stay free of `getComputedStyle` and DOM reads so charts paint correctly during SSR and on first frame.
-- Every chart has an accessible fallback: `aria-label` summarizing the data, and where the design calls for it, a toggleable data table.
+- Every chart has an accessible fallback: a hidden `<figcaption>` summarizing the data (see `BaseChart.vue`), and where the design calls for it, a toggleable data table.
+- `vitest`'s `happy-dom` environment returns `null` from `canvas.getContext('2d')`; stub `Echarts` (vue-echarts' component name, not the local `VChart` import) in component tests that mount a chart — see `BaseChart.test.ts`.
 
 ## Table conventions
 
@@ -140,7 +138,7 @@ A comment that would go stale if the code below changed shape is already a liabi
 
 - Icon-only buttons always have `aria-label` (localized).
 - Keyboard: visible focus states, Escape closes Drawer/Modal, focus returns to trigger.
-- Respect `prefers-reduced-motion`. Chart.js is handled globally in `plugins/chartjs.client.ts`. Nuxt UI components degrade themselves (shimmer → static muted text, indeterminate progress → pulse), so **never add a blanket `* { animation: none !important }`** — it overrides those graceful fallbacks with a worse one.
+- Respect `prefers-reduced-motion`. ECharts has no global animation default (unlike Chart.js), so `BaseChart.vue` forces `animation: false` into every chart's option itself when the OS asks for reduced motion. Nuxt UI components degrade themselves (shimmer → static muted text, indeterminate progress → pulse), so **never add a blanket `* { animation: none !important }`** — it overrides those graceful fallbacks with a worse one.
 - WCAG AA contrast in both themes — the semantic tokens handle this if you don't hardcode colors (another reason the color rule above is absolute).
 
 ## Testing & delivery

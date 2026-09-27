@@ -1,8 +1,9 @@
 # Replace Chart.js with Apache ECharts
 
-> **Status:** In progress — PR 1 open. Sequencing gate satisfied: PR 7 of the PrimeVue → Nuxt UI
-> migration ([`nuxt-ui-migration.md`](nuxt-ui-migration.md)) landed 2026-09 (`chore/drop-primevue`).
-> This document is now the reference for implementation and carries its own PR sequence below.
+> **Status:** PR 1 and PR 2 merged (`chore(charts): replace Chart.js with ECharts (#86)`). PR 3
+> (renderer spike) ran, closed with `CanvasRenderer` kept — see its section below for the measured
+> numbers. PRs 4–7 remain gated on their consuming module's build, per the Approach section. See
+> "What shipped" at the end of this document for where PR 1 departed from the plan below.
 
 ## Decision
 
@@ -101,84 +102,99 @@ The atomic swap:
   a straight port: Chart.js had one global `Chart.defaults.animation = false`, ECharts has no
   equivalent global default.
 
-### PR 2 — `docs/echarts-conventions`
-- `.claude/skills/stack-conventions/SKILL.md` Charts section: drop the "migration decided, not
-  started" blockquote; rewrite the Chart.js-specific rules as their ECharts-true equivalents — the
-  rules mostly survive verbatim, only the library name and the "why hex" sentence change. One
-  rule does change shape: registration is no longer "once in a client-side plugin" but once in
-  `app/utils/echarts.ts`, a side-effect module `BaseChart.vue` imports, so ECharts ships only in
-  the chunks of routes that render a chart.
-- `.claude/CLAUDE.md`: stack line `Chart.js` → `Apache ECharts (vue-echarts)`; correct the
-  "can't consume oklch()" line.
-- Retire the PrimeVue / `tokens.css` comments left over from the Nuxt UI migration. Each either
-  states something no longer true or narrates history, which `/stack-conventions` § Comments
-  rules out. Restate the constraint where one survives; drop the comment where none does:
-  - `app/composables/useTheme.ts:8-9`: "PrimeVue's darkModeSelector ('.dark') and tokens.css
-    both key off that same class" is false now. Name what does key off `.dark` today: Nuxt UI's
-    `--ui-*` tokens. `useChartTheme()` reads the same cookie through `isDark`.
-  - `app/composables/useNotify.ts:1-4`: the explicit import existed to win an auto-import race
-    against PrimeVue's `useToast`. The race is gone, so the comment goes. The import can stay
-    explicit or fall back to auto-import; either is correct.
-  - `app/app.config.ts:9-10`: "the same values the retired tokens.css resolved by hand" is
-    history; `nuxt-ui-migration.md` already records it. Drop the sentence.
-  - `app/components/dashboard/AnomalyAlerts.vue:53-54`: keep the constraint (`to` makes the
-    UButton its own NuxtLink, so wrapping it would nest a `<button>` in an `<a>`) and drop "the
-    PrimeVue version needed".
-  - `app/pages/login.vue:18`: "UInput has no equivalent of PrimeVue's `toggle-mask`" becomes
-    "UInput has no built-in reveal toggle".
+### PR 2 — `docs/echarts-conventions` — shipped
+- `.claude/skills/stack-conventions/SKILL.md` Charts section: dropped the "migration decided, not
+  started" blockquote; rewrote the Chart.js-specific rules as their ECharts-true equivalents.
+  Registration is documented as living in `app/utils/echarts.ts` (a side-effect module
+  `BaseChart.vue` imports), not a client-side plugin, so ECharts ships only in the chunks of
+  routes that render a chart.
+- `.claude/CLAUDE.md`: stack line `Chart.js` → `Apache ECharts (vue-echarts)`; corrected the
+  "can't consume oklch()" line to name zrender, not Chart.js, as the parser doing the rejecting.
+- Retired the PrimeVue / `tokens.css` comments left over from the Nuxt UI migration
+  (`useTheme.ts`, `useNotify.ts`, `app.config.ts`, `AnomalyAlerts.vue`, `login.vue`) — each either
+  stated something no longer true or narrated history, which `/stack-conventions` § Comments rules
+  out. Restated the constraint where one survived; dropped the comment where none did.
 - `test/e2e/smoke.test.ts:7`: "Chart.js" → "ECharts" in the stack list.
-- PR 4 below says "the plugin's `use()` list", and PRs 5–6 say "add to `use()`". Point all three
-  at `app/utils/echarts.ts`.
-- Append a "What shipped" section to this doc once PR 1 + 2 land. Record where PR 1 departed from
-  the plan above: registration in `app/utils/echarts.ts` instead of a plugin, a `ChartOption`
-  type composed from the registered modules instead of `EChartsOption`, `toPlainData()` dropped
-  (QA showed zrender doesn't need it), and the test stub keyed `Echarts` (vue-echarts' component
-  name) instead of `VChart`.
+- `.claude/skills/testing-and-ci/SKILL.md`: dropped the stale `withAlpha()`/"Chart.js can't parse
+  oklch()" line in the testing-priorities list (`withAlpha()` no longer exists post–PR 1) in favor
+  of naming zrender's color parser directly.
+- PR 4 below said "the plugin's `use()` list", and PRs 5–6 said "add to `use()`" — all three now
+  point at `app/utils/echarts.ts` explicitly (see below).
 
-### PR 3 — `chore/echarts-svg-renderer` (scheduled: after PR 2, before any gated PR)
+### PR 3 — `chore/echarts-svg-renderer` — spiked and closed, kept `CanvasRenderer`
 
-Spike `SVGRenderer` against `CanvasRenderer`, then keep whichever the numbers favor.
+Spiked `SVGRenderer` against `CanvasRenderer` on the current build (5 Dashboard charts: 1 trend +
+4 sparklines). Numbers didn't clear the bar the Why section below expected, so the PR is closed
+without merging the swap — recorded here so the question isn't re-spiked without new evidence
+(e.g., a materially denser chart type landing in PRs 4–7).
 
-- **Why SVG is a candidate.** Every chart here is small. The densest planned chart is the Dashboard
-  trend: 4 series × at most 366 daily points (YTD), with symbols off. The Dashboard's four KPI
-  sparklines hold about 30 points each, and the weekly retention cohort grid (§4.3.4) has a few
-  hundred cells at most. ECharts' own guidance is Canvas for thousands of elements or heavy
+- **Why SVG looked like a candidate.** Every chart here is small. The densest planned chart is the
+  Dashboard trend: 4 series × at most 366 daily points (YTD), with symbols off. The Dashboard's
+  four KPI sparklines hold about 30 points each, and the weekly retention cohort grid (§4.3.4) has
+  a few hundred cells at most. ECharts' own guidance is Canvas for thousands of elements or heavy
   effects, and SVG for many small instances, mobile and low memory. Each canvas also holds a
-  backing bitmap at `devicePixelRatio`: about 5.5 MB for the trend chart at 2×, where SVG holds a
-  handful of nodes. SVG also stays sharp when zoomed or printed, which matters for report export.
-- **The swap.** Register `SVGRenderer` instead of `CanvasRenderer` in `app/utils/echarts.ts`, and
-  pass `init-options` with `renderer: 'svg'` from `BaseChart.vue`. ECharts initializes with Canvas
-  by default and fails when Canvas isn't registered. Register one renderer. Register both only if
-  a specific chart needs Canvas, and record the bundle cost if so.
-- **Measure on the prod build, before and after.** Put the numbers in the PR:
-  1. ECharts chunk size (gzip).
-  2. Dashboard memory with all five charts mounted.
-  3. Frame time for tooltip hover and market-tab switching at 4× CPU throttle.
-  4. Visual parity: light/dark, en/zh-TW, 390px. Cover the gradient area, legend, `hideOverlap`
-     axis labels and tooltip.
-- **Unchanged either way.** `MARKET_COLOR`/`CHART_CHROME` stay hex, because zrender computes
-  colors internally whatever the renderer (see Open items). The happy-dom test stub probably
-  stays: whether zrender still measures text on a canvas under SVG is unverified. Remove the stub
-  once to find out, as PR 1 did.
-- **Outcome.** Adopt SVG if memory drops with no regression elsewhere, and update
-  `/stack-conventions` § Charts. Otherwise close the PR and record the measurements here, so the
-  question isn't re-spiked. Server-side SVG rendering (drawing the chart into the SSR HTML) is out
-  of scope. Note it as a follow-up only if `vue-echarts` turns out to support it.
+  backing bitmap at `devicePixelRatio`, so a bigger a-priori concern than the point counts alone.
+- **The swap (spiked, then reverted).** `SVGRenderer` in `app/utils/echarts.ts` in place of
+  `CanvasRenderer`, plus `init-options: { renderer: 'svg' }` from `BaseChart.vue`. Both renderers
+  need registering only one at a time — confirmed no runtime error either way.
+- **Measured, on the prod build (`pnpm build` + `node .output/server/index.mjs`), Playwright +
+  CDP, headless Chromium, `devicePixelRatio: 1`:**
+  1. **Bundle (gzip):** Canvas 183,898 B → SVG 187,489 B — **+3,591 B (+2.0%), SVG is bigger.**
+     Registering `SVGRenderer` doesn't tree-shake smaller than `CanvasRenderer`; it's simply an
+     addition to zrender's surface, not a substitute with less code.
+  2. **Dashboard memory, all 5 charts mounted, JS heap (`Performance.getMetrics` /
+     `JSHeapUsedSize`) after forced GC:** Canvas 11.3 MB → SVG 11.4 MB — flat, no measurable
+     difference. Important caveat: this metric is V8 heap only. It does **not** include a
+     canvas's backing bitmap, which lives in GPU/compositor memory outside the JS heap — so this
+     measurement cannot see the specific cost the Why section was worried about. Computed
+     analytically instead (actual rendered sizes: 4 sparklines at 273×40, 1 trend at 934×288):
+     at this repo's headless-test `devicePixelRatio: 1`, Canvas's backing bitmaps total **~1.2 MB**
+     across all 5 charts; at `devicePixelRatio: 2` (a real retina display) that's **~5 MB**, in the
+     range the Why section estimated. SVG's equivalent cost is a few hundred DOM nodes (940 SVG
+     nodes measured vs. 827 total DOM nodes on the Canvas build), not a scaling bitmap. So there
+     is a real, DPR-dependent Canvas cost SVG avoids — it just isn't visible in a JS-heap
+     comparison, and a few MB is small next to the bundle-size and (see below) parity picture.
+  3. **Frame time, tooltip hover across the trend chart at 4× CPU throttle (20 samples):** Canvas
+     avg 33.7 ms / max 39 ms; SVG avg 34.3 ms / max 49 ms. No meaningful difference at this data
+     scale — consistent with "every chart here is small": there isn't enough per-frame work for
+     the renderer choice to show up.
+  4. **Visual parity** (light/dark, en/zh-TW, 390px): clean on SVG. Gradient area fill, legend
+     (per-market colored dots), axis labels, and tooltip all render correctly in every
+     combination checked. No regression found.
+- **Unchanged either way.** `MARKET_COLOR`/`CHART_CHROME` stay hex, confirmed — zrender computes
+  colors internally whatever the renderer (see Open items).
+- **Verified, not just flagged: the happy-dom test stub is *not* needed under SVG.** Removed the
+  `Echarts: true` stub from `BaseChart.test.ts`, `KpiCard.test.ts` and `RevenueTrend.test.ts`
+  against the SVG build — all 11 previously-stubbed tests passed unstubbed, confirming
+  `SVGRenderer` never calls `canvas.getContext('2d')`. Not adopted now (PR 3 closed keeping
+  Canvas, where the stub is still load-bearing), but worth knowing if SVG is ever re-spiked: it
+  would simplify these three test files.
+- **Outcome: closed, kept `CanvasRenderer`.** The decision rule was "adopt SVG if memory drops
+  with no regression elsewhere." Memory didn't drop by the only method available to measure it
+  live (JS heap is flat); the real backing-bitmap saving is genuine but modest (~1–5 MB depending
+  on DPR) and unmeasured here, while bundle size measurably *grew* (+2%). That's a net negative on
+  the numbers actually in hand, so `/stack-conventions` § Charts is not updated and `main` keeps
+  `CanvasRenderer`. Re-open this spike only if a future gated PR (funnel, heatmap, gauge) turns out
+  to render enough elements that Canvas's own guidance threshold ("thousands of elements") starts
+  to apply, or if a way to measure real GPU/compositor memory (not just JS heap) becomes available
+  and is worth the extra confidence. Server-side SVG rendering was and remains out of scope.
 
 ### PRs 4–7 — net-new chart types (gated, not scheduled)
 
 - **PR 4 `feature/ai-point-annotations`** (gate: AI Assistant Chat build) — §4.4.1. Extend
   `TrendLineChart.vue` (or a thin sibling) with `annotations?: {t,label}[]` → ECharts `markPoint`.
-  Add `MarkPointComponent` to the plugin's `use()` list. `AiChatResponse.chart.annotations`
+  Add `MarkPointComponent` to `app/utils/echarts.ts`'s `use()` list. `AiChatResponse.chart.annotations`
   already matches this shape — no type change needed for this PR specifically.
 - **PR 5 `feature/analytics-funnel-chart`** (gate: Analytics → Conversion Funnel tab) — §4.3.3. New
   `FunnelStage`/`FunnelSeries`/`FunnelResponse` types; new `FunnelChart.vue` using ECharts
-  `series.funnel`, one per market, colored via `colorForMarket()`. Add `FunnelChart` to `use()`.
+  `series.funnel`, one per market, colored via `colorForMarket()`. Add `FunnelChart` to
+  `app/utils/echarts.ts`'s `use()` list.
 - **PR 6 `feature/analytics-retention-heatmap`** (gate: Analytics → User Retention tab) — §4.3.4.
   New `CohortRetentionCell`/`CohortRetentionResponse` types; new `RetentionHeatmap.vue` using
-  ECharts `series.heatmap` + `visualMap`. Add `HeatmapChart` + `VisualMapComponent` to `use()`.
-  Needs a new theming primitive — `useChartTheme()` gains a *sequential* palette (low→high), since
-  the existing categorical per-market palette doesn't fit a heatmap.
+  ECharts `series.heatmap` + `visualMap`. Add `HeatmapChart` + `VisualMapComponent` to
+  `app/utils/echarts.ts`'s `use()` list. Needs a new theming primitive — `useChartTheme()` gains a
+  *sequential* palette (low→high), since the existing categorical per-market palette doesn't fit a
+  heatmap.
 - **PR 7 `feature/billing-usage-gauge`** (gate: Settings → Billing tab; lowest priority — not a
   hero flow) — §4.10.4. New `UsageGauge`/`BillingUsageResponse` types; new `UsageGauge.vue` using
   ECharts `series.gauge`. Gated in the page on `can('settings:admin')` —
@@ -208,10 +224,11 @@ PR 1 manual QA, risk-ordered:
 
 ## Open items (flagging, not fixing)
 
-- `SVGRenderer` is scheduled as PR 3 for performance and memory, not for color. In theory it would
+- `SVGRenderer` was spiked in PR 3 for performance and memory, not for color. In theory it would
   let *flat* fills reference `--ui-*` directly, since SVG participates in the CSS cascade. That
-  isn't pursued: every planned chart type uses at least one zrender-internal color computation the
-  renderer choice doesn't route around, so the hex constants stay whichever renderer PR 3 keeps.
+  wasn't pursued: every planned chart type uses at least one zrender-internal color computation
+  the renderer choice doesn't route around, so the hex constants stay put regardless (PR 3 kept
+  `CanvasRenderer` anyway).
 - `AiChatResponse.chart`'s union doesn't actually discriminate: `type: 'line'|'bar'|'funnel'` but
   `series: MarketSeries[]` is fixed regardless of type, and `MarketSeries.points` has no field for a
   funnel stage name. Doesn't block PRs 4–7 as scoped (PR 5 defines a separate `FunnelResponse` type
@@ -219,7 +236,32 @@ PR 1 manual QA, risk-ordered:
   migration.
 - PRs 4–7's relative order is inferred from `spec.md`'s Hero Flow list, not a committed roadmap
   (none exists as of this writing) — revisit when a module's build is actually scheduled.
-- `vue-echarts`/`echarts` version compatibility with Vue 3.5.42 / Nuxt 4 is verified on paper
-  (registry peer ranges) only, not hands-on — first real check is PR 1's manual QA.
+- `vue-echarts`/`echarts` version compatibility with Vue 3.5.42 / Nuxt 4: **confirmed hands-on**,
+  not just on paper — PR 1's manual QA and PR 3's prod-build spike both built, tested and ran the
+  app against these versions with no compatibility issues.
 - CSP: `vue-echarts` injects CSS globally by default; only needs an explicit style import under a
   strict CSP or Shadow DOM. Neither applies today — note in case Vercel headers ever add a CSP.
+
+## What shipped
+
+PR 1 + PR 2 landed together as `chore(charts): replace Chart.js with ECharts (#86)`. Where the
+actual diff departed from the plan above:
+
+- Registration lives in `app/utils/echarts.ts`, a side-effect module imported by `BaseChart.vue`,
+  instead of a Nuxt plugin (`app/plugins/echarts.client.ts` as originally planned). This is a
+  strictly better shape than the plan: registration is DOM-free and runs during SSR, and it
+  confines the ECharts chunk to routes that actually render a chart instead of every route paying
+  for it via the app entry.
+- `ChartOption` is a project-defined type (`ComposeOption<LineSeriesOption | ...>` composed from
+  exactly what's registered in `app/utils/echarts.ts`), not `vue-echarts`/`echarts`'s own
+  `EChartsOption`. An unregistered series type fails at build time instead of only at runtime.
+- `toPlainData()` — the Vue `readonly`-proxy guard carried forward "provisionally" in the plan —
+  was dropped. Manual QA confirmed zrender doesn't need it.
+- The happy-dom test stub is keyed `Echarts` (vue-echarts' rendered component name), not the local
+  `VChart` import name the plan assumed. `happy-dom`'s `canvas.getContext('2d')` does return `null`
+  in this repo, so the stub is load-bearing under `CanvasRenderer` — confirmed necessary, not
+  speculative (and confirmed *not* necessary under `SVGRenderer`, per PR 3, though that renderer
+  wasn't adopted).
+- `withAlpha()` was dropped from `useChartTheme.ts`: PR 1's grep confirmed its one call site
+  (`TrendLineChart.vue`) was gone, since ECharts' `areaStyle: { color, opacity }` takes flat color
+  + separate opacity directly.

@@ -1,7 +1,3 @@
-// Imported explicitly rather than relying on auto-import: PrimeVue also exports a
-// `useToast`, and during the migration its version wins the auto-import race (Nuxt
-// warns about the duplicate at build time). The explicit path stays correct once
-// PrimeVue is gone, so this import needs no follow-up.
 import { useToast } from '@nuxt/ui/composables/useToast'
 
 /**

@@ -84,9 +84,9 @@ test/
    regression here is a real bug, not cosmetic. See `stack-conventions` (Roles).
 3. **Market → colour map (`MARKET_COLOR` in `app/constants/markets.ts`)** — assert the
    mapping is total and that colours are distinct per theme. Also assert every value is
-   **6-digit hex** and survives `withAlpha()`: Chart.js can't parse `oklch()`, so a
-   colour swapped to a `--ui-*` token would pass through unfaded and render every area
-   fill opaque — a silent, test-invisible regression unless it's pinned here.
+   **6-digit hex**: zrender's color parser can't resolve `oklch()`, so a colour swapped
+   to a `--ui-*` token would fail silently inside ECharts — a test-invisible regression
+   unless it's pinned here.
 4. **A couple of component smoke tests** — mount a KPI card / a chart wrapper with
    `mountSuspended` (or `renderSuspended` + Testing Library) and assert it renders
    with sample data and its empty state renders with none.
