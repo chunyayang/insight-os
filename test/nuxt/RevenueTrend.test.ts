@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime'
 import RevenueTrend from '../../app/components/dashboard/RevenueTrend.vue'
 import { useOrganizationStore } from '../../app/stores/organization'
 import type { ApiResponse, RevenueResponse } from '../../app/types/api'
@@ -23,16 +23,9 @@ const revenueFixture: ApiResponse<RevenueResponse> = {
   },
 }
 
-// $api (app/plugins/api.ts) is a plain Axios instance, not Nuxt's $fetch — registerEndpoint
-// only intercepts the latter — so stub the Axios layer itself for a deterministic response.
-vi.mock('axios', () => ({
-  default: {
-    create: () => ({
-      get: vi.fn().mockResolvedValue({ data: revenueFixture }),
-      interceptors: { request: { use: vi.fn() }, response: { use: vi.fn() } },
-    }),
-  },
-}))
+// $api (app/plugins/api.ts) is now a $fetch instance, so registerEndpoint can stub the
+// underlying Nitro route directly for a deterministic response.
+registerEndpoint('/api/analytics/revenue', () => revenueFixture)
 
 describe('RevenueTrend', () => {
   it("plots every line in the organization's presentation currency, not a hardcoded USD", async () => {

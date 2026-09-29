@@ -3,8 +3,8 @@ import type { ApiError } from '~/types/api'
 /**
  * Map a machine-readable API error code to its i18n key.
  *
- * The contract guarantees every failure carries a `code` (the Axios interceptor
- * synthesizes one for transport failures), so the UI localizes off the code and NEVER
+ * The contract guarantees every failure carries a `code` (the `$api` plugin's error
+ * hooks synthesize one for transport failures), so the UI localizes off the code and NEVER
  * renders the raw English `message` from the server.
  *
  *   'NETWORK_ERROR' -> 'errors.codes.networkError'

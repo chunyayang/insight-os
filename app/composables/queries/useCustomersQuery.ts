@@ -20,10 +20,9 @@ export function useCustomersList(query: Ref<ListQuery>) {
   return useQuery({
     queryKey: computed(() => customerKeys.list(query.value)),
     queryFn: async () => {
-      const response = await $api.get<ApiListResponse<Customer>>('/customers', {
-        params: query.value,
+      return await $api<ApiListResponse<Customer>>('/customers', {
+        query: query.value,
       })
-      return response.data
     },
     /**
      * Hold the current page on screen while the next one loads. Without it every page change

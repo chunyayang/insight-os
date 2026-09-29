@@ -27,10 +27,10 @@ export function useRevenueSeries(options?: {
   return useQuery({
     queryKey: computed(() => revenueKeys.series(market.value, range.value)),
     queryFn: async () => {
-      const response = await $api.get<ApiResponse<RevenueResponse>>('/analytics/revenue', {
-        params: { market: market.value, range: range.value },
+      const response = await $api<ApiResponse<RevenueResponse>>('/analytics/revenue', {
+        query: { market: market.value, range: range.value },
       })
-      return response.data.data
+      return response.data
     },
   })
 }
