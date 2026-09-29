@@ -20,12 +20,14 @@ class ApiFetchError extends Error implements ApiError {
  * When the real backend replaces the Nitro mocks, only the baseURL changes here.
  */
 export default defineNuxtPlugin(() => {
-  // On the server '/api' has no origin to resolve against, so derive it from the request.
-  const baseURL = import.meta.server ? `${useRequestURL().origin}/api` : '/api'
   const token = useCookie<string | null>('insight-token')
 
   const api = $fetch.create({
-    baseURL,
+    // Stays relative on the server too: Nitro's own $fetch (which .create() inherits)
+    // shortcuts any request path starting with '/' straight into the in-process handler,
+    // skipping the network — an origin-qualified baseURL would defeat that shortcut and
+    // force a real HTTP round trip to itself on every SSR request.
+    baseURL: '/api',
     timeout: 15_000,
     // The hooks below always throw before ofetch's own retry logic runs, but pin this
     // explicitly too — a hook that ever returns instead of throwing would silently
