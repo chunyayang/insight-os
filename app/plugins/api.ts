@@ -1,5 +1,8 @@
+import { hasProtocol } from 'ufo'
 import type { ApiError } from '~/types/api'
 import { extractApiError } from '~/utils/errors'
+
+const API_BASE_URL = '/api'
 
 /**
  * Wraps ApiError in a real Error so throwing it from the ofetch hooks below satisfies
@@ -27,15 +30,23 @@ export default defineNuxtPlugin(() => {
     // shortcuts any request path starting with '/' straight into the in-process handler,
     // skipping the network — an origin-qualified baseURL would defeat that shortcut and
     // force a real HTTP round trip to itself on every SSR request.
-    baseURL: '/api',
+    baseURL: API_BASE_URL,
     timeout: 15_000,
     // The hooks below always throw before ofetch's own retry logic runs, but pin this
     // explicitly too — a hook that ever returns instead of throwing would silently
     // re-enable ofetch's default retries (1 retry on GET for 408/409/425/429/5xx).
     retry: false,
 
-    onRequest({ options }) {
-      if (token.value) {
+    // The token goes only where our baseURL would route the call. ofetch runs this hook
+    // before joining baseURL, and its withBase() passes any URL with a protocol through
+    // untouched — so an absolute URL or a per-call baseURL override would otherwise
+    // carry the user's token to another origin.
+    onRequest({ request, options }) {
+      const targetsApi =
+        typeof request === 'string' &&
+        options.baseURL === API_BASE_URL &&
+        !hasProtocol(request, { acceptRelative: true })
+      if (token.value && targetsApi) {
         options.headers.set('Authorization', `Bearer ${token.value}`)
       }
     },
