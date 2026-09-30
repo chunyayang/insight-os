@@ -8,3 +8,7 @@ overrides:
   brace-expansion@<5.0.8: '>=5.0.8'
   '@tiptap/core@<3.30.5': '>=3.30.5'
   esbuild@<0.28.1: '>=0.28.1'
+  # @nuxt/ui's @vueuse/integrations lists axios as an optional peer, for its useAxios —
+  # which this app doesn't use ($api is $fetch). Keep that peer unresolved so axios and
+  # its dependency tree stay out of installs.
+  '@vueuse/integrations>axios': '-'
