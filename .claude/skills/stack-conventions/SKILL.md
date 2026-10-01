@@ -1,6 +1,6 @@
 ---
 name: stack-conventions
-description: Project conventions and integration gotchas for the Insight OS AI Analytics Platform — Nuxt 4 + TypeScript + Nuxt UI 4 + Tailwind CSS v4 + Pinia + TanStack Vue Query + Axios + Apache ECharts (vue-echarts) + @nuxtjs/i18n, with EN/zh-TW i18n and Admin/Analyst/Viewer roles. ALWAYS consult this skill before writing, reviewing, or refactoring ANY code in this project — scaffolding pages or components, configuring nuxt.config, styling and design tokens, dark mode, fetching data or creating stores, adding UI strings, permissions checks, or building charts. Also use it when debugging styling conflicts, SSR hydration issues, or dark-mode flashes.
+description: Project conventions and integration gotchas for the Insight OS AI Analytics Platform — Nuxt 4 + TypeScript + Nuxt UI 4 + Tailwind CSS v4 + Pinia + TanStack Vue Query + Apache ECharts (vue-echarts) + @nuxtjs/i18n, with EN/zh-TW i18n and Admin/Analyst/Viewer roles. ALWAYS consult this skill before writing, reviewing, or refactoring ANY code in this project — scaffolding pages or components, configuring nuxt.config, styling and design tokens, dark mode, fetching data or creating stores, adding UI strings, permissions checks, or building charts. Also use it when debugging styling conflicts, SSR hydration issues, or dark-mode flashes.
 ---
 
 # Insight OS — Stack Conventions
@@ -82,8 +82,8 @@ Hard boundary — violating it is the most common review rejection:
 
 ## API layer
 
-- One Axios instance created in a Nuxt plugin: `baseURL: '/api'`, request interceptor attaches the auth token from the auth store, response interceptor maps errors to a typed `ApiError`, surfaced via `useNotify()`.
-- All response shapes are typed in `types/api.ts`. Components never touch Axios directly — only query composables do.
+- One `$fetch.create()` instance (`$api`) in a Nuxt plugin — Nuxt's own client, not Axios; rationale in [`.claude/doc/axios-retirement.md`](../../doc/axios-retirement.md). `baseURL: '/api'` (relative on the server too), an `onRequest` hook attaches the auth-cookie token, and `onResponseError`/`onRequestError` hooks always **throw** a typed `ApiError`. Toasts are raised once, at the cache level, by `plugins/vue-query.ts` via `useNotify()` — not in the transport.
+- All response shapes are typed in `types/api.ts`. Components never touch `$api` directly — only query composables do.
 - Mock backend lives in `server/api/` (Nitro routes) returning realistic multi-market data with 200–500ms artificial latency, so loading skeletons are actually visible. Keep mock data generators in `server/utils/mock/`. The mock endpoints ARE the API contract — when the real backend arrives, only `baseURL` changes.
 
 ## i18n (en + zh-TW)

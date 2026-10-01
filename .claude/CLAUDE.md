@@ -5,7 +5,7 @@ four markets — US, JP, TW, DE. Ships EN + 繁體中文.
 
 ## Stack
 Nuxt 4 (`app/` dir) · TypeScript · Vue 3 `<script setup>` · Nuxt UI 4 ·
-Tailwind CSS v4 · Pinia · TanStack Vue Query · Axios ·
+Tailwind CSS v4 · Pinia · TanStack Vue Query ·
 Apache ECharts (`vue-echarts`) · `@nuxtjs/i18n`. Verify exact versions in `package.json` before adding deps.
 
 Package manager: **pnpm** (commit `pnpm-lock.yaml`; set the `packageManager` field in `package.json`). Node: **24**.
