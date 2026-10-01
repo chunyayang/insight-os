@@ -67,23 +67,33 @@ is the first place to look.
 
 ## Considered and rejected: `useRequestFetch()` as the base
 
-`useRequestFetch()` returns the global `$fetch` on the client and `event.$fetch` on the server,
-which merges the inbound request's headers (everything except `host`, `accept`, `accept-encoding`,
-`connection`, `keep-alive`, `upgrade`, `expect` and `transfer-encoding`) and `event.context` into
-internal calls. Checked against Nuxt, Nitro and h3 source:
+`useRequestFetch()` returns the global `$fetch` on the client and `event.$fetch` on the server.
+`event.$fetch` is h3's `fetchWithEvent`, which merges `event.context` and the inbound request's
+headers into every call: all of them except `accept`, `accept-encoding`, `connection`,
+`keep-alive`, `upgrade`, `expect` and `transfer-encoding` — and `host` too, unless the path starts
+with `/`, so every `/api` call forwards it. Checked against Nuxt, Nitro and h3 source:
 
+- It would reopen the leak the bearer-token scoping above closes. The merge runs for any URL,
+  before ofetch joins `baseURL`, so an absolute URL or a per-call `baseURL` override would carry the
+  whole inbound `Cookie` header — `insight-token` included, which is not `httpOnly` — to another
+  origin during SSR. The `onRequest` guard only governs `Authorization`; it never sees these.
+- It forwards every ambient header to the API layer, replacing the narrow, explicit "one cookie →
+  one `Authorization` header" translation with a broad, implicit one. The explicit translation
+  would still be needed, because a bearer-token backend does not read the raw cookie.
+- Forwarding has no consumer today: the only inbound header `server/` reads is `Authorization`
+  (`server/api/settings/org.patch.ts`), which `$api` already sets itself.
 - It keeps the in-process shortcut — the `fetch` it wraps is the same Nitro `$fetch` — so it adds
   nothing to the `baseURL` question above.
-- Nothing under `server/` reads an inbound header or cookie, so forwarding has no consumer today.
-- It would forward the whole `Cookie` header and every other ambient header to the API layer,
-  replacing the narrow, explicit "one cookie → one `Authorization` header" translation with a broad,
-  implicit one. The explicit translation would still be needed, because a bearer-token backend
-  does not read the raw cookie.
 - On the client it is identical to the global `$fetch`.
 
-Revisit only if a server route needs an inbound header or `event.context` (for example
-`Accept-Language`). The swap is then `useRequestFetch().create({ … })` inside the plugin, which is
-safe because SSR instantiates plugins per request.
+Revisit only when a server route needs something from the inbound request:
+
+- **One header** (for example `Accept-Language`): keep `$fetch.create()`, read that header with
+  `useRequestHeaders(['accept-language'])` in the plugin, and set it in `onRequest` under the same
+  base check. This is per-request safe because SSR instantiates plugins per request.
+- **`event.context`:** there is no narrow equivalent, so this is the real trigger to reopen the
+  decision. `useRequestFetch().create({ … })` is not the swap — on the server `event.$fetch` is a
+  bare function with no `.create()` — and the cookie forwarding above has to be solved first.
 
 `useFetch`/`useAsyncData` are not used: Vue Query owns server data here (see `/stack-conventions`),
 so `$api` is called from query composables only.
