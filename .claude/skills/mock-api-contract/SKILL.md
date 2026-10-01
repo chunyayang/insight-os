@@ -1,11 +1,11 @@
 ---
 name: mock-api-contract
-description: The API contract for the Insight OS analytics platform — endpoint shapes, response envelope, pagination/filter/error conventions, and TypeScript response types — served by Nuxt Nitro mock routes in server/api/ during Phases 1–2 and designed so the real backend can replace it without any frontend changes. ALWAYS consult this skill whenever you create or edit a mock endpoint, define or change an API response type, write a Vue Query composable that fetches data, add filtering/pagination/sorting/export to a list, or wire the Axios layer. Use it even for a single new endpoint — consistency of the envelope and types across every endpoint is the whole point.
+description: The API contract for the Insight OS analytics platform — endpoint shapes, response envelope, pagination/filter/error conventions, and TypeScript response types — served by Nuxt Nitro mock routes in server/api/ during Phases 1–2 and designed so the real backend can replace it without any frontend changes. ALWAYS consult this skill whenever you create or edit a mock endpoint, define or change an API response type, write a Vue Query composable that fetches data, add filtering/pagination/sorting/export to a list, or wire the fetch layer. Use it even for a single new endpoint — consistency of the envelope and types across every endpoint is the whole point.
 ---
 
 # Insight OS — Mock API Contract
 
-The frontend is built against a **mock backend** (Nitro routes under `server/api/`) so Phase 1–2 can proceed without a real server. The contract below is the interface both the mock and the eventual real backend honor. **The interface is the deliverable** — when the real API arrives, only the Axios `baseURL` and the mock route implementations change; component code, query composables, and types stay identical.
+The frontend is built against a **mock backend** (Nitro routes under `server/api/`) so Phase 1–2 can proceed without a real server. The contract below is the interface both the mock and the eventual real backend honor. **The interface is the deliverable** — when the real API arrives, only the `$api` `baseURL` and the mock route implementations change; component code, query composables, and types stay identical.
 
 ## Non-negotiable principles
 
@@ -52,7 +52,7 @@ interface ApiError {
 }
 ```
 
-- The Axios response interceptor maps any non-2xx into a typed `ApiError` and surfaces a localized Toast keyed off `error.code` (see i18n `errors.*` keys). Components never parse raw error bodies.
+- The `$api` plugin's error hooks map any failure into a typed `ApiError`, and the cache-level handler in `plugins/vue-query.ts` surfaces a localized Toast keyed off `error.code` (see i18n `errors.*` keys). Components never parse raw error bodies.
 - Include at least one endpoint state that can fail (e.g. a sync job) so the error path is exercised.
 
 ## URL & method conventions
@@ -189,7 +189,7 @@ interface AiChatResponse {
 
 ## How the frontend consumes this (alignment with stack-conventions)
 
-- Only Vue Query composables in `composables/queries/` call the Axios instance; components consume query results. Query keys come from per-domain key factories.
+- Only Vue Query composables in `composables/queries/` call `$api`; components consume query results. Query keys come from per-domain key factories.
 - Filter refs from Pinia flow into query params using the conventions above; changing a filter refetches.
 - Export CSV is a frontend transform over already-fetched list data (or a dedicated `?format=csv` variant if a list is large) — and is permission-gated (`can('export:csv')`).
 
@@ -206,4 +206,4 @@ interface AiChatResponse {
 - Types added/updated in `app/types/api.ts`; mock and consumers import them (no inline shapes).
 - List endpoints honor page/pageSize/sort/order/q/filter/range params.
 - Timestamps ISO 8601. Monetary values are a **`Money` map (all 4 currencies), each aggregated server-side with historical daily official rates** (day-converted then summed — never functional-currency total × one rate); the client picks the display key, only formats (JPY 0-decimal downstream), and never converts. Responses carry `FxProvenance` for audit.
-- Fetching goes through a query composable, not Axios-in-component.
+- Fetching goes through a query composable, not `$api`-in-component.
