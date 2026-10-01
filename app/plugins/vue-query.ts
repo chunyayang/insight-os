@@ -23,7 +23,7 @@ export default defineNuxtPlugin((nuxt) => {
   /**
    * One place where every query/mutation failure becomes a localized Toast.
    *
-   * Doing it at the cache level (rather than in the Axios interceptor) keeps the
+   * Doing it at the cache level (rather than in the `$api` plugin's error hooks) keeps the
    * transport layer free of UI concerns and means no caller can forget to surface an
    * error. Copy is keyed off `error.code`; the raw server message is never shown.
    * Client-only — there is no Toast during SSR.

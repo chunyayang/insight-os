@@ -26,10 +26,10 @@
     "@nuxtjs/i18n": "^10.6.0",
     "@pinia/nuxt": "^1.0.2",
     "@tanstack/vue-query": "^5.103.2",
-    "axios": "^1.20.0",
     "echarts": "^6.1.0",
     "nuxt": "^4.5.2",
     "pinia": "^4.0.3",
+    "ufo": "^1.6.4",
     "vue": "^3.5.43",
     "vue-echarts": "^8.3.0",
     "vue-router": "^5.3.1"

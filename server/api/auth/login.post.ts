@@ -29,7 +29,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<LoginRespon
   const profile = DEMO_USERS[role] ?? DEMO_USERS.admin
 
   return ok({
-    // Opaque demo token — the client only forwards it via the Axios interceptor.
+    // Opaque demo token — the client only forwards it via the $api plugin's request hook.
     token: `demo.${role}.${Date.now().toString(36)}`,
     user: { ...profile, email: body.email || profile.email, role },
   })

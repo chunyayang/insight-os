@@ -44,8 +44,8 @@ export function okList<T>(
 
 /**
  * Standard error. Thrown via createError so Nitro emits the right HTTP status with the
- * contract's `{ error: { code, message } }` body — which the Axios interceptor turns into
- * a typed ApiError and the UI localizes off `code`.
+ * contract's `{ error: { code, message } }` body — which the `$api` plugin's error hooks
+ * turn into a typed ApiError and the UI localizes off `code`.
  */
 export function apiError(status: number, code: string, message: string, details?: unknown) {
   return createError({

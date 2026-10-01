@@ -3,7 +3,7 @@
  *
  * Mirrors the `mock-api-contract` skill. Mock endpoints (server/api/) AND Vue Query
  * composables both import from here — no inline/ad-hoc shapes anywhere. When the real
- * backend replaces the Nitro mocks, only the Axios baseURL and route implementations
+ * backend replaces the Nitro mocks, only the `$api` baseURL and route implementations
  * change; these types stay identical.
  */
 
@@ -32,8 +32,8 @@ export interface ApiListResponse<T> {
   meta?: ResponseMeta
 }
 
-/** Standard error body. Nitro throws it via createError; the Axios interceptor
- *  normalizes any failure into this shape, and the UI localizes by `code`. */
+/** Standard error body. Nitro throws it via createError; the `$api` plugin's error
+ *  hooks normalize any failure into this shape, and the UI localizes by `code`. */
 export interface ApiError {
   error: {
     code: string // machine-readable, e.g. 'UNAUTHORIZED', 'VALIDATION_FAILED'

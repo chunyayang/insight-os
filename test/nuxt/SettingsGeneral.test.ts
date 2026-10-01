@@ -22,8 +22,9 @@ describe('SettingsGeneral', () => {
     const wrapper = await mountSuspended(Harness)
     signInAs('admin')
 
-    // registerEndpoint only intercepts Nuxt's $fetch, not the axios instance $api
-    // uses, so this drives the store directly rather than stub the org-settings GET.
+    // Drives the store directly rather than stubbing the org-settings GET — this
+    // component reads useOrganizationStore(), not the query, so seeding the store
+    // is the more direct way to set up each case.
     useOrganizationStore().setPresentationCurrency('JPY')
     await nextTick()
 

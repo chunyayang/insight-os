@@ -21,8 +21,8 @@ export function useOrgSettingsQuery() {
   const query = useQuery({
     queryKey: orgSettingsKeys.all,
     queryFn: async () => {
-      const response = await $api.get<ApiResponse<OrgSettings>>('/settings/org')
-      return response.data.data
+      const response = await $api<ApiResponse<OrgSettings>>('/settings/org')
+      return response.data
     },
   })
 

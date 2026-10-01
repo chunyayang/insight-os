@@ -7,7 +7,7 @@ import type { Role, SessionUser } from '~/types/api'
  * importantly — is readable during SSR, which lets the route middleware make the same
  * decision on the server as on the client (no auth flash, no hydration mismatch).
  *
- * The token cookie is the one the Axios request interceptor reads (plugins/api.ts).
+ * The token cookie is the one the `$api` plugin's request hook reads (plugins/api.ts).
  *
  * This is client state, so it belongs in Pinia. Server data never lives here.
  */

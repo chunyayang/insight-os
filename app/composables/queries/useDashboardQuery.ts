@@ -28,10 +28,10 @@ export function useDashboardSummary() {
     // A computed key keeps the query reactive to the Pinia filter.
     queryKey: computed(() => dashboardKeys.summary(market.value)),
     queryFn: async () => {
-      const response = await $api.get<ApiResponse<DashboardSummary>>('/dashboard/summary', {
-        params: { market: market.value },
+      const response = await $api<ApiResponse<DashboardSummary>>('/dashboard/summary', {
+        query: { market: market.value },
       })
-      return response.data.data
+      return response.data
     },
   })
 }
