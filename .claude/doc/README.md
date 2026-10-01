@@ -17,3 +17,4 @@ describes completes, so a stale plan never reads as current fact.
 |---|---|
 | [nuxt-ui-migration.md](nuxt-ui-migration.md) | In flight — started 2026-07-30 |
 | [echarts-migration.md](echarts-migration.md) | Decided 2026-07-31 — queued behind Nuxt UI PR 7 |
+| [axios-retirement.md](axios-retirement.md) | Settled 2026-10-01 — landed in #92 |
