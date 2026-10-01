@@ -5,9 +5,9 @@ markets — US, JP, TW, DE. Ships EN + 繁體中文.
 
 ## Stack
 
-Nuxt 4 (`app/` dir) · TypeScript · Vue 3 `<script setup>` · PrimeVue 4 (Aura) ·
-Tailwind CSS v4 + `tailwindcss-primeui` · Pinia · TanStack Vue Query · Axios ·
-Chart.js · `@nuxtjs/i18n`.
+Nuxt 4 (`app/` dir) · TypeScript · Vue 3 `<script setup>` · Nuxt UI 4 ·
+Tailwind CSS v4 · Pinia · TanStack Vue Query · Apache ECharts (`vue-echarts`) ·
+`@nuxtjs/i18n`.
 
 - **Package manager:** pnpm (`pnpm-lock.yaml` is committed)
 - **Node:** 24 (see `.nvmrc`)
@@ -41,5 +41,6 @@ CI is the enforced gate.
 ## Conventions
 
 Project rules and detailed conventions live in `.claude/` — `CLAUDE.md` (charter) and
-`.claude/skills/` (stack conventions, mock API contract, i18n, design tokens, product
-spec, testing/CI, DoD & git workflow). Consult those before adding code.
+`.claude/skills/` (stack conventions incl. design tokens, mock API contract, i18n, product
+spec, testing/CI, DoD & git workflow). `.claude/doc/` holds the decision records behind them.
+Consult those before adding code.
