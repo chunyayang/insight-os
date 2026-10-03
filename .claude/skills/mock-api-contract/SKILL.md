@@ -79,7 +79,7 @@ interface ApiError {
 - Global search: `q`.
 - Filters: explicit named params (`market`, `segment`, `status`, `channel`).
 - Ranges: `range` accepts tokens `7d | 30d | 90d | mtd | ytd` **or** explicit `from` / `to` ISO dates. A given request uses tokens or explicit dates, not both.
-- Multi-value: comma-separated (`markets=US,JP,TW`). These map directly onto the global filters held in Pinia, so query composables can pass filter refs straight through.
+- Multi-value: comma-separated (`markets=US,JP,TW`). These map directly onto the page's URL-backed filters (see `stack-conventions` → *State management*), so query composables can pass filter refs straight through.
 - Display currency: **no query param.** Monetary endpoints return every currency at once as a `Money` map (see *Currency & money conversion* below); the display toggle is a client-side key switch, so no per-currency request is made. Which currency the client then *shows* is a display decision, not a contract one — `/product-spec` → `currency-model.md`.
 
 ## Core domain types (define in app/types/api.ts)
@@ -190,7 +190,7 @@ interface AiChatResponse {
 ## How the frontend consumes this (alignment with stack-conventions)
 
 - Only Vue Query composables in `composables/queries/` call `$api`; components consume query results. Query keys come from per-domain key factories.
-- Filter refs from Pinia flow into query params using the conventions above; changing a filter refetches.
+- Filter refs — read from the page's URL query, falling back to the Pinia session default — flow into query params using the conventions above; changing a filter refetches.
 - Export CSV is a frontend transform over already-fetched list data (or a dedicated `?format=csv` variant if a list is large) — and is permission-gated (`can('export:csv')`).
 
 ## Mock implementation notes
