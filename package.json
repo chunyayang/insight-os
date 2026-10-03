@@ -21,17 +21,17 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.136",
+    "@iconify-json/lucide": "^1.2.137",
     "@nuxt/ui": "^4.11.2",
     "@nuxtjs/i18n": "^10.6.0",
     "@pinia/nuxt": "^1.0.2",
-    "@tanstack/vue-query": "^5.103.2",
+    "@tanstack/vue-query": "^5.104.0",
     "echarts": "^6.1.0",
     "nuxt": "^4.5.2",
     "pinia": "^4.0.3",
     "ufo": "^1.6.4",
     "vue": "^3.5.43",
-    "vue-echarts": "^8.3.0",
+    "vue-echarts": "^8.3.1",
     "vue-router": "^5.3.1"
   },
   "devDependencies": {
@@ -45,12 +45,12 @@
     "eslint": "^10.11.0",
     "happy-dom": "^20.14.5",
     "husky": "^9.1.7",
-    "lint-staged": "^17.5.1",
+    "lint-staged": "^17.6.0",
     "playwright-core": "^1.63.0",
     "prettier": "^3.9.9",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.1",
+    "vitest": "^5.0.2",
     "vue-tsc": "^3.3.11"
   }
 }
