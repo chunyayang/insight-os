@@ -73,11 +73,14 @@ Rules:
 Hard boundary — violating it is the most common review rejection:
 
 - **Vue Query owns all server data.** Anything fetched from an API lives in query cache, never copied into Pinia.
-- **Pinia owns client/UI state only**: auth session + current role, locale, theme, sidebar collapsed, global filters (date range, selected markets). **Display currency is *not* a global filter** — it is an Analytics-scoped display/normalization control (the selector appears only on Analytics), distinct from the organization's presentation currency, which every surface without a selector of its own reads. Off Analytics there is no selector; what renders is settled in `/product-spec` → `currency-model.md` (§3).
+- **Pinia owns client/UI state only**: auth session + current role, locale, theme, sidebar collapsed, and the *session defaults* filters fall back to (e.g. the default operating market from Settings → General).
+- **Data-scope filters live in the URL, per page — not in Pinia.** Each page reads and writes its own query params (`market`, `segment`, `status`, `range`, …), falling back to the Pinia session default when its URL carries none, so a filter set on one page never re-scopes another. Which controls earn a param — and why `/` never carries `?market=` — is product behaviour: `/product-spec` → `spec.md` §2 (*State Management Boundary*).
+  - **Not yet in the code:** `market` and `range` are still app-wide refs in `app/stores/filters.ts` (market: #61, range: #69). Don't add new readers or writers of those refs; a new data-scope filter is URL-backed from the start.
+- **Display currency is *not* a data-scope filter** — it is an Analytics-scoped display/normalization control (the selector appears only on Analytics), distinct from the organization's presentation currency, which every surface without a selector of its own reads. Off Analytics there is no selector; what renders is settled in `/product-spec` → `currency-model.md` (§3).
 - Query conventions:
   - Every query lives in `composables/queries/`, one file per domain.
   - Use a query-key factory per domain: `revenueKeys.byMarket(market, range)` — never inline array keys in components.
-  - Global filters flow into queries as reactive refs so changing a filter refetches automatically.
+  - Page filters (from the URL) and session defaults (from Pinia) flow into queries as reactive refs, so changing a filter changes the query key and refetches.
   - Default `staleTime` 60s for analytics data; mutations must invalidate the relevant key factory branch.
 
 ## API layer
