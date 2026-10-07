@@ -61,6 +61,7 @@ interface ApiError {
 - `GET` for reads, `POST` create, `PATCH` partial update, `DELETE` remove. Reads never mutate.
 - Resource examples (align endpoints to the sidebar IA):
   - `GET /api/dashboard/summary` → today's KPIs + AI daily summary + anomaly alerts
+  - `GET /api/anomalies/:id` → one `AnomalyAlert`, for a chat opened from *Ask AI why →*
   - `GET /api/analytics/revenue?range=30d&markets=US,JP` → revenue series by market
   - `GET /api/analytics/funnel?market=JP&range=7d`
   - `GET /api/analytics/retention?range=90d`
@@ -112,7 +113,7 @@ interface KpiMetric {
 }
 
 interface AnomalyAlert {
-  id: string
+  id: string                       // stable across requests, so a link can name it (`?anomaly=<id>`)
   severity: 'info' | 'warning' | 'critical'
   market: MarketCode
   metricKey: KpiMetric['key']
@@ -152,7 +153,7 @@ Cross-currency conversion is an **API-layer responsibility** and, for financial 
 
 - Every monetary figure is aggregated **per currency, per day** on the server (day amount × that day's official rate), then summed over the requested range. The result is emitted as a **`Money` map** (`{ USD, JPY, TWD, EUR }`) where each key is an independent, historically-accurate total.
 - Because the four currencies are aggregated independently, **none is derivable from another** — there is no shared "snapshot" rate. The response carries **`FxProvenance`** (method, source, covered range) for audit; it is deliberately not a rate table the client could multiply by.
-- The display-currency toggle is **client-side only**: it selects which already-computed `Money` key to render (e.g. `total.EUR` vs `total.USD`) instantly, with **no new network request**. The active currency is UI state in Pinia, **scoped to Analytics**, and initializes from the organization's presentation currency. Seeding is not cloning — only the *initial* value is read, and org settings otherwise stay server data that must not be mirrored into Pinia.
+- The display-currency toggle is **client-side only**: it selects which already-computed `Money` key to render (e.g. `total.EUR` vs `total.USD`) instantly, with **no new network request**. The active currency is view state on the page's selector, URL-backed as `?currency=` and never sent to the API (`stack-conventions` → *State management*); it defaults to the organization's presentation currency. Reading that default is not cloning — org settings stay server data and are never mirrored into Pinia.
 - **The contract obligation:** every monetary resource declares a **`functionalCurrency: CurrencyCode`** — the currency the operation behind that record runs on — so the client can render the operating figure with no selector and no extra request. It is a **declared field, not a function of the record's market**: a record spanning every market carries whatever currency it declares, and a campaign's follows its ad account rather than its target market. The client must never map market → currency itself. One `Money` map serves the Analytics-normalized view, functional-currency views and dual-currency cells alike. **Which of those a given surface renders is decided in `/product-spec` → `currency-model.md`, not here.**
 - The frontend performs **display formatting only** (grouping, decimals, symbol) via `useFormat`. It never performs conversion. **JPY and TWD render with 0 decimals** — display only; TWD keeps its sub-units in the payload, since whole-dollar NT$ is a quoting convention rather than a missing minor unit.
 - **Range vs. currency are different kinds of change.** `range`/`from`/`to` are **data-scope** params: changing them alters which days are aggregated (and which daily rates apply), so the server must **re-query and re-aggregate** — it flows through the query key and triggers a refetch (with a loading skeleton). The currency toggle is a pure display projection over already-fetched data — no refetch. Keeping the frequent currency flip instant is precisely why all currencies are returned up front.
@@ -167,11 +168,21 @@ The hero flow. Request/response are structured so the UI can render narrative + 
 ```ts
 interface AiChatRequest {
   message: string
-  context?: { market?: MarketCode; range?: string }
+  context?: { anomalyId?: string }                   // set when the chat started from an anomaly
   history?: { role: 'user' | 'assistant'; content: string }[]
 }
 
-interface AiCause { rank: number; title: string; explanation: string; confidence: number } // 0..1
+// Where a link goes — never a URL. Plain strings: model output, checked by the client at runtime.
+interface AiLinkTarget {
+  route: string                                      // registry route pattern, e.g. '/analytics/funnel'
+  params?: Record<string, string>                    // target page's URL params, e.g. { market: 'JP', range: '7d' }
+}
+
+interface AiCause {
+  rank: number; title: string; explanation: string
+  confidence: number                                 // 0..1
+  links?: AiLinkTarget[]                             // where this cause's evidence is
+}
 
 interface AiChatResponse {
   narrative: string
@@ -182,15 +193,18 @@ interface AiChatResponse {
   }
   causes: AiCause[]
   followUps: string[]                                // suggested question chips
+  links?: AiLinkTarget[]                             // for the answer as a whole
 }
 ```
 
-- The canned example: asking why JP conversion dropped this week returns a narrative, a JP conversion line chart with a drop annotation, 3 ranked causes, and follow-up chips — matching the design's worked example.
+- **No market or range in the request.** The AI page has no control for either (`/product-spec` → `spec.md` §4.4), so the client has none to send. A chat opened from *Ask AI why →* sends `context.anomalyId` on every turn, and the server reads market, metric and window from that record; a free-typed question is read for its own market, or answered across markets with the narrative saying so. An unknown `anomalyId` is `404 NOT_FOUND`, here and on `GET /api/anomalies/:id`.
+- **Links name a target, never a URL.** The server emits only routes it knows, but the client never relies on that: it builds every link through the route→filters registry, which drops an unknown route, a param the target doesn't accept, or an invalid value, and skips a route the role can't open (`stack-conventions` → *State management*). There is no `href` or `label` field — the label is the client's i18n, chosen by target route (*Open in Analytics →*).
+- The canned example: asking why JP conversion dropped this week (`context.anomalyId: 'alert-jp-conversion'`) returns a narrative, a JP conversion line chart with a drop annotation, 3 ranked causes — the first linking to `{ route: '/analytics/funnel', params: { market: 'JP', range: '7d' } }` — and follow-up chips, matching the design's worked example.
 
 ## How the frontend consumes this (alignment with stack-conventions)
 
 - Only Vue Query composables in `composables/queries/` call `$api`; components consume query results. Query keys come from per-domain key factories.
-- Filter refs — read from the page's URL query, falling back to the Pinia session default — flow into query params using the conventions above; changing a filter refetches.
+- Filter values — the page's URL params, resolved through the route→filters registry (`stack-conventions` → *State management*) — flow into query params using the conventions above; changing a filter refetches.
 - Export CSV is a frontend transform over already-fetched list data (or a dedicated `?format=csv` variant if a list is large) — and is permission-gated (`can('export:csv')`).
 
 ## Mock implementation notes
