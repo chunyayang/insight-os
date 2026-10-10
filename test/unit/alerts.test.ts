@@ -24,7 +24,7 @@ describe('anomaly alerts', () => {
 
   it('only reports alerts for markets in scope', () => {
     const jpOnly = buildAlerts(['JP'], today)
-    expect(jpOnly.map((a) => a.id)).toEqual(['alert-jp-conversion'])
+    expect(jpOnly.map((a) => a.id)).toEqual(['anom_cl290f8aj0001'])
 
     const usOnly = buildAlerts(['US'], today)
     expect(usOnly).toEqual([])
