@@ -113,7 +113,7 @@ interface KpiMetric {
 }
 
 interface AnomalyAlert {
-  id: string                       // stable across requests, so a link can name it (`?anomaly=<id>`)
+  id: string                       // opaque and stable across requests, so a link can name it (`?anomaly=<id>`)
   severity: 'info' | 'warning' | 'critical'
   market: MarketCode
   metricKey: KpiMetric['key']

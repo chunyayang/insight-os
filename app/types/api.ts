@@ -108,7 +108,7 @@ export interface KpiMetric {
 }
 
 export interface AnomalyAlert {
-  id: string // stable across requests, so a link can name it (`?anomaly=<id>`)
+  id: string // opaque and stable across requests, so a link can name it (`?anomaly=<id>`)
   severity: 'info' | 'warning' | 'critical'
   market: MarketCode
   metricKey: KpiMetric['key']
@@ -177,24 +177,21 @@ export interface Customer {
 export interface AiChatRequest {
   message: string
   /**
-   * What the conversation is about when it started from a handoff. There is no market or
-   * range: the AI page has no control for either, so the server reads them from the anomaly
-   * record, or from the question itself. Sent on every turn of that conversation.
+   * Set when the chat opened from *Ask AI why →*, and sent on every turn: the endpoint keeps no
+   * session. The server reads market and range from that anomaly, or else from the question.
    */
   context?: { anomalyId?: string }
   history?: { role: 'user' | 'assistant'; content: string }[]
 }
 
 /**
- * Where a link in an AI answer goes — never a URL. `route` is matched exactly against the
- * route→filters registry's patterns and `params` against what that route accepts; whatever
- * fails is dropped, and a route the role can't open is not shown. Plain strings on purpose:
- * the values come from model output, so the registry checks them at runtime and a union
- * here would promise what the wire can't keep. The label is the client's, by target route.
+ * A link in an AI answer, named as a target and never as a URL: the client builds it through
+ * the route→filters registry, which drops what doesn't match and hides what the role can't open.
+ * Strings, not unions — this is model output, checked at runtime. The label is the client's.
  */
 export interface AiLinkTarget {
-  route: string // registry route pattern, e.g. '/analytics/funnel'
-  params?: Record<string, string> // the target page's URL params, e.g. { market: 'JP', range: '7d' }
+  route: string // a registry pattern, matched exactly — e.g. '/analytics/funnel'
+  params?: Record<string, string> // e.g. { market: 'JP', range: '7d' }
 }
 
 export interface AiCause {
@@ -202,7 +199,7 @@ export interface AiCause {
   title: string
   explanation: string
   confidence: number // 0..1
-  links?: AiLinkTarget[] // where the evidence for this cause is
+  links?: AiLinkTarget[] // the evidence for this cause
 }
 
 export interface AiChatResponse {
@@ -214,7 +211,7 @@ export interface AiChatResponse {
   }
   causes: AiCause[]
   followUps: string[] // suggested question chips
-  links?: AiLinkTarget[] // for the answer as a whole; a cause's own go on the cause
+  links?: AiLinkTarget[] // answer-wide; a link backing one cause goes on that cause
 }
 
 /* ─────────────────────────── Shared list query params ─────────────────────────── */
