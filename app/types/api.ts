@@ -108,7 +108,7 @@ export interface KpiMetric {
 }
 
 export interface AnomalyAlert {
-  id: string
+  id: string // opaque and stable across requests, so a link can name it (`?anomaly=<id>`)
   severity: 'info' | 'warning' | 'critical'
   market: MarketCode
   metricKey: KpiMetric['key']
@@ -176,8 +176,22 @@ export interface Customer {
 
 export interface AiChatRequest {
   message: string
-  context?: { market?: MarketCode; range?: string }
+  /**
+   * Set when the chat opened from *Ask AI why →*, and sent on every turn: the endpoint keeps no
+   * session. The server reads market and range from that anomaly, or else from the question.
+   */
+  context?: { anomalyId?: string }
   history?: { role: 'user' | 'assistant'; content: string }[]
+}
+
+/**
+ * A link in an AI answer, named as a target and never as a URL: the client builds it through
+ * the route→filters registry, which drops what doesn't match and hides what the role can't open.
+ * Strings, not unions — this is model output, checked at runtime. The label is the client's.
+ */
+export interface AiLinkTarget {
+  route: string // a registry pattern, matched exactly — e.g. '/analytics/funnel'
+  params?: Record<string, string> // e.g. { market: 'JP', range: '7d' }
 }
 
 export interface AiCause {
@@ -185,6 +199,7 @@ export interface AiCause {
   title: string
   explanation: string
   confidence: number // 0..1
+  links?: AiLinkTarget[] // the evidence for this cause
 }
 
 export interface AiChatResponse {
@@ -196,6 +211,7 @@ export interface AiChatResponse {
   }
   causes: AiCause[]
   followUps: string[] // suggested question chips
+  links?: AiLinkTarget[] // answer-wide; a link backing one cause goes on that cause
 }
 
 /* ─────────────────────────── Shared list query params ─────────────────────────── */
