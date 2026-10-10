@@ -32,7 +32,7 @@ export function buildAlerts(markets: MarketCode[], today = new Date()): AnomalyA
     const dropPct = Math.round(((before - during) / before) * 100)
 
     alerts.push({
-      id: 'alert-jp-conversion',
+      id: 'anom_cl290f8aj0001',
       severity: 'critical',
       market: ANOMALY_MARKET,
       metricKey: 'conversionRate',
@@ -43,7 +43,7 @@ export function buildAlerts(markets: MarketCode[], today = new Date()): AnomalyA
 
   if (markets.includes('DE')) {
     alerts.push({
-      id: 'alert-de-payments',
+      id: 'anom_cl291k3qm0007',
       severity: 'warning',
       market: 'DE',
       metricKey: 'orders',
@@ -54,7 +54,7 @@ export function buildAlerts(markets: MarketCode[], today = new Date()): AnomalyA
 
   if (markets.includes('TW')) {
     alerts.push({
-      id: 'alert-tw-traffic',
+      id: 'anom_cl292w5tz0004',
       severity: 'info',
       market: 'TW',
       metricKey: 'activeUsers',
