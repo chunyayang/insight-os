@@ -199,7 +199,7 @@ interface AiChatResponse {
 
 - **No market or range in the request.** The AI page has no control for either (`/product-spec` → `spec.md` §4.4), so the client has none to send. A chat opened from *Ask AI why →* sends `context.anomalyId` on every turn, and the server reads market, metric and window from that record; a free-typed question is read for its own market, or answered across markets with the narrative saying so. An unknown `anomalyId` is `404 NOT_FOUND`, here and on `GET /api/anomalies/:id`.
 - **Links name a target, never a URL.** The server emits only routes it knows, but the client never relies on that: it builds every link through the route→filters registry, which drops an unknown route, a param the target doesn't accept, or an invalid value, and skips a route the role can't open (`stack-conventions` → *State management*). There is no `href` or `label` field — the label is the client's i18n, chosen by target route (*Open in Analytics →*).
-- The canned example: asking why JP conversion dropped this week (`context.anomalyId: 'alert-jp-conversion'`) returns a narrative, a JP conversion line chart with a drop annotation, 3 ranked causes — the first linking to `{ route: '/analytics/funnel', params: { market: 'JP', range: '7d' } }` — and follow-up chips, matching the design's worked example.
+- The canned example: asking why JP conversion dropped this week (`context.anomalyId: 'anom_cl290f8aj0001'`) returns a narrative, a JP conversion line chart with a drop annotation, 3 ranked causes — the first linking to `{ route: '/analytics/funnel', params: { market: 'JP', range: '7d' } }` — and follow-up chips, matching the design's worked example.
 
 ## How the frontend consumes this (alignment with stack-conventions)
 
