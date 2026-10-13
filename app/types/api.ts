@@ -47,6 +47,17 @@ export interface ApiError {
 export type MarketCode = 'US' | 'JP' | 'TW' | 'DE'
 export type CurrencyCode = 'USD' | 'JPY' | 'TWD' | 'EUR'
 export type Role = 'admin' | 'analyst' | 'viewer'
+/** The i18n locale codes. Every request for AI text carries one, and the text arrives in it. */
+export type LocaleCode = 'en' | 'zh-TW'
+
+/**
+ * A cached AI summary: one analysis of its subject, presented in the requested locale, so every
+ * language says the same thing. `generatedAt` is when the analysis ran — the same in each locale.
+ */
+export interface AiSummary {
+  text: string
+  generatedAt: string // ISO 8601
+}
 
 /**
  * Same amount, independently aggregated in ALL supported currencies using historical
@@ -120,7 +131,7 @@ export interface DashboardSummary {
   date: string // ISO date
   kpis: KpiMetric[] // monetary KPIs carry Money (all 4 currencies)
   alerts: AnomalyAlert[]
-  aiSummary: { text: string; generatedAt: string }
+  aiSummary: AiSummary
   fx: FxProvenance // how the Money totals in this payload were derived (audit)
 }
 
@@ -172,6 +183,40 @@ export interface Customer {
   lastActiveAt: string // ISO 8601
 }
 
+/** Codes, never display text: the label and the channel icon are the client's. */
+export type JourneyEventType =
+  | 'ad_click'
+  | 'session'
+  | 'livestream_view'
+  | 'add_to_cart'
+  | 'checkout_abandoned'
+  | 'coupon_rejected'
+  | 'coupon_redeemed'
+  | 'purchase'
+  | 'email_open'
+  | 'review'
+export type JourneyChannel = 'ads' | 'web' | 'app' | 'livestream' | 'email'
+
+export interface JourneyEvent {
+  id: string
+  type: JourneyEventType
+  channel: JourneyChannel
+  /** The customer's local time, with their offset: '2026-06-24T19:42:00+09:00'. Still an exact instant. */
+  occurredAt: string
+  /** The IANA zone that offset belongs to, e.g. 'Asia/Tokyo'. Never absent, never the viewer's. */
+  timeZone: string
+  pageCount?: number // `session` only: its page views, folded into one line
+  reason?: 'shipping_fee' | 'minimum_spend' // why a checkout was abandoned or a coupon rejected
+}
+
+/** Events up to and including one purchase, grouped by the server; the client never regroups. */
+export interface CustomerJourney {
+  id: string
+  /** The purchase that closed it, or `null` for the unfinished journey, which only ever leads page 1. */
+  outcome: { orderNumber: string; total: Money; functionalCurrency: CurrencyCode } | null
+  events: JourneyEvent[] // oldest first; never empty
+}
+
 /* ─────────────────────────── AI Assistant ─────────────────────────── */
 
 export interface AiChatRequest {
@@ -181,6 +226,9 @@ export interface AiChatRequest {
    * session. The server reads market and range from that anomaly, or else from the question.
    */
   context?: { anomalyId?: string }
+  /** The answer's language. Earlier turns in `history` keep the language they were written in. */
+  locale: LocaleCode
+  /** The conversation so far. The client holds it for the session; the server keeps none. */
   history?: { role: 'user' | 'assistant'; content: string }[]
 }
 

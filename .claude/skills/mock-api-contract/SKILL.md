@@ -60,13 +60,15 @@ interface ApiError {
 - Base path `/api`. RESTful nouns, plural, kebab where multi-word.
 - `GET` for reads, `POST` create, `PATCH` partial update, `DELETE` remove. Reads never mutate.
 - Resource examples (align endpoints to the sidebar IA):
-  - `GET /api/dashboard/summary` → today's KPIs + AI daily summary + anomaly alerts
+  - `GET /api/dashboard/summary?market=JP&locale=zh-TW` → today's KPIs + AI daily summary + anomaly alerts
   - `GET /api/anomalies/:id` → one `AnomalyAlert`, for a chat opened from *Ask AI why →*
   - `GET /api/analytics/revenue?range=30d&markets=US,JP` → revenue series by market
   - `GET /api/analytics/funnel?market=JP&range=7d`
   - `GET /api/analytics/retention?range=90d`
   - `GET /api/customers?page=1&pageSize=20&segment=vip&market=JP&q=...`
   - `GET /api/customers/:id`
+  - `GET /api/customers/:id/journeys?page=1&pageSize=5` → the Journey tab's timeline, a page of journeys
+  - `GET /api/customers/:id/ai-summary?locale=zh-TW` → the Journey tab's AI health summary
   - `GET /api/campaigns` , `GET /api/campaigns/abtests`
   - `GET /api/data-sources` , `GET /api/data-sources/sync-status`
   - `GET /api/team/members` , `GET /api/team/activity`
@@ -81,6 +83,7 @@ interface ApiError {
 - Filters: explicit named params (`market`, `segment`, `status`, `channel`).
 - Ranges: `range` accepts tokens `7d | 30d | 90d | mtd | ytd` **or** explicit `from` / `to` ISO dates. A given request uses tokens or explicit dates, not both.
 - Multi-value: comma-separated (`markets=US,JP,TW`). These map directly onto the page's URL-backed filters (see `stack-conventions` → *State management*), so query composables can pass filter refs straight through.
+- Locale: `locale=en|zh-TW` on requests for AI text, and on no other request (see *AI text and locale* below).
 - Display currency: **no query param.** Monetary endpoints return every currency at once as a `Money` map (see *Currency & money conversion* below); the display toggle is a client-side key switch, so no per-currency request is made. Which currency the client then *shows* is a display decision, not a contract one — `/product-spec` → `currency-model.md`.
 
 ## Core domain types (define in app/types/api.ts)
@@ -91,6 +94,10 @@ Keep these authoritative; mocks and components import them.
 type MarketCode = 'US' | 'JP' | 'TW' | 'DE'
 type CurrencyCode = 'USD' | 'JPY' | 'TWD' | 'EUR'
 type Role = 'admin' | 'analyst' | 'viewer'
+type LocaleCode = 'en' | 'zh-TW'   // the i18n locale codes; sent with every request for AI text
+
+// A cached AI summary: one analysis, presented in the requested locale (see *AI text and locale*)
+interface AiSummary { text: string; generatedAt: string }  // generatedAt: when the analysis ran, same in every locale
 
 // Same amount, independently aggregated in ALL supported currencies using
 // historical daily official rates (see conversion rules below). Each key is a
@@ -125,7 +132,7 @@ interface DashboardSummary {
   date: string                     // ISO date
   kpis: KpiMetric[]                // monetary KPIs carry Money (all 4 currencies)
   alerts: AnomalyAlert[]
-  aiSummary: { text: string; generatedAt: string }
+  aiSummary: AiSummary             // in the request's `locale`
   fx: FxProvenance                 // how the Money totals in this payload were derived (audit)
 }
 
@@ -145,7 +152,7 @@ interface RevenueResponse {
 ```
 
 - Monetary values are returned as a **`Money` map carrying all four currencies at once** (`{ USD, JPY, TWD, EUR }`), each computed **server-side using historical daily official rates** — every day is converted at that day's rate and then summed. A currency total is therefore the sum of daily-converted amounts, **never** the functional-currency total times a single rate. Each currency in the map is an independent, historically-accurate figure: the client must never derive one from another, and never converts. The client reads the key it needs (`/product-spec` → `currency-model.md` decides which) and only **formats** (decimals, grouping) via `useFormat`. Because official daily rates are frozen, the same range reproduces the same figure on every query (audit-stable). Remember **JPY and TWD display with 0 decimals** (TWD still carries sub-units in the payload).
-- Timestamps are always **ISO 8601 strings**, never epoch ints or pre-formatted display strings — display formatting is a frontend/i18n concern.
+- Timestamps are always **ISO 8601 strings**, never epoch ints or pre-formatted display strings — display formatting is a frontend/i18n concern. They are UTC (`Z`), except a customer's journey event, which carries the customer's own offset (see *Customer journeys* below).
 
 ## Currency & money conversion (server-side, historical daily rates)
 
@@ -161,6 +168,49 @@ Cross-currency conversion is an **API-layer responsibility** and, for financial 
 - Mock note: seed a per-day official-rate table in `server/utils/mock/` and convert day-by-day so totals are reproducible; echo realistic `FxProvenance`. Per-day rates themselves, if ever needed, belong in a dedicated audit/export endpoint, not the display payload.
 - Trade-off (documented): the multi-currency `Money` map bakes the four-currency assumption into every monetary type. If the supported currency set grows large, or an un-paginated per-transaction monetary export is added, revisit and switch those endpoints to a single-requested-currency payload — still converted day-by-day historically; only the delivery shape changes. The trigger and the client-side upgrade path are settled in `/product-spec` → `currency-model.md` (§6).
 
+## Customer journeys (GET /api/customers/:id/journeys)
+
+The Journey tab's timeline (`/product-spec` → `spec.md` §4.5): one customer's events across channels, grouped into journeys that each end at a purchase.
+
+```ts
+type JourneyEventType = 'ad_click' | 'session' | 'livestream_view' | 'add_to_cart' | 'checkout_abandoned'
+  | 'coupon_rejected' | 'coupon_redeemed' | 'purchase' | 'email_open' | 'review'
+type JourneyChannel = 'ads' | 'web' | 'app' | 'livestream' | 'email'
+
+interface JourneyEvent {
+  id: string
+  type: JourneyEventType                             // a code; the label is the client's i18n
+  channel: JourneyChannel                            // a code; picks the icon
+  occurredAt: string                                 // the customer's local time with their offset: '2026-06-24T19:42:00+09:00'
+  timeZone: string                                   // the IANA zone of that offset: 'Asia/Tokyo'
+  pageCount?: number                                 // `session` only: its page views, folded into one line
+  reason?: 'shipping_fee' | 'minimum_spend'          // why a checkout was abandoned or a coupon rejected
+}
+
+interface CustomerJourney {
+  id: string
+  outcome: { orderNumber: string; total: Money; functionalCurrency: CurrencyCode } | null  // null: no purchase yet
+  events: JourneyEvent[]                             // oldest first; never empty
+}
+// GET /api/customers/:id/journeys → ApiListResponse<CustomerJourney>
+```
+
+- **The server draws the journeys; the client never regroups or re-sorts.** Grouping depends on the whole event stream, which the client never holds. Journeys come newest first. The unfinished journey (`outcome: null`) is the first item of page 1 when there is one, and appears nowhere else.
+- **`page` and `pageSize` count journeys, not events.** *Show older journeys* requests the next page: one infinite query, keyed by customer, with no other params.
+- **Every event appears.** A session's page views fold into one `session` event with `pageCount`; the server does the folding.
+- **Event times are the customer's local time** (`/product-spec` → `timezone-utc-buckets-for-mvp.md` §3). `occurredAt` carries the customer's offset and `timeZone` names its zone. Both are always present: where a source records no zone, such as an ad click or a proxied email open, the server takes it from the customer's nearest session event. The client formats `occurredAt` in `timeZone`, never in the browser's zone, so the server render and the client render agree. With its offset, `occurredAt` is still an exact instant.
+- **An outcome's total is money on a record**: a `Money` map plus the record's declared `functionalCurrency`, rendered by the dual-currency rule (`/product-spec` → `currency-model.md` §3).
+- **The AI health summary above the timeline is a separate endpoint,** `GET /api/customers/:id/ai-summary?locale=` → `ApiResponse<AiSummary>`. A language switch refetches the summary only, and paging journeys never refetches the summary.
+
+## AI text and locale
+
+AI text arrives in the interface language (`/product-spec` → `spec.md` §2, *Internationalization*).
+
+- **Every request for AI text carries `locale`** (`LocaleCode`): a query param on a `GET`, a body field on `POST /api/ai/chat`. No other request does. An unknown locale is `400 VALIDATION_FAILED`.
+- **The query key for AI text includes the locale,** read from `useI18n().locale`, so a language switch refetches it, and switching back is a cache hit. Today that means `dashboardKeys.summary` and the customer's AI summary key.
+- **A cached summary is one analysis, presented per locale.** The Dashboard's `aiSummary` and a customer's `ai-summary` must say the same thing in every language, never a separate generation per language. `generatedAt` is when the analysis ran, so it is the same in each locale. The mock returns canned text in both locales, with the two versions written as translations of each other.
+- **Not yet in the code:** `GET /api/dashboard/summary` ignores `locale`, and `buildAiSummary` (`server/utils/mock/alerts.ts`) writes English only, so `dashboardKeys.summary` has no locale yet.
+
 ## AI Assistant endpoint (POST /api/ai/chat)
 
 The hero flow. Request/response are structured so the UI can render narrative + chart + ranked causes without parsing prose.
@@ -169,7 +219,8 @@ The hero flow. Request/response are structured so the UI can render narrative + 
 interface AiChatRequest {
   message: string
   context?: { anomalyId?: string }                   // set when the chat started from an anomaly
-  history?: { role: 'user' | 'assistant'; content: string }[]
+  locale: LocaleCode                                 // the answer's language
+  history?: { role: 'user' | 'assistant'; content: string }[]  // the conversation so far, held by the client
 }
 
 // Where a link goes — never a URL. Plain strings: model output, checked by the client at runtime.
@@ -198,8 +249,10 @@ interface AiChatResponse {
 ```
 
 - **No market or range in the request.** The AI page has no control for either (`/product-spec` → `spec.md` §4.4), so the client has none to send. A chat opened from *Ask AI why →* sends `context.anomalyId` on every turn, and the server reads market, metric and window from that record; a free-typed question is read for its own market, or answered across markets with the narrative saying so. An unknown `anomalyId` is `404 NOT_FOUND`, here and on `GET /api/anomalies/:id`.
+- **The endpoint keeps no conversation, and there is no conversation id.** The client holds one conversation for the session and sends it as `history` on every turn (`stack-conventions` → *State management*). Saved conversations are not in the MVP. They would replace `history` with a conversation id, which is a contract change.
+- **The answer is in `locale`.** Earlier turns in `history` keep the language they were written in: after a language switch, only the next answer follows the new locale. Chat answers are not cached, since each is written for the one person who asked.
 - **Links name a target, never a URL.** The server emits only routes it knows, but the client never relies on that: it builds every link through the route→filters registry, which drops an unknown route, a param the target doesn't accept, or an invalid value, and skips a route the role can't open (`stack-conventions` → *State management*). There is no `href` or `label` field — the label is the client's i18n, chosen by target route (*Open in Analytics →*).
-- The canned example: asking why JP conversion dropped this week (`context.anomalyId: 'anom_cl290f8aj0001'`) returns a narrative, a JP conversion line chart with a drop annotation, 3 ranked causes — the first linking to `{ route: '/analytics/funnel', params: { market: 'JP', range: '7d' } }` — and follow-up chips, matching the design's worked example.
+- The canned example: asking why JP conversion dropped this week (`context.anomalyId: 'anom_cl290f8aj0001'`) returns a narrative, a JP conversion line chart with a drop annotation, 3 ranked causes — the first linking to `{ route: '/analytics/funnel', params: { market: 'JP', range: '7d' } }` — and follow-up chips, matching the design's worked example. Its text is canned in both locales.
 
 ## How the frontend consumes this (alignment with stack-conventions)
 
@@ -219,5 +272,6 @@ interface AiChatResponse {
 - New/changed endpoint uses the standard envelope (`ApiResponse` / `ApiListResponse`) and error shape.
 - Types added/updated in `app/types/api.ts`; mock and consumers import them (no inline shapes).
 - List endpoints honor page/pageSize/sort/order/q/filter/range params.
+- An endpoint returning AI text takes `locale`, includes it in its query key, and has canned text in both locales.
 - Timestamps ISO 8601. Monetary values are a **`Money` map (all 4 currencies), each aggregated server-side with historical daily official rates** (day-converted then summed — never functional-currency total × one rate); the client picks the display key, only formats (JPY 0-decimal downstream), and never converts. Responses carry `FxProvenance` for audit.
 - Fetching goes through a query composable, not `$api`-in-component.
