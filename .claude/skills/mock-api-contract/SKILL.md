@@ -36,7 +36,16 @@ interface ApiListResponse<T> {
   }
   meta?: { requestId: string; generatedAt: string }
 }
+
+// A feed read newest first, whose head grows while the client pages back
+interface ApiCursorResponse<T> {
+  data: T[]
+  nextCursor: string | null   // opaque; sent back as `cursor`. null: nothing older
+  meta?: { requestId: string; generatedAt: string }
+}
 ```
+
+A list is paged by `page` unless new items arrive at its head while the client pages back through it. There an offset shifts: a new item pushes the last one on page 1 onto page 2, and the client shows it twice. Such a feed takes `cursor` instead, and the server anchors each cursor on an item whose place never moves. Today that is only the journeys.
 
 ## Error shape
 
@@ -60,14 +69,14 @@ interface ApiError {
 - Base path `/api`. RESTful nouns, plural, kebab where multi-word.
 - `GET` for reads, `POST` create, `PATCH` partial update, `DELETE` remove. Reads never mutate.
 - Resource examples (align endpoints to the sidebar IA):
-  - `GET /api/dashboard/summary?market=JP&locale=zh-TW` → today's KPIs + AI daily summary + anomaly alerts
+  - `GET /api/dashboard/summary?market=All&locale=zh-TW` → today's KPIs + AI daily summary + anomaly alerts
   - `GET /api/anomalies/:id` → one `AnomalyAlert`, for a chat opened from *Ask AI why →*
   - `GET /api/analytics/revenue?range=30d&markets=US,JP` → revenue series by market
   - `GET /api/analytics/funnel?market=JP&range=7d`
   - `GET /api/analytics/retention?range=90d`
   - `GET /api/customers?page=1&pageSize=20&segment=vip&market=JP&q=...`
   - `GET /api/customers/:id`
-  - `GET /api/customers/:id/journeys?page=1&pageSize=5` → the Journey tab's timeline, a page of journeys
+  - `GET /api/customers/:id/journeys?pageSize=5`, then `&cursor=<nextCursor>` → the Journey tab's timeline, a page of journeys
   - `GET /api/customers/:id/ai-summary?locale=zh-TW` → the Journey tab's AI health summary
   - `GET /api/campaigns` , `GET /api/campaigns/abtests`
   - `GET /api/data-sources` , `GET /api/data-sources/sync-status`
@@ -77,7 +86,7 @@ interface ApiError {
 
 ## Query parameter conventions (identical across all list endpoints)
 
-- Pagination: `page` (1-based), `pageSize`.
+- Pagination: `page` (1-based), `pageSize`; or, on a feed paged by cursor (see *Response envelope*), `cursor` and `pageSize`, with no `cursor` on the first page.
 - Sorting: `sort=<field>&order=asc|desc`.
 - Global search: `q`.
 - Filters: explicit named params (`market`, `segment`, `status`, `channel`).
@@ -183,23 +192,25 @@ interface JourneyEvent {
   channel: JourneyChannel                            // a code; picks the icon
   occurredAt: string                                 // the customer's local time with their offset: '2026-06-24T19:42:00+09:00'
   timeZone: string                                   // the IANA zone of that offset: 'Asia/Tokyo'
-  pageCount?: number                                 // `session` only: its page views, folded into one line
-  reason?: 'shipping_fee' | 'minimum_spend'          // why a checkout was abandoned or a coupon rejected
+  pageViews?: number                                 // `session` only: its page views, folded into one line
+  checkoutStep?: 'information' | 'shipping' | 'payment'  // `checkout_abandoned` only: the last step reached
+  rejectionCode?: 'minimum_spend_not_met' | 'expired' | 'usage_limit_reached' | 'market_not_eligible'  // `coupon_rejected` only
 }
 
 interface CustomerJourney {
   id: string
-  outcome: { orderNumber: string; total: Money; functionalCurrency: CurrencyCode } | null  // null: no purchase yet
+  order: { orderNumber: string; total: Money; functionalCurrency: CurrencyCode } | null  // the order that closed it; null: no purchase yet
   events: JourneyEvent[]                             // oldest first; never empty
 }
-// GET /api/customers/:id/journeys → ApiListResponse<CustomerJourney>
+// GET /api/customers/:id/journeys → ApiCursorResponse<CustomerJourney>
 ```
 
-- **The server draws the journeys; the client never regroups or re-sorts.** Grouping depends on the whole event stream, which the client never holds. Journeys come newest first. The unfinished journey (`outcome: null`) is the first item of page 1 when there is one, and appears nowhere else.
-- **`page` and `pageSize` count journeys, not events.** *Show older journeys* requests the next page: one infinite query, keyed by customer, with no other params.
-- **Every event appears.** A session's page views fold into one `session` event with `pageCount`; the server does the folding.
+- **The server draws the journeys; the client never regroups or re-sorts.** Grouping depends on the whole event stream, which the client never holds. Journeys come newest first. The unfinished journey (`order: null`) is the first item of the first page when there is one, and appears nowhere else.
+- **Paged by cursor, counted in journeys.** `pageSize` counts journeys, not events. *Show older journeys* sends the last page's `nextCursor` as `cursor`, and shows while it isn't `null`: one infinite query, keyed by customer, with no other params. The server anchors the cursor on a closed journey's order, whose place never moves, so a purchase or a new journey at the head neither repeats nor skips one.
+- **Every event appears.** A session's page views fold into one `session` event with `pageViews`; the server does the folding.
 - **Event times are the customer's local time** (`/product-spec` → `timezone-utc-buckets-for-mvp.md` §3). `occurredAt` carries the customer's offset and `timeZone` names its zone. Both are always present: where a source records no zone, such as an ad click or a proxied email open, the server takes it from the customer's nearest session event. The client formats `occurredAt` in `timeZone`, never in the browser's zone, so the server render and the client render agree. With its offset, `occurredAt` is still an exact instant.
-- **An outcome's total is money on a record**: a `Money` map plus the record's declared `functionalCurrency`, rendered by the dual-currency rule (`/product-spec` → `currency-model.md` §3).
+- **Events record facts, never inferences.** `checkoutStep` and `rejectionCode` are what the checkout and the coupon engine logged: *Checkout abandoned · at shipping*, *Coupon rejected · below minimum spend*. Why the customer left is a reading of the whole timeline, often with more than one cause, so it is the AI summary's to say, never a field on an event.
+- **An order's total is money on a record**: a `Money` map plus the record's declared `functionalCurrency`, rendered by the dual-currency rule (`/product-spec` → `currency-model.md` §3).
 - **The AI health summary above the timeline is a separate endpoint,** `GET /api/customers/:id/ai-summary?locale=` → `ApiResponse<AiSummary>`. A language switch refetches the summary only, and paging journeys never refetches the summary.
 
 ## AI text and locale
@@ -269,7 +280,7 @@ interface AiChatResponse {
 
 ## Checklist before an API-touching task is done
 
-- New/changed endpoint uses the standard envelope (`ApiResponse` / `ApiListResponse`) and error shape.
+- New/changed endpoint uses the standard envelope (`ApiResponse` / `ApiListResponse` / `ApiCursorResponse`) and error shape.
 - Types added/updated in `app/types/api.ts`; mock and consumers import them (no inline shapes).
 - List endpoints honor page/pageSize/sort/order/q/filter/range params.
 - An endpoint returning AI text takes `locale`, includes it in its query key, and has canned text in both locales.

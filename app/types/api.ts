@@ -32,6 +32,17 @@ export interface ApiListResponse<T> {
   meta?: ResponseMeta
 }
 
+/**
+ * A feed read newest first whose head keeps growing while the client pages back. Paging by
+ * offset would shift under a new item and repeat one; a cursor names where the last page ended.
+ */
+export interface ApiCursorResponse<T> {
+  data: T[]
+  /** Opaque: sent back as `cursor` for the next page, never built by the client. `null`: nothing older. */
+  nextCursor: string | null
+  meta?: ResponseMeta
+}
+
 /** Standard error body. Nitro throws it via createError; the `$api` plugin's error
  *  hooks normalize any failure into this shape, and the UI localizes by `code`. */
 export interface ApiError {
@@ -196,6 +207,9 @@ export type JourneyEventType =
   | 'email_open'
   | 'review'
 export type JourneyChannel = 'ads' | 'web' | 'app' | 'livestream' | 'email'
+/** The coupon engine's code for a rejected coupon. */
+export type CouponRejectionCode =
+  'minimum_spend_not_met' | 'expired' | 'usage_limit_reached' | 'market_not_eligible'
 
 export interface JourneyEvent {
   id: string
@@ -205,15 +219,20 @@ export interface JourneyEvent {
   occurredAt: string
   /** The IANA zone that offset belongs to, e.g. 'Asia/Tokyo'. Never absent, never the viewer's. */
   timeZone: string
-  pageCount?: number // `session` only: its page views, folded into one line
-  reason?: 'shipping_fee' | 'minimum_spend' // why a checkout was abandoned or a coupon rejected
+  pageViews?: number // `session` only: its page views, folded into one line
+  /*
+   * What a source system recorded, never an inference: why the customer acted is the AI
+   * summary's to say, from the whole timeline.
+   */
+  checkoutStep?: 'information' | 'shipping' | 'payment' // `checkout_abandoned` only: the last step reached
+  rejectionCode?: CouponRejectionCode // `coupon_rejected` only
 }
 
 /** Events up to and including one purchase, grouped by the server; the client never regroups. */
 export interface CustomerJourney {
   id: string
-  /** The purchase that closed it, or `null` for the unfinished journey, which only ever leads page 1. */
-  outcome: { orderNumber: string; total: Money; functionalCurrency: CurrencyCode } | null
+  /** The order that closed it, or `null` for the unfinished journey, which only ever leads the first page. */
+  order: { orderNumber: string; total: Money; functionalCurrency: CurrencyCode } | null
   events: JourneyEvent[] // oldest first; never empty
 }
 
