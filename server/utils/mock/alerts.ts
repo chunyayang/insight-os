@@ -1,4 +1,4 @@
-import type { AnomalyAlert, MarketCode } from '../../../app/types/api'
+import type { AnomalyAlert, LocaleCode, MarketCode } from '../../../app/types/api'
 import { ANOMALY_MARKET, ANOMALY_WINDOW_DAYS, dailyMetrics, isAnomalousDay } from './markets'
 import { isoDate, addDays } from './dates'
 
@@ -66,29 +66,42 @@ export function buildAlerts(markets: MarketCode[], today = new Date()): AnomalyA
   return alerts
 }
 
-/** The AI daily summary narrative — leads with the anomaly when it is present. */
-export function buildAiSummary(markets: MarketCode[], today = new Date()): string {
+/*
+ * One analysis, written in each locale as translations of each other: a language switch must
+ * never change what the summary says. zh-TW sentences join without spaces.
+ */
+const SUMMARY_SENTENCES = {
+  en: {
+    anomaly:
+      'Japan is the outlier today: conversion has been depressed for a week, and the drop tracks a checkout latency spike rather than a traffic shortfall — sessions are flat while completed orders are not.',
+    steady:
+      'US and TW are steady against their 30-day baselines, with weekend softness in line with the usual pattern.',
+    payments:
+      'Germany warrants a look: payment failures are elevated, which is suppressing otherwise healthy order volume.',
+  },
+  'zh-TW': {
+    anomaly:
+      '日本是今天的異常市場：轉換率已連續一週偏低，且下滑與結帳延遲飆升同步，而非流量不足——工作階段持平，完成的訂單卻減少。',
+    steady: '美國與台灣相對 30 日基準維持穩定，週末略為走弱，與一貫模式相符。',
+    payments: '德國值得留意：付款失敗率偏高，壓抑了原本健康的訂單量。',
+  },
+} satisfies Record<LocaleCode, Record<string, string>>
+
+/** The AI daily summary narrative, in `locale` — leads with the anomaly when it is present. */
+export function buildAiSummary(
+  markets: MarketCode[],
+  locale: LocaleCode,
+  today = new Date(),
+): string {
+  const sentences = SUMMARY_SENTENCES[locale]
   const todayIso = isoDate(today)
   const anomalyActive =
     markets.includes(ANOMALY_MARKET) && isAnomalousDay(ANOMALY_MARKET, todayIso, today)
 
   const parts: string[] = []
+  if (anomalyActive) parts.push(sentences.anomaly)
+  parts.push(sentences.steady)
+  if (markets.includes('DE')) parts.push(sentences.payments)
 
-  if (anomalyActive) {
-    parts.push(
-      'Japan is the outlier today: conversion has been depressed for a week, and the drop tracks a checkout latency spike rather than a traffic shortfall — sessions are flat while completed orders are not.',
-    )
-  }
-
-  parts.push(
-    'US and TW are steady against their 30-day baselines, with weekend softness in line with the usual pattern.',
-  )
-
-  if (markets.includes('DE')) {
-    parts.push(
-      'Germany warrants a look: payment failures are elevated, which is suppressing otherwise healthy order volume.',
-    )
-  }
-
-  return parts.join(' ')
+  return parts.join(locale === 'zh-TW' ? '' : ' ')
 }

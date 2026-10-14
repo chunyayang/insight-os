@@ -142,7 +142,7 @@ export interface DashboardSummary {
   date: string // ISO date
   kpis: KpiMetric[] // monetary KPIs carry Money (all 4 currencies)
   alerts: AnomalyAlert[]
-  aiSummary: AiSummary
+  aiSummary: AiSummary // in the request's `locale`
   fx: FxProvenance // how the Money totals in this payload were derived (audit)
 }
 

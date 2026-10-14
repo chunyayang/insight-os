@@ -8,7 +8,7 @@ import type {
 } from '../../../app/types/api'
 
 /**
- * Dashboard KPIs + anomaly alerts + AI daily summary.
+ * Dashboard KPIs + anomaly alerts + AI daily summary, the summary in the request's `locale`.
  *
  * Monetary KPIs carry a full `Money` map (all four currencies, each aggregated
  * server-side from daily-converted amounts) plus FxProvenance for audit — the client
@@ -22,6 +22,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<DashboardSu
       ? MARKETS
       : ([marketParam] as MarketCode[]).filter((m) => MARKETS.includes(m))
   const activeMarkets = markets.length ? markets : MARKETS
+  const locale = requireLocale(query.locale)
 
   await mockLatency('dashboard-summary')
 
@@ -106,7 +107,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<DashboardSu
     kpis,
     alerts,
     aiSummary: {
-      text: buildAiSummary(activeMarkets, today),
+      text: buildAiSummary(activeMarkets, locale, today),
       generatedAt: new Date().toISOString(),
     },
     fx: fxProvenance(days[0]!, todayIso),
