@@ -32,6 +32,17 @@ export interface ApiListResponse<T> {
   meta?: ResponseMeta
 }
 
+/**
+ * A feed read newest first whose head keeps growing while the client pages back. Paging by
+ * offset would shift under a new item and repeat one; a cursor names where the last page ended.
+ */
+export interface ApiCursorResponse<T> {
+  data: T[]
+  /** Opaque: sent back as `cursor` for the next page, never built by the client. `null`: nothing older. */
+  nextCursor: string | null
+  meta?: ResponseMeta
+}
+
 /** Standard error body. Nitro throws it via createError; the `$api` plugin's error
  *  hooks normalize any failure into this shape, and the UI localizes by `code`. */
 export interface ApiError {
@@ -47,6 +58,17 @@ export interface ApiError {
 export type MarketCode = 'US' | 'JP' | 'TW' | 'DE'
 export type CurrencyCode = 'USD' | 'JPY' | 'TWD' | 'EUR'
 export type Role = 'admin' | 'analyst' | 'viewer'
+/** The i18n locale codes. Every request for AI text carries one, and the text arrives in it. */
+export type LocaleCode = 'en' | 'zh-TW'
+
+/**
+ * A cached AI summary: one analysis of its subject, presented in the requested locale, so every
+ * language says the same thing. `generatedAt` is when the analysis ran — the same in each locale.
+ */
+export interface AiSummary {
+  text: string
+  generatedAt: string // ISO 8601
+}
 
 /**
  * Same amount, independently aggregated in ALL supported currencies using historical
@@ -120,7 +142,7 @@ export interface DashboardSummary {
   date: string // ISO date
   kpis: KpiMetric[] // monetary KPIs carry Money (all 4 currencies)
   alerts: AnomalyAlert[]
-  aiSummary: { text: string; generatedAt: string }
+  aiSummary: AiSummary
   fx: FxProvenance // how the Money totals in this payload were derived (audit)
 }
 
@@ -172,6 +194,71 @@ export interface Customer {
   lastActiveAt: string // ISO 8601
 }
 
+/** Codes, never display text: the label and the channel icon are the client's. */
+export type JourneyEventType =
+  | 'ad_click'
+  | 'session'
+  | 'livestream_view'
+  | 'add_to_cart'
+  | 'checkout_abandoned'
+  | 'coupon_rejected'
+  | 'coupon_redeemed'
+  | 'checkout_completed'
+  | 'subscription_renewed'
+  | 'email_open'
+  | 'review'
+/** `system`: an event no channel carried, such as a renewal charged on a schedule. */
+export type JourneyChannel = 'ads' | 'web' | 'app' | 'livestream' | 'email' | 'system'
+/** The coupon engine's code for a rejected coupon. */
+export type CouponRejectionCode =
+  'minimum_spend_not_met' | 'expired' | 'usage_limit_reached' | 'market_not_eligible'
+
+export interface JourneyEvent {
+  id: string
+  type: JourneyEventType
+  channel: JourneyChannel
+  /** The customer's local time, with their offset: '2026-06-24T19:42:00+09:00'. Still an exact instant. */
+  occurredAt: string
+  /** The IANA zone that offset belongs to, e.g. 'Asia/Tokyo'. Never absent, never the viewer's. */
+  timeZone: string
+  pageViews?: number // `session` only: its page views, folded into one line
+  /*
+   * What a source system recorded, never an inference: why the customer acted is the AI
+   * summary's to say, from the whole timeline.
+   */
+  checkoutStep?: 'information' | 'shipping' | 'payment' // `checkout_abandoned` only: the last step reached
+  rejectionCode?: CouponRejectionCode // `coupon_rejected` only
+  orderIds?: string[] // `checkout_completed` only: the orders it created, each one of the journey's `orders`
+}
+
+/**
+ * What a list of orders needs to show one, not the full order. Order numbers are unique across
+ * shops, so `orderNumber` is the label and needs no shop beside it; `id` is the identity.
+ */
+export interface OrderSummary {
+  id: string
+  orderNumber: string
+  total: Money
+  /** Which `total` key is the record's own currency, rendered by the dual-currency rule. */
+  functionalCurrency: CurrencyCode
+}
+
+/** Events up to and including one purchase, grouped by the server; the client never regroups. */
+export interface CustomerJourney {
+  id: string
+  /**
+   * The purchase that closed it: every order of one shopping decision, split by shop, shipping
+   * method or subscription items, or across checkouts the server joined. Never a renewal's order.
+   * Empty for the unfinished journey, which only ever leads the first page.
+   */
+  orders: OrderSummary[]
+  /** The orders' total, summed by the server. `null` when `orders` is empty. */
+  total: Money | null
+  /** The currency every order shares. `null` when they differ, which makes `total` presentation-only. */
+  functionalCurrency: CurrencyCode | null
+  events: JourneyEvent[] // oldest first; never empty
+}
+
 /* ─────────────────────────── AI Assistant ─────────────────────────── */
 
 export interface AiChatRequest {
@@ -181,6 +268,9 @@ export interface AiChatRequest {
    * session. The server reads market and range from that anomaly, or else from the question.
    */
   context?: { anomalyId?: string }
+  /** The answer's language. Earlier turns in `history` keep the language they were written in. */
+  locale: LocaleCode
+  /** The conversation so far. The client holds it for the session; the server keeps none. */
   history?: { role: 'user' | 'assistant'; content: string }[]
 }
 
