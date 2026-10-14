@@ -196,7 +196,8 @@ export interface Customer {
 
 /**
  * Codes, never display text: the label and the channel icon are the client's. Each is something
- * the customer did; the client drops an event whose `type` or `channel` it doesn't know.
+ * the customer did, except `subscription_renewed`; the client drops an event whose `type` or
+ * `channel` it doesn't know.
  */
 export type JourneyEventType =
   | 'ad_click'
