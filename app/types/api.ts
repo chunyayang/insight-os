@@ -204,9 +204,11 @@ export type JourneyEventType =
   | 'coupon_rejected'
   | 'coupon_redeemed'
   | 'checkout_completed'
+  | 'subscription_renewed'
   | 'email_open'
   | 'review'
-export type JourneyChannel = 'ads' | 'web' | 'app' | 'livestream' | 'email'
+/** `system`: an event no channel carried, such as a renewal charged on a schedule. */
+export type JourneyChannel = 'ads' | 'web' | 'app' | 'livestream' | 'email' | 'system'
 /** The coupon engine's code for a rejected coupon. */
 export type CouponRejectionCode =
   'minimum_spend_not_met' | 'expired' | 'usage_limit_reached' | 'market_not_eligible'
@@ -226,7 +228,7 @@ export interface JourneyEvent {
    */
   checkoutStep?: 'information' | 'shipping' | 'payment' // `checkout_abandoned` only: the last step reached
   rejectionCode?: CouponRejectionCode // `coupon_rejected` only
-  orderId?: string // `checkout_completed` only: the order it placed, one of the journey's `orders`
+  orderIds?: string[] // `checkout_completed` only: the orders it created, each one of the journey's `orders`
 }
 
 /**
@@ -245,9 +247,9 @@ export interface OrderSummary {
 export interface CustomerJourney {
   id: string
   /**
-   * The purchase that closed it: one shopping decision, which may be several checkouts completed
-   * within the server's window, each with its own order. Empty for the unfinished journey, which only
-   * ever leads the first page.
+   * The purchase that closed it: every order of one shopping decision, split by shop, shipping
+   * method or subscription items, or across checkouts the server joined. Never a renewal's order.
+   * Empty for the unfinished journey, which only ever leads the first page.
    */
   orders: OrderSummary[]
   /** The orders' total, summed by the server. `null` when `orders` is empty. */
