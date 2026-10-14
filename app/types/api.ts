@@ -226,13 +226,34 @@ export interface JourneyEvent {
    */
   checkoutStep?: 'information' | 'shipping' | 'payment' // `checkout_abandoned` only: the last step reached
   rejectionCode?: CouponRejectionCode // `coupon_rejected` only
+  orderId?: string // `purchase` only: which of the journey's `orders` it placed
+}
+
+/**
+ * What a list of orders needs to show one, not the full order. Order numbers are unique across
+ * shops, so `orderNumber` is the label and needs no shop beside it; `id` is the identity.
+ */
+export interface OrderSummary {
+  id: string
+  orderNumber: string
+  total: Money
+  /** Which `total` key is the record's own currency, rendered by the dual-currency rule. */
+  functionalCurrency: CurrencyCode
 }
 
 /** Events up to and including one purchase, grouped by the server; the client never regroups. */
 export interface CustomerJourney {
   id: string
-  /** The order that closed it, or `null` for the unfinished journey, which only ever leads the first page. */
-  order: { orderNumber: string; total: Money; functionalCurrency: CurrencyCode } | null
+  /**
+   * The purchase that closed it: one or more orders placed together, such as one per shop when the
+   * customer checks out at several in turn. Empty for the unfinished journey, which only ever leads
+   * the first page.
+   */
+  orders: OrderSummary[]
+  /** The orders' total, summed by the server. `null` when `orders` is empty. */
+  total: Money | null
+  /** The currency every order shares. `null` when they differ, which makes `total` presentation-only. */
+  functionalCurrency: CurrencyCode | null
   events: JourneyEvent[] // oldest first; never empty
 }
 
