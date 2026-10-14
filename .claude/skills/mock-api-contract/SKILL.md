@@ -45,7 +45,7 @@ interface ApiCursorResponse<T> {
 }
 ```
 
-A list is paged by `page` unless new items arrive at its head while the client pages back through it. There an offset shifts: a new item pushes the last one on page 1 onto page 2, and the client shows it twice. Such a feed takes `cursor` instead, and the server anchors each cursor on an item whose place never moves. Today that is only the journeys.
+Offset-based pagination causes duplicate entries when new items arrive at the top while users page backward, as shifting indices push items across pages. Using cursor-based pagination solves this by anchoring each cursor to an immutable item. Customer journeys currently serve as an example of this pattern.
 
 ## Error shape
 
