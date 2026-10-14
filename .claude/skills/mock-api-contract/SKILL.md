@@ -45,7 +45,7 @@ interface ApiCursorResponse<T> {
 }
 ```
 
-Offset-based pagination causes duplicate entries when new items arrive at the top while users page backward, as shifting indices push items across pages. Using cursor-based pagination solves this by anchoring each cursor to an immutable item. Customer journeys currently serve as an example of this pattern.
+Offset-based pagination causes duplicate entries when new items arrive at the top while users page backward, as shifting indices push items across pages. Using cursor-based pagination solves this by anchoring each cursor to an item's position, which never moves. Customer journeys currently serve as an example of this pattern.
 
 ## Error shape
 
