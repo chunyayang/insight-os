@@ -230,7 +230,7 @@ interface CustomerJourney {
 AI text arrives in the interface language (`/product-spec` → `spec.md` §2, *Internationalization*).
 
 - **Every request for AI text carries `locale`** (`LocaleCode`): a query param on a `GET`, a body field on `POST /api/ai/chat`. No other request does. An unknown locale is `400 VALIDATION_FAILED`.
-- **The query key for AI text includes the locale,** read from `useI18n().locale`, so a language switch refetches it, and switching back is a cache hit. Today that means `dashboardKeys.summary` and the customer's AI summary key.
+- **The query key for AI text includes the locale,** read from `useI18n().locale`, so a language switch refetches it, and switching back is a cache hit.
 - **A cached summary is one analysis, presented per locale.** The Dashboard's `aiSummary` and a customer's `ai-summary` must say the same thing in every language, never a separate generation per language. `generatedAt` is when the analysis ran, so it is the same in each locale. The mock returns canned text in both locales, with the two versions written as translations of each other.
 - **Not yet in the code:** `GET /api/dashboard/summary` ignores `locale`, and `buildAiSummary` (`server/utils/mock/alerts.ts`) writes English only, so `dashboardKeys.summary` has no locale yet.
 
