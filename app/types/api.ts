@@ -246,7 +246,10 @@ export interface OrderSummary {
   functionalCurrency: CurrencyCode
 }
 
-/** Events up to and including one purchase, grouped by the server; the client never regroups. */
+/**
+ * The events up to one purchase, then the customer's later actions on its orders, such as a review.
+ * Grouped by the server; the client never regroups.
+ */
 export interface CustomerJourney {
   id: string
   /**
