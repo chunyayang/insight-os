@@ -183,7 +183,7 @@ The Journey tab's timeline (`/product-spec` → `spec.md` §4.5): one customer's
 
 ```ts
 type JourneyEventType = 'ad_click' | 'session' | 'livestream_view' | 'add_to_cart' | 'checkout_abandoned'
-  | 'coupon_rejected' | 'coupon_redeemed' | 'purchase' | 'email_open' | 'review'
+  | 'coupon_rejected' | 'coupon_redeemed' | 'checkout_completed' | 'email_open' | 'review'
 type JourneyChannel = 'ads' | 'web' | 'app' | 'livestream' | 'email'
 
 interface JourneyEvent {
@@ -195,7 +195,7 @@ interface JourneyEvent {
   pageViews?: number                                 // `session` only: its page views, folded into one line
   checkoutStep?: 'information' | 'shipping' | 'payment'  // `checkout_abandoned` only: the last step reached
   rejectionCode?: 'minimum_spend_not_met' | 'expired' | 'usage_limit_reached' | 'market_not_eligible'  // `coupon_rejected` only
-  orderId?: string                                   // `purchase` only: which of the journey's `orders` it placed
+  orderId?: string                                   // `checkout_completed` only: the order it placed
 }
 
 interface OrderSummary {                             // what a list shows of an order, not the full order
@@ -216,11 +216,11 @@ interface CustomerJourney {
 ```
 
 - **The server draws the journeys; the client never regroups or re-sorts.** Grouping depends on the whole event stream, which the client never holds. Journeys come newest first. The unfinished journey (`orders` empty) is the first item of the first page when there is one, and appears nowhere else.
-- **Paged by cursor, counted in journeys.** `pageSize` counts journeys, not events. *Show older journeys* sends the last page's `nextCursor` as `cursor`, and shows while it isn't `null`: one infinite query, keyed by customer, with no other params. The cursor encodes the last journey's place in the order, not its id: the time of its last order, with the journey id to break ties. The server pages from that place without looking the journey up, so the next page still resolves if that journey has since changed. A closed journey's place never moves, so a purchase or a new journey at the head neither repeats nor skips one.
+- **Paged by cursor, counted in journeys.** `pageSize` counts journeys, not events. *Show older journeys* sends the last page's `nextCursor` as `cursor`, and shows while it isn't `null`: one infinite query, keyed by customer, with no other params. The cursor encodes the last journey's place in the order, not its id: the time of its first order, with the journey id to break ties. The server pages from that place without looking the journey up, so the next page still resolves if that journey has since changed. A closed journey's place never moves, even when a later checkout joins its purchase, so a purchase or a new journey at the head neither repeats nor skips one.
 - **Every event appears.** A session's page views fold into one `session` event with `pageViews`; the server does the folding.
 - **Event times are the customer's local time** (`/product-spec` → `timezone-utc-buckets-for-mvp.md` §3). `occurredAt` carries the customer's offset and `timeZone` names its zone. Both are always present: where a source records no zone, such as an ad click or a proxied email open, the server takes it from the customer's nearest session event. The client formats `occurredAt` in `timeZone`, never in the browser's zone, so the server render and the client render agree. With its offset, `occurredAt` is still an exact instant.
 - **Events record facts, never inferences.** `checkoutStep` and `rejectionCode` are what the checkout and the coupon engine logged: *Checkout abandoned · at shipping*, *Coupon rejected · below minimum spend*. Why the customer left is a reading of the whole timeline, often with more than one cause, so it is the AI summary's to say, never a field on an event.
-- **A purchase may be several orders,** such as one per shop when the customer checks out at several in turn; together they close one journey, and the server decides which belong together (`/product-spec` → `spec.md` §4.5). Each `purchase` event names its order in `orderId`.
+- **A purchase is one shopping decision, which may be several checkouts** (`/product-spec` → `spec.md` §4.5). Split checkouts across shops, and a supplementary order placed shortly after, are each a `checkout_completed` event with its own order, named in `orderId`. The server joins the checkouts completed within its window (such as 30 minutes) into one purchase, which closes one journey. Until the window passes, a closed journey can still gain an order; the client shows it on its next refetch.
 - **The journey's `total` is the server's sum of its orders,** never the client's. It renders by the dual-currency rule with the journey's `functionalCurrency`, or in the presentation currency alone when that is `null`: orders in different functional currencies make an aggregate, which has none (`/product-spec` → `currency-model.md` §3). Each `OrderSummary` is money on a record, with its own `functionalCurrency`.
 - **The AI health summary above the timeline is a separate endpoint,** `GET /api/customers/:id/ai-summary?locale=` → `ApiResponse<AiSummary>`. A language switch refetches the summary only, and paging journeys never refetches the summary.
 

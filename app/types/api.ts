@@ -203,7 +203,7 @@ export type JourneyEventType =
   | 'checkout_abandoned'
   | 'coupon_rejected'
   | 'coupon_redeemed'
-  | 'purchase'
+  | 'checkout_completed'
   | 'email_open'
   | 'review'
 export type JourneyChannel = 'ads' | 'web' | 'app' | 'livestream' | 'email'
@@ -226,7 +226,7 @@ export interface JourneyEvent {
    */
   checkoutStep?: 'information' | 'shipping' | 'payment' // `checkout_abandoned` only: the last step reached
   rejectionCode?: CouponRejectionCode // `coupon_rejected` only
-  orderId?: string // `purchase` only: which of the journey's `orders` it placed
+  orderId?: string // `checkout_completed` only: the order it placed, one of the journey's `orders`
 }
 
 /**
@@ -245,9 +245,9 @@ export interface OrderSummary {
 export interface CustomerJourney {
   id: string
   /**
-   * The purchase that closed it: one or more orders placed together, such as one per shop when the
-   * customer checks out at several in turn. Empty for the unfinished journey, which only ever leads
-   * the first page.
+   * The purchase that closed it: one shopping decision, which may be several checkouts completed
+   * within the server's window, each with its own order. Empty for the unfinished journey, which only
+   * ever leads the first page.
    */
   orders: OrderSummary[]
   /** The orders' total, summed by the server. `null` when `orders` is empty. */
