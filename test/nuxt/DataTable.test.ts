@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { defineComponent, h, nextTick, ref, type Component } from 'vue'
+import { defineComponent, h, nextTick, reactive, ref, type Component } from 'vue'
+import { useToast } from '@nuxt/ui/composables/useToast'
 import { UApp } from '#components'
 import type { TableColumn } from '@nuxt/ui'
 import DataTable from '../../app/components/common/DataTable.vue'
@@ -41,6 +42,8 @@ const pagination: ApiListResponse<Row>['pagination'] = {
 async function mountTable(props: Record<string, unknown> = {}, role: Role = 'admin') {
   const query = ref<ListQuery>({ page: 1, pageSize: 20, ...((props.query as ListQuery) ?? {}) })
   const updates: ListQuery[] = []
+  // Props a test changes after mount, the way a query's result changes under the table.
+  const live = reactive<Record<string, unknown>>({})
 
   const harness = defineComponent({
     setup() {
@@ -58,6 +61,7 @@ async function mountTable(props: Record<string, unknown> = {}, role: Role = 'adm
               pagination,
               caption: 'Customers',
               ...props,
+              ...live,
               query: query.value,
               'onUpdate:query': (next: ListQuery) => {
                 query.value = next
@@ -68,7 +72,7 @@ async function mountTable(props: Record<string, unknown> = {}, role: Role = 'adm
     },
   })
 
-  return { wrapper: await mountSuspended(harness), updates }
+  return { wrapper: await mountSuspended(harness), updates, query, live }
 }
 
 function buttonWithText(wrapper: Awaited<ReturnType<typeof mountTable>>['wrapper'], text: string) {
@@ -138,6 +142,60 @@ describe('DataTable', () => {
     expect(wrapper.find('table').exists()).toBe(false)
     // The raw server message is never shown; copy is localized off the code.
     expect(wrapper.text()).not.toContain('boom')
+  })
+
+  describe('a failed page change or re-sort (spec §5.4)', () => {
+    const failure = { error: { code: 'SERVER_ERROR', message: 'boom' } }
+    const page1 = { page: 1, pageSize: 20, sort: 'amount', order: 'desc' as const }
+
+    async function failAfter(next: Partial<ListQuery>) {
+      useToast().clear()
+      const mounted = await mountTable({ query: page1 })
+      mounted.query.value = { ...mounted.query.value, ...next }
+      await nextTick()
+      // The failed key has no data of its own, so the response's envelope goes with it.
+      mounted.live.pagination = undefined
+      mounted.live.error = failure
+      await nextTick()
+      return mounted
+    }
+
+    it('goes back to the page that loaded and says which page failed, in a toast', async () => {
+      const { wrapper, updates } = await failAfter({ page: 2 })
+
+      expect(updates.at(-1)).toEqual(page1)
+      expect(wrapper.find('.error-state').exists()).toBe(false)
+      expect(useToast().toasts.value.at(-1)?.description).toBe(
+        "Couldn't load page 2. The page you were on is still shown.",
+      )
+    })
+
+    it('goes back to the sort that loaded, with its own toast', async () => {
+      const { updates } = await failAfter({ sort: 'name', order: 'asc', page: 1 })
+
+      expect(updates.at(-1)).toEqual(page1)
+      expect(useToast().toasts.value.at(-1)?.description).toBe(
+        "Couldn't change the sort order. The rows keep the order they had.",
+      )
+    })
+
+    it('errors inline, without a toast, when a filter changed: the old rows would not match it', async () => {
+      const { wrapper, updates } = await failAfter({ q: 'mia', page: 1 })
+
+      expect(updates).toHaveLength(0)
+      expect(wrapper.find('.error-state').exists()).toBe(true)
+      expect(useToast().toasts.value).toHaveLength(0)
+    })
+
+    it('errors inline when the page in hand fails, with nothing to go back to', async () => {
+      useToast().clear()
+      const { wrapper, live } = await mountTable({ query: page1 })
+      live.error = failure
+      await nextTick()
+
+      expect(wrapper.find('.error-state').exists()).toBe(true)
+      expect(useToast().toasts.value).toHaveLength(0)
+    })
   })
 
   describe('CSV export permission gate', () => {

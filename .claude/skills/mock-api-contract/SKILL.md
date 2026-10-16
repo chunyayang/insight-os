@@ -61,7 +61,7 @@ interface ApiError {
 }
 ```
 
-- The `$api` plugin's error hooks map any failure into a typed `ApiError`, and the cache-level handler in `plugins/vue-query.ts` surfaces a localized Toast keyed off `error.code` (see i18n `errors.*` keys). Components never parse raw error bodies.
+- The `$api` plugin's error hooks map any failure into a typed `ApiError`, localized off `error.code` (see i18n `errors.*` keys): a failed query in its surface's inline error state, a failed mutation in a Toast from the cache-level handler in `plugins/vue-query.ts`. Components never parse raw error bodies.
 - Include at least one endpoint state that can fail (e.g. a sync job) so the error path is exercised.
 
 ## URL & method conventions
@@ -290,7 +290,7 @@ interface AiChatResponse {
 - Put deterministic-ish generators in `server/utils/mock/` seeded so data is stable within a session but varied across markets; bake in the JP weekly anomaly explicitly.
 - Respect all query params in the mock (pagination, sort, filters) so the UI's controls are genuinely exercised, not decorative.
 - Add the 200–500ms delay in a shared helper so it's consistent and easy to remove for tests.
-- Keep one endpoint capable of returning an `ApiError` (e.g. a failed sync row / retry) to exercise the error + Toast + i18n path end to end.
+- Keep one endpoint capable of returning an `ApiError` (e.g. a failed sync row / retry) to exercise the error + i18n path end to end, inline and in a Toast.
 
 ## Checklist before an API-touching task is done
 
