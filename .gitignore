@@ -25,6 +25,8 @@ coverage
 test-results
 playwright-report
 .playwright
+# Playwright MCP screenshots, snapshots and console logs
+.playwright-mcp/
 
 # Editor / OS
 .DS_Store
