@@ -42,18 +42,21 @@ Rules:
 ## Nuxt UI + Tailwind + design tokens
 
 - Use `@nuxt/ui` (MIT; Nuxt UI Pro is merged into it, so `Dashboard*`, `Chat*`, `AuthForm`, `Stepper`, `Timeline`, `PricingTable` etc. are all available). It registers the Tailwind Vite plugin itself — do **not** also add `@tailwindcss/vite`.
-- **The visual identity is declared in exactly one place:** `app/app.config.ts`.
+- **The palette is declared in exactly one place:** `app/app.config.ts`.
 
   ```ts
   export default defineAppConfig({
-    ui: { colors: { primary: 'emerald', neutral: 'slate' } },
+    ui: { colors: { primary: 'emerald', neutral: 'slate', secondary: 'violet' } },
   })
   ```
 
   Nuxt UI generates the full 50–950 ramps and every `--ui-*` alias from that. There is no separate `tokens.css` and no custom token vocabulary — one was retired deliberately (see the migration doc) because maintaining a private parallel set guarantees drift from what Nuxt UI's own components use.
+- **Light theme only: `main.css` re-points the semantic aliases to darker steps,** because Nuxt UI's default 500 steps fail WCAG AA as text on white (emerald-500 is 2.5:1). This re-points Nuxt UI's own aliases rather than adding a vocabulary, so Nuxt UI's components pick it up too. Each is the lightest step that keeps 4.5:1 on white and on the color's own 10% tint (what soft and subtle badges sit on): `primary` 700, `success` 800, `info` 600, `warning` 800, `error` 700. Dark mode keeps Nuxt UI's 400 steps. If you change the palette in `app.config.ts`, re-measure these steps: a new ramp can need different ones.
 - **When you need a color, use a Nuxt UI semantic token or a Tailwind utility.** Never a raw hex, and never a Tailwind palette color (`bg-emerald-500` ✗ — it hardcodes the brand and ignores dark mode).
   - Surfaces: `--ui-bg`, `--ui-bg-muted`, `--ui-bg-elevated`, `--ui-bg-accented`
   - Text: `--ui-text-highlighted`, `--ui-text`, `--ui-text-toned`, `--ui-text-muted`, `--ui-text-dimmed`
+    - **Anything a person reads** (captions, timestamps, emails, group labels) is at least `--ui-text-muted`. `--ui-text-dimmed` fails AA in both themes (2.6:1 light, 3.7:1 dark): keep it for placeholders and disabled or decorative text.
+    - **On a `--ui-bg-elevated` surface**, `--ui-text-muted` drops to 4.35:1. Use `--ui-text-toned` there. Nuxt UI's own defaults hit this in two places, overridden in this repo: the neutral `UAvatar`'s initials (in `app.config.ts`) and inactive pill `UTabs` labels (the `ui` prop in `RevenueTrend.vue`). Check any new pill tabs or neutral chips the same way.
   - Borders: `--ui-border`, `--ui-border-muted`, `--ui-border-accented`
   - Semantic: `--ui-primary`, `--ui-success`, `--ui-info`, `--ui-warning`, `--ui-error`
   - Steps within a ramp when you need one: `--ui-color-primary-600`, `--ui-color-error-50`, …
@@ -157,7 +160,7 @@ A comment that would go stale if the code below changed shape is already a liabi
 - Icon-only buttons always have `aria-label` (localized).
 - Keyboard: visible focus states, Escape closes Drawer/Modal, focus returns to trigger.
 - Respect `prefers-reduced-motion`. ECharts has no global animation default (unlike Chart.js), so `BaseChart.vue` forces `animation: false` into every chart's option itself when the OS asks for reduced motion. Nuxt UI components degrade themselves (shimmer → static muted text, indeterminate progress → pulse), so **never add a blanket `* { animation: none !important }`** — it overrides those graceful fallbacks with a worse one.
-- WCAG AA contrast in both themes — the semantic tokens handle this if you don't hardcode colors (another reason the color rule above is absolute).
+- WCAG AA contrast in both themes. Tokens alone don't guarantee it: it holds because of the light-theme steps in `main.css` and the text-token rules under *Nuxt UI + Tailwind + design tokens*. A hardcoded color bypasses both, which is another reason the color rule is absolute. Check any new text color against the surface it actually sits on, in both themes.
 
 ## Testing & delivery
 
