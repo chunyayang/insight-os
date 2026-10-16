@@ -12,22 +12,33 @@
  * the page — sidebar links, icon buttons — so the keyboard a11y floor doesn't depend on
  * the browser default.
  *
- * `dark` needs no counterpart: --ui-primary re-declares itself under .dark.
+ * `dark` needs no counterpart: --ink-primary re-resolves under .dark.
  */
 @layer base {
   :focus-visible {
-    outline: 2px solid var(--ui-primary);
+    outline: 2px solid var(--ink-primary);
     outline-offset: 2px;
     border-radius: 4px;
   }
 }
 
-/* Semantic colors are text too, so each light-theme step is the lightest that holds WCAG AA
-   (4.5:1) on white and on its own 10% tint. Dark mode keeps Nuxt UI's 400 steps. */
-:root:not(.dark) {
-  --ui-primary: var(--ui-color-primary-700);
-  --ui-success: var(--ui-color-success-800);
-  --ui-info: var(--ui-color-info-600);
-  --ui-warning: var(--ui-color-warning-800);
-  --ui-error: var(--ui-color-error-700);
+/* Semantic colors stay bright for fills and tints; as text they are mixed toward the
+   highlighted text color, so they read in both themes without darkening the fills. */
+:root {
+  --ink-primary: color-mix(in oklab, var(--ui-primary) 60%, var(--ui-text-highlighted));
+  --ink-secondary: color-mix(in oklab, var(--ui-secondary) 60%, var(--ui-text-highlighted));
+  --ink-success: color-mix(in oklab, var(--ui-success) 60%, var(--ui-text-highlighted));
+  --ink-info: color-mix(in oklab, var(--ui-info) 60%, var(--ui-text-highlighted));
+  --ink-warning: color-mix(in oklab, var(--ui-warning) 60%, var(--ui-text-highlighted));
+  --ink-error: color-mix(in oklab, var(--ui-error) 60%, var(--ui-text-highlighted));
+}
+
+/* `text-*` reads --text-color-* before --color-*, so this changes text only. */
+@theme inline {
+  --text-color-primary: var(--ink-primary);
+  --text-color-secondary: var(--ink-secondary);
+  --text-color-success: var(--ink-success);
+  --text-color-info: var(--ink-info);
+  --text-color-warning: var(--ink-warning);
+  --text-color-error: var(--ink-error);
 }

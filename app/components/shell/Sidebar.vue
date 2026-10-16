@@ -110,7 +110,7 @@ const visibleGroups = computed(() =>
    to ordinary CSS. */
 .sidebar__link--active {
   background: color-mix(in oklab, var(--ui-primary) 12%, transparent);
-  color: var(--ui-primary);
+  color: var(--ink-primary);
   font-weight: 600;
 }
 
