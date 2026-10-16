@@ -26,12 +26,11 @@ export default defineAppConfig({
     },
     badge: {
       compoundVariants: [
-        // No yellow dark enough to read as text still looks yellow: the dot carries the hue.
+        // The ink mix turns yellow brown, so warning text keeps the hue at 600 (2.74:1 in light).
         {
           color: 'warning',
           variant: ['soft', 'subtle'],
-          class:
-            "text-default before:size-1.5 before:rounded-full before:bg-warning-600 before:content-['']",
+          class: 'text-warning-600',
         },
       ],
     },
