@@ -87,11 +87,17 @@ const chartSummary = computed(() =>
         The tablist takes its context from the section heading — Nuxt UI renders the
         list inside its root, so a fallthrough `aria-label` would land on the wrapper
         rather than on the element with `role="tablist"`.
+        The active tab is a tint with a colored label, like the sidebar's active link;
+        inactive labels sit on bg-elevated, where only text-toned holds WCAG AA.
       -->
       <UTabs
         :model-value="market"
         :items="tabs"
         :content="false"
+        :ui="{
+          indicator: 'bg-primary/12 shadow-none',
+          trigger: 'data-[state=active]:text-primary data-[state=inactive]:text-toned',
+        }"
         size="sm"
         @update:model-value="market = $event as MarketFilter"
       />
