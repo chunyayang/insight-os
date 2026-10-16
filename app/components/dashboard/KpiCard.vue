@@ -102,17 +102,17 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
 
 /* Direction colours are semantic tokens — they carry meaning, not decoration. */
 .kpi__delta--up {
-  color: var(--ui-primary);
+  color: var(--ink-primary);
 }
 .kpi__delta--down {
-  color: var(--ui-error);
+  color: var(--ink-error);
 }
 .kpi__delta--neutral {
   color: var(--ui-text-muted);
 }
 
 .kpi__delta-caption {
-  color: var(--ui-text-dimmed);
+  color: var(--ui-text-muted);
 }
 
 .kpi__spark {

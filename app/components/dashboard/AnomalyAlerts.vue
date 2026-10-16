@@ -100,7 +100,7 @@ function askAiLink(alert: AnomalyAlert) {
 }
 
 .alerts__time {
-  color: var(--ui-text-dimmed);
+  color: var(--ui-text-muted);
   font-size: 0.8125rem;
 }
 

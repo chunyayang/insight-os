@@ -64,7 +64,7 @@ const visibleGroups = computed(() =>
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ui-text-dimmed);
+  color: var(--ui-text-muted);
 }
 
 .sidebar__list {
@@ -110,7 +110,7 @@ const visibleGroups = computed(() =>
    to ordinary CSS. */
 .sidebar__link--active {
   background: color-mix(in oklab, var(--ui-primary) 12%, transparent);
-  color: var(--ui-primary);
+  color: var(--ink-primary);
   font-weight: 600;
 }
 

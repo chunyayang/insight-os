@@ -42,18 +42,23 @@ Rules:
 ## Nuxt UI + Tailwind + design tokens
 
 - Use `@nuxt/ui` (MIT; Nuxt UI Pro is merged into it, so `Dashboard*`, `Chat*`, `AuthForm`, `Stepper`, `Timeline`, `PricingTable` etc. are all available). It registers the Tailwind Vite plugin itself — do **not** also add `@tailwindcss/vite`.
-- **The visual identity is declared in exactly one place:** `app/app.config.ts`.
+- **The palette is declared in exactly one place:** `app/app.config.ts`.
 
   ```ts
   export default defineAppConfig({
-    ui: { colors: { primary: 'emerald', neutral: 'slate' } },
+    ui: { colors: { primary: 'emerald', neutral: 'slate', secondary: 'violet' } },
   })
   ```
 
   Nuxt UI generates the full 50–950 ramps and every `--ui-*` alias from that. There is no separate `tokens.css` and no custom token vocabulary — one was retired deliberately (see the migration doc) because maintaining a private parallel set guarantees drift from what Nuxt UI's own components use.
+- **Semantic colors as text use a derived shade, `--ink-*`, the one exception to "no custom vocabulary".** The `--ui-*` semantic colors stay at Nuxt UI's bright 500 (light) and 400 (dark) steps for fills, tints, rings and indicators, but as text a 500 is too light on white (emerald-500 is 2.5:1). `main.css` defines `--ink-primary`, `--ink-success`, … as each color mixed 60% toward `--ui-text-highlighted`, and points Tailwind's `--text-color-*` at them: `text-*` reads that namespace before `--color-*`, so every `text-primary`, ours and Nuxt UI's, gets the ink while `bg-primary` keeps the bright fill. Because it mixes toward the highlighted text color, it darkens in light mode and lightens in dark mode on its own. One exception: mixed toward dark text, red turns brown, so light mode sets `--ink-error` to `error-700` (dark mode keeps the mix). In plain CSS, write `var(--ink-primary)` for colored text, never `var(--ui-primary)`.
+- **Fills under white text are the exception:** a bright 500 can't carry a white label. The solid primary button is `primary-600` in light mode (`app.config.ts`), chosen for brightness at 3.65:1, under AA for small text. Prefer a tint with an ink label (the sidebar's active link, the revenue tabs' active pill) over a solid fill for anything that isn't a primary action.
+- **Warning badge text is `warning-600`, not the ink:** mixed toward dark text, yellow turns brown, so soft and subtle warning badges keep the hue at the 600 step (`app.config.ts`). That is 2.74:1 on its tint in light mode, an accepted exception; `warning-700` (4.60:1) is the step that passes if it ever needs to.
 - **When you need a color, use a Nuxt UI semantic token or a Tailwind utility.** Never a raw hex, and never a Tailwind palette color (`bg-emerald-500` ✗ — it hardcodes the brand and ignores dark mode).
   - Surfaces: `--ui-bg`, `--ui-bg-muted`, `--ui-bg-elevated`, `--ui-bg-accented`
   - Text: `--ui-text-highlighted`, `--ui-text`, `--ui-text-toned`, `--ui-text-muted`, `--ui-text-dimmed`
+    - **Anything a person reads** (captions, timestamps, emails, group labels) is at least `--ui-text-muted`. `--ui-text-dimmed` fails AA in both themes (2.6:1 light, 3.7:1 dark): keep it for placeholders and disabled or decorative text.
+    - **On a `--ui-bg-elevated` surface**, `--ui-text-muted` drops to 4.35:1. Use `--ui-text-toned` there. Nuxt UI's own defaults hit this in two places, overridden in this repo: the neutral `UAvatar`'s initials (in `app.config.ts`) and inactive pill `UTabs` labels (the `ui` prop in `RevenueTrend.vue`). Check any new pill tabs or neutral chips the same way.
   - Borders: `--ui-border`, `--ui-border-muted`, `--ui-border-accented`
   - Semantic: `--ui-primary`, `--ui-success`, `--ui-info`, `--ui-warning`, `--ui-error`
   - Steps within a ramp when you need one: `--ui-color-primary-600`, `--ui-color-error-50`, …
@@ -157,7 +162,7 @@ A comment that would go stale if the code below changed shape is already a liabi
 - Icon-only buttons always have `aria-label` (localized).
 - Keyboard: visible focus states, Escape closes Drawer/Modal, focus returns to trigger.
 - Respect `prefers-reduced-motion`. ECharts has no global animation default (unlike Chart.js), so `BaseChart.vue` forces `animation: false` into every chart's option itself when the OS asks for reduced motion. Nuxt UI components degrade themselves (shimmer → static muted text, indeterminate progress → pulse), so **never add a blanket `* { animation: none !important }`** — it overrides those graceful fallbacks with a worse one.
-- WCAG AA contrast in both themes — the semantic tokens handle this if you don't hardcode colors (another reason the color rule above is absolute).
+- WCAG AA contrast in both themes is the target, and for the MVP, look takes priority where the two conflict. The known exceptions are deliberate: the solid primary fill (white on `primary-600`, 3.65:1), warning badge text (`warning-600`, 2.74:1) and Nuxt UI's notification chip (white on `error-500`). Tokens alone don't guarantee AA: it holds because of the `--ink-*` text shades and the text-token rules under *Nuxt UI + Tailwind + design tokens*. A hardcoded color bypasses both, which is another reason the color rule is absolute. Check any new text color against the surface it actually sits on, in both themes.
 
 ## Testing & delivery
 

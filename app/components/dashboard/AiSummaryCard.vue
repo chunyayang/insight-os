@@ -75,7 +75,7 @@ const fmt = useFormat()
 
 .ai-summary__meta {
   margin-block-start: 0.125rem;
-  color: var(--ui-text-dimmed);
+  color: var(--ui-text-muted);
   font-size: 0.8125rem;
 }
 
