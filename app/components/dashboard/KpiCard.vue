@@ -104,12 +104,7 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
 .kpi__delta--up {
   color: var(--ink-primary);
 }
-/* The red ink mixes toward brown; error-700 stays red and holds 6.4:1 on the light card,
-   but is too dark on the dark one, where the ink reads as red. */
 .kpi__delta--down {
-  color: var(--ui-color-error-700);
-}
-.dark .kpi__delta--down {
   color: var(--ink-error);
 }
 .kpi__delta--neutral {

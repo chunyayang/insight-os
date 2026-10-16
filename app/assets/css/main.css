@@ -33,6 +33,11 @@
   --ink-error: color-mix(in oklab, var(--ui-error) 60%, var(--ui-text-highlighted));
 }
 
+/* Mixed toward dark text, red turns brown; error-700 stays red and holds AA. */
+:root:not(.dark) {
+  --ink-error: var(--ui-color-error-700);
+}
+
 /* `text-*` reads --text-color-* before --color-*, so this changes text only. */
 @theme inline {
   --text-color-primary: var(--ink-primary);
