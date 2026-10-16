@@ -4,8 +4,8 @@ import { useNotify } from '../../app/composables/useNotify'
 
 /**
  * These tests run at module scope — no component is being set up — which is exactly the
- * condition `plugins/vue-query.ts` calls `useNotify()` under: from a QueryCache /
- * MutationCache `onError` callback, inside `runWithContext`.
+ * condition `plugins/vue-query.ts` calls `useNotify()` under: from the MutationCache's
+ * `onError` callback, inside `runWithContext`.
  *
  * That distinction is the whole point. `useI18n()` throws "Must be called at the top of
  * a `setup` function" there, which silently killed every global error toast until it was
@@ -29,6 +29,17 @@ describe('useNotify outside a component setup', () => {
       description: "We couldn't find what you were looking for.",
       color: 'error',
     })
+  })
+
+  it('interpolates the params it is handed into the message', async () => {
+    const { toasts } = useToast()
+
+    useNotify().error('common.table.pageFailed', { page: '3' })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(toasts.value[0]?.description).toBe(
+      "Couldn't load page 3. The page you were on is still shown.",
+    )
   })
 
   it('translates the success key it is handed', async () => {

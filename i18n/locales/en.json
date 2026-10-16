@@ -47,7 +47,9 @@
       "showing": "{from}–{to} of {total}",
       "exportCsv": "Export CSV",
       "exportCsvHint": "Download the rows on this page as a CSV file.",
-      "exportDenied": "Your role can't export data."
+      "exportDenied": "Your role can't export data.",
+      "pageFailed": "Couldn't load page {page}. The page you were on is still shown.",
+      "sortFailed": "Couldn't change the sort order. The rows keep the order they had."
     }
   },
   "nav": {
