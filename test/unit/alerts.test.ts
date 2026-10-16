@@ -46,12 +46,22 @@ describe('anomaly alerts', () => {
 
 describe('AI daily summary', () => {
   it('leads with Japan while the anomaly is active', () => {
-    expect(buildAiSummary(MARKETS, today).startsWith('Japan is the outlier')).toBe(true)
+    expect(buildAiSummary(MARKETS, 'en', today).startsWith('Japan is the outlier')).toBe(true)
+    expect(buildAiSummary(MARKETS, 'zh-TW', today).startsWith('日本是今天的異常市場')).toBe(true)
   })
 
   it('omits the Japan narrative when JP is out of scope', () => {
-    const summary = buildAiSummary(['US', 'TW'], today)
+    const summary = buildAiSummary(['US', 'TW'], 'en', today)
     expect(summary).not.toContain('Japan is the outlier')
     expect(summary.length).toBeGreaterThan(0)
+    expect(buildAiSummary(['US', 'TW'], 'zh-TW', today)).not.toContain('日本')
+  })
+
+  it('says the same thing in every locale, sentence for sentence', () => {
+    for (const markets of [MARKETS, ['US', 'TW'] as const, ['DE'] as const]) {
+      const en = buildAiSummary([...markets], 'en', today).split(/(?<=\.) /)
+      const zh = buildAiSummary([...markets], 'zh-TW', today).split(/(?<=。)/)
+      expect(zh).toHaveLength(en.length)
+    }
   })
 })
