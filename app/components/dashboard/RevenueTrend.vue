@@ -87,11 +87,14 @@ const chartSummary = computed(() =>
         The tablist takes its context from the section heading — Nuxt UI renders the
         list inside its root, so a fallthrough `aria-label` would land on the wrapper
         rather than on the element with `role="tablist"`.
+        Inactive labels sit on the pill list's bg-elevated, where Nuxt UI's text-muted
+        is 4.35:1; text-toned keeps them at WCAG AA.
       -->
       <UTabs
         :model-value="market"
         :items="tabs"
         :content="false"
+        :ui="{ trigger: 'data-[state=inactive]:text-toned' }"
         size="sm"
         @update:model-value="market = $event as MarketFilter"
       />
