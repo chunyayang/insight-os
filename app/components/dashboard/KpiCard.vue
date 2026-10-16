@@ -112,7 +112,7 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
 }
 
 .kpi__delta-caption {
-  color: var(--ui-text-dimmed);
+  color: var(--ui-text-muted);
 }
 
 .kpi__spark {

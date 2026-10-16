@@ -64,7 +64,7 @@ const visibleGroups = computed(() =>
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--ui-text-dimmed);
+  color: var(--ui-text-muted);
 }
 
 .sidebar__list {

@@ -251,7 +251,7 @@ const csv = computed<CsvExport<Customer>>(() => ({
 }
 
 .customers__email {
-  color: var(--ui-text-dimmed);
+  color: var(--ui-text-muted);
   font-size: 0.8125rem;
 }
 
