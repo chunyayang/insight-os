@@ -194,7 +194,11 @@ export interface Customer {
   lastActiveAt: string // ISO 8601
 }
 
-/** Codes, never display text: the label and the channel icon are the client's. */
+/**
+ * Codes, never display text: the label and the channel icon are the client's. Each is something
+ * the customer did, except `subscription_renewed`; the client drops an event whose `type` or
+ * `channel` it doesn't know.
+ */
 export type JourneyEventType =
   | 'ad_click'
   | 'session'
@@ -243,7 +247,10 @@ export interface OrderSummary {
   functionalCurrency: CurrencyCode
 }
 
-/** Events up to and including one purchase, grouped by the server; the client never regroups. */
+/**
+ * The events up to one purchase, then the customer's later actions on its orders, such as a review.
+ * Grouped by the server; the client never regroups.
+ */
 export interface CustomerJourney {
   id: string
   /**
