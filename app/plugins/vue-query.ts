@@ -1,7 +1,6 @@
 import {
   VueQueryPlugin,
   QueryClient,
-  QueryCache,
   MutationCache,
   hydrate,
   dehydrate,
@@ -21,7 +20,9 @@ import { errorKey } from '~/utils/errors'
  */
 export default defineNuxtPlugin((nuxt) => {
   /**
-   * One place where every query/mutation failure becomes a localized Toast.
+   * One place where every failed mutation becomes a localized Toast: an action changes nothing
+   * on the page when it fails, so without one it fails unseen (spec §5.4). Queries raise none —
+   * every data surface renders its own inline error state, and a toast would repeat it.
    *
    * Doing it at the cache level (rather than in the `$api` plugin's error hooks) keeps the
    * transport layer free of UI concerns and means no caller can forget to surface an
@@ -33,8 +34,8 @@ export default defineNuxtPlugin((nuxt) => {
    * to. (Its translation deliberately does not go through `useI18n()` for the same
    * reason — see the comment in useNotify.ts.)
    *
-   * Opt out per query/mutation with `meta: { silent: true }` where the surface already
-   * renders the failure itself, so the user isn't told twice. Login is the one case.
+   * Opt out per mutation with `meta: { silent: true }` where the form renders the failure
+   * itself, as login does.
    */
   function notifyError(error: unknown, meta?: Record<string, unknown>) {
     if (!import.meta.client || meta?.silent) return
@@ -42,7 +43,6 @@ export default defineNuxtPlugin((nuxt) => {
   }
 
   const queryClient = new QueryClient({
-    queryCache: new QueryCache({ onError: (error, query) => notifyError(error, query.meta) }),
     mutationCache: new MutationCache({
       onError: (error, _vars, _ctx, mutation) => notifyError(error, mutation.meta),
     }),
