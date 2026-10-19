@@ -187,6 +187,38 @@ describe('DataTable', () => {
       expect(useToast().toasts.value).toHaveLength(0)
     })
 
+    it('errors inline, without a second toast, when the page it went back to fails too', async () => {
+      const { wrapper, live } = await failAfter({ page: 2 })
+      // The revert's own request: the error clears with the key switch, then fails afresh.
+      live.error = undefined
+      await nextTick()
+      live.error = { error: { code: 'SERVER_ERROR', message: 'again' } }
+      await nextTick()
+
+      expect(wrapper.find('.error-state').exists()).toBe(true)
+      expect(useToast().toasts.value).toHaveLength(1)
+    })
+
+    it('goes back to the last response that arrived, not the last query that was asked', async () => {
+      useToast().clear()
+      const { query, updates, live } = await mountTable({ query: page1 })
+      const page2 = { ...page1, page: 2 }
+
+      // The query moves a tick before its response, as it does under `keepPreviousData`.
+      query.value = page2
+      await nextTick()
+      live.pagination = { ...pagination, page: 2 }
+      await nextTick()
+
+      query.value = { ...page1, page: 3 }
+      await nextTick()
+      live.pagination = undefined
+      live.error = failure
+      await nextTick()
+
+      expect(updates.at(-1)).toEqual(page2)
+    })
+
     it('errors inline when the page in hand fails, with nothing to go back to', async () => {
       useToast().clear()
       const { wrapper, live } = await mountTable({ query: page1 })

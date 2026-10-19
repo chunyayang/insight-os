@@ -153,10 +153,10 @@ const NAVIGATION_PARAMS: (keyof ListQuery)[] = ['page', 'sort', 'order']
 /** The last query whose response reached the table, so a failed page change has one to return to. */
 const settled = shallowRef<ListQuery>()
 
-/** True from a revert until its rows are back, so the error that caused it never shows inline. */
+/** True from a revert until the error that caused it clears, so it never shows inline in the render between. */
 const reverting = ref(false)
 
-// A new `pagination` object means a response arrived; `keepPreviousData` holds the old one
+// A new `pagination` object means a response arrived. `keepPreviousData` holds the old one
 // through a fetch, so `query` has caught up with the rows by the time this fires.
 watch(
   () => props.pagination,
@@ -183,7 +183,8 @@ function isNavigation(from: ListQuery, to: ListQuery): boolean {
  * Spec §5.4: a failed page change or re-sort keeps the rows the person was reading and goes
  * back to them, with a toast. An inline error would replace them, and its Retry repeats the
  * request that failed. A failed filter change still errors inline: the old rows would not
- * match the filters on screen.
+ * match the filters on screen. The revert does not need the old page cached: the rows in hand
+ * stay on screen under `keepPreviousData` while an evicted page refetches.
  */
 watch(
   () => props.error,
