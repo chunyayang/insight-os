@@ -19,12 +19,12 @@ export function useNotify() {
   // not a component. `$i18n` is the same global Composer, reachable through the Nuxt
   // app context that runWithContext restores, so it works from either side.
   const { $i18n } = useNuxtApp()
-  const t = (key: string) => $i18n.t(key)
+  const t = (key: string, params: Record<string, unknown> = {}) => $i18n.t(key, params)
 
-  function error(messageKey: string) {
+  function error(messageKey: string, params?: Record<string, unknown>) {
     toast.add({
       title: t('common.states.error'),
-      description: t(messageKey),
+      description: t(messageKey, params),
       color: 'error',
       icon: 'i-lucide-circle-alert',
     })

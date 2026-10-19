@@ -145,6 +145,69 @@ const showing = computed(() => {
   })
 })
 
+/* ─────────────────────── A failed page change ─────────────────────── */
+
+/** What a page change or re-sort writes. A difference anywhere else is a new filter. */
+const NAVIGATION_PARAMS: (keyof ListQuery)[] = ['page', 'sort', 'order']
+
+/** The last query whose response reached the table, so a failed page change has one to return to. */
+const settled = shallowRef<ListQuery>()
+
+/** True from a revert until the error that caused it clears, so it never shows inline in the render between. */
+const reverting = ref(false)
+
+// A new `pagination` object means a response arrived. `keepPreviousData` holds the old one
+// through a fetch, so `query` has caught up with the rows by the time this fires.
+watch(
+  () => props.pagination,
+  (meta) => {
+    if (!meta || props.error) return
+    settled.value = { ...query.value }
+    reverting.value = false
+  },
+  { immediate: true },
+)
+
+function isNavigation(from: ListQuery, to: ListQuery): boolean {
+  const keys = new Set([...Object.keys(from), ...Object.keys(to)] as (keyof ListQuery)[])
+  let moved = false
+  for (const key of keys) {
+    if (from[key] === to[key]) continue
+    if (!NAVIGATION_PARAMS.includes(key)) return false
+    moved = true
+  }
+  return moved
+}
+
+/**
+ * Spec §5.4: a failed page change or re-sort keeps the rows the person was reading and goes
+ * back to them, with a toast. An inline error would replace them, and its Retry repeats the
+ * request that failed. A failed filter change still errors inline: the old rows would not
+ * match the filters on screen. The revert does not need the old page cached: the rows in hand
+ * stay on screen under `keepPreviousData` while an evicted page refetches.
+ */
+watch(
+  () => props.error,
+  (error) => {
+    if (!error) {
+      reverting.value = false
+      return
+    }
+    const failed = query.value
+    const back = settled.value
+    if (!back || !isNavigation(failed, back)) return
+
+    const resorted = failed.sort !== back.sort || failed.order !== back.order
+    notify.error(resorted ? 'common.table.sortFailed' : 'common.table.pageFailed', {
+      page: fmt.number(failed.page ?? 1),
+    })
+    reverting.value = true
+    query.value = { ...back }
+  },
+)
+
+const inlineError = computed(() => (reverting.value ? undefined : props.error))
+
 /* ─────────────────────────── CSV export ─────────────────────────── */
 
 /**
@@ -220,7 +283,7 @@ const forwardedSlots = computed(() =>
       </UTooltip>
     </div>
 
-    <CommonErrorState v-if="error" :error="error" @retry="emit('retry')" />
+    <CommonErrorState v-if="inlineError" :error="inlineError" @retry="emit('retry')" />
 
     <template v-else>
       <!-- `sorting-options` and `pagination-options` are two separate option bags and both are

@@ -47,7 +47,9 @@
       "showing": "第 {from}–{to} 筆，共 {total} 筆",
       "exportCsv": "匯出 CSV",
       "exportCsvHint": "將本頁資料下載為 CSV 檔案。",
-      "exportDenied": "您的角色無法匯出資料。"
+      "exportDenied": "您的角色無法匯出資料。",
+      "pageFailed": "無法載入第 {page} 頁，仍顯示您原本所在的頁面。",
+      "sortFailed": "無法變更排序，資料維持原本的順序。"
     }
   },
   "nav": {

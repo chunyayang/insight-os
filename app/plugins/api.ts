@@ -59,9 +59,9 @@ export default defineNuxtPlugin(() => {
         error: { code: 'NETWORK_ERROR', message: response.statusText || 'Request failed' },
       }
 
-      // Deliberately silent: the toast is raised once, at the cache level, by
-      // plugins/vue-query.ts. Notifying here too would double every message and
-      // put UI concerns in the transport layer.
+      // Deliberately silent: whether a failure gets a toast is a UI decision, made by
+      // plugins/vue-query.ts for mutations and by the surface for anything it shows
+      // inline. Notifying here would toast every failure, inline ones included.
       throw new ApiFetchError(apiError.error)
     },
 
