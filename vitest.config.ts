@@ -26,6 +26,9 @@ export default defineConfig({
         // Needs the Nuxt runtime: components, composables, auto-imports, plugins.
         test: {
           name: 'nuxt',
+          // A cached transform of test-utils' virtual app entry can't resolve its relative
+          // imports on the next run. Must be set per project; the root value isn't inherited (#119).
+          fsModuleCache: false,
           include: ['test/nuxt/**/*.{test,spec}.ts'],
           environment: 'nuxt',
         },
