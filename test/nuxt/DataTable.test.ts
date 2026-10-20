@@ -121,6 +121,15 @@ describe('DataTable', () => {
     expect(wrapper.findAll('thead button')).toHaveLength(1)
   })
 
+  it('offers no sort control on a sortable column with no field to send', async () => {
+    const { wrapper } = await mountTable({
+      columns: [
+        { accessorFn: (row: Row) => row.amount, header: 'Lifetime value', enableSorting: true },
+      ],
+    })
+    expect(wrapper.findAll('thead button')).toHaveLength(0)
+  })
+
   it('forwards a cell slot the parent adds after mount', async () => {
     const withSlot = ref(false)
     const harness = defineComponent({

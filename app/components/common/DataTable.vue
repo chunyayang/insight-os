@@ -102,6 +102,11 @@ const tableColumns = computed<TableColumn<T>[]>(() =>
 
     const label = column.header
     const id = columnId(column)
+    // An `accessorFn` column has no field to send until it is given an `id`.
+    if (!id) {
+      if (import.meta.dev) console.warn(`DataTable: sortable column "${label}" needs an \`id\``)
+      return column
+    }
 
     // Cast: spreading ColumnDef's discriminated union widens it past TS's ability to
     // re-narrow, though nothing but `header` changes shape.
