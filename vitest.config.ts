@@ -10,6 +10,9 @@ export default defineConfig({
   test: {
     // No tests exist yet in the scaffold; feature slices add them. See testing-and-ci.
     passWithNoTests: true,
+    // Vue's one-line notice that <Suspense> is experimental, printed by every
+    // mountSuspended() file; nothing in it is ours to act on.
+    onConsoleLog: (log) => !log.includes('<Suspense> is an experimental feature'),
     projects: [
       {
         // Pure logic — fast, runs in Node. Formatters, permission map, mappers.
@@ -26,6 +29,7 @@ export default defineConfig({
         // Needs the Nuxt runtime: components, composables, auto-imports, plugins.
         test: {
           name: 'nuxt',
+          setupFiles: ['test/nuxt/support/setup.ts'],
           include: ['test/nuxt/**/*.{test,spec}.ts'],
           environment: 'nuxt',
         },

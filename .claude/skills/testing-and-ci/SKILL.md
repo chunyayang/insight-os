@@ -104,6 +104,14 @@ component, testing Nuxt UI internals, and exhaustive E2E flows.
   test gets deterministic data. Keep stub shapes identical to `mock-api-contract`.
 - `mockNuxtImport('useState', …)` — mock an auto-imported composable (once per import
   per file; it's a hoisted `vi.mock` macro).
+- `useAppToast()` (`test/nuxt/support/toast.ts`) — `useToast()` for a test body. Called
+  bare outside a component it makes Vue warn about `inject()`; this resolves it under the
+  app context, as `useNotify()` does.
+- **A passing run prints nothing.** Fix a warning at its source rather than ignoring it.
+  `test/nuxt/support/setup.ts` gives elements the size happy-dom's missing layout denies
+  them (ECharts won't init on 0×0); a test that provokes a warning on purpose spies on
+  `console.warn` and asserts it. The one filtered message is Vue's `<Suspense>` notice
+  (`onConsoleLog` in `vitest.config`).
 
 ## Package scripts
 

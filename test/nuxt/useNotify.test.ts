@@ -1,5 +1,5 @@
-import { describe, expect, it, beforeEach } from 'vitest'
-import { useToast } from '@nuxt/ui/composables/useToast'
+import { describe, expect, it, beforeEach, vi } from 'vitest'
+import { useAppToast } from './support/toast'
 import { useNotify } from '../../app/composables/useNotify'
 
 /**
@@ -14,11 +14,11 @@ import { useNotify } from '../../app/composables/useNotify'
  */
 describe('useNotify outside a component setup', () => {
   beforeEach(() => {
-    useToast().clear()
+    useAppToast().clear()
   })
 
   it('raises a localized error toast without throwing', async () => {
-    const { toasts } = useToast()
+    const { toasts } = useAppToast()
 
     useNotify().error('errors.codes.notFound')
     await new Promise((resolve) => setTimeout(resolve, 0))
@@ -32,7 +32,7 @@ describe('useNotify outside a component setup', () => {
   })
 
   it('interpolates the params it is handed into the message', async () => {
-    const { toasts } = useToast()
+    const { toasts } = useAppToast()
 
     useNotify().error('common.table.pageFailed', { page: '3' })
     await new Promise((resolve) => setTimeout(resolve, 0))
@@ -43,7 +43,7 @@ describe('useNotify outside a component setup', () => {
   })
 
   it('translates the success key it is handed', async () => {
-    const { toasts } = useToast()
+    const { toasts } = useAppToast()
 
     useNotify().success('common.states.loading')
     await new Promise((resolve) => setTimeout(resolve, 0))
@@ -53,9 +53,12 @@ describe('useNotify outside a component setup', () => {
   })
 
   it('renders the key itself rather than throwing on an unknown key', async () => {
-    const { toasts } = useToast()
+    const { toasts } = useAppToast()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     useNotify().error('errors.codes.somethingNobodyDefined')
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('somethingNobodyDefined'))
+    warn.mockRestore()
     await new Promise((resolve) => setTimeout(resolve, 0))
 
     expect(toasts.value[0]?.description).toBe('errors.codes.somethingNobodyDefined')
