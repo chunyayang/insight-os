@@ -10,7 +10,7 @@ Legend: ✅ done · 🔜 next · ⬜ pending
 
 - ✅ git init on `main`; `.gitignore` / `.nvmrc` / `.npmrc`
 - ✅ Scaffold Nuxt 4 + pinned deps (PrimeVue **4** / Aura, Tailwind v4 + primeui, Pinia, Vue Query, Axios, Chart.js, i18n)
-- ✅ Tooling: ESLint + Prettier, `vitest.config.mts`, Playwright, Husky + commitlint + lint-staged, GitHub Actions CI
+- ✅ Tooling: ESLint + Prettier, `vitest.config.ts`, Playwright, Husky + commitlint + lint-staged, GitHub Actions CI
 - ✅ Commit scaffold on `main` (`chore: scaffold`)
 
 ## Phase 1 — Cross-cutting foundation
@@ -56,10 +56,10 @@ Legend: ✅ done · 🔜 next · ⬜ pending
   hex in TypeScript (`MARKET_COLOR`, `CHART_CHROME`) because Chart.js cannot consume `oklch()`.
 - **Node 24 · pnpm 11** — `onlyBuiltDependencies`/`allowBuilds` live in `pnpm-workspace.yaml`
   (pnpm 11 no longer reads the `pnpm` field in `package.json`).
-- **Playwright config is `playwright.config.mts`** — Playwright loads a `.ts` config as
-  CJS, so `import.meta.url` threw; `.mts` fixes it without adding `"type": "module"` to
-  package.json (which would change how every other `.js` config is parsed). Same reasoning
-  as `vitest.config.mts`.
+- **`package.json` declares `"type": "module"`** — Playwright loads a `.ts` config as CJS
+  unless the package is ESM, so `import.meta.url` threw; the project-wide field fixes that
+  for `playwright.config.ts` and `vitest.config.ts` alike, and every config is a plain
+  `.ts`/`.js` file.
 - **Nested composables opt-in** — `imports.dirs: ['composables/**']` in nuxt.config, because
   Nuxt only auto-imports `composables/` one level deep and the conventions require
   `composables/queries/`.

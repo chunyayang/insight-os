@@ -92,12 +92,11 @@ pnpm exec commitlint --edit "$1"
 }
 ```
 
-commitlint config — **use `commitlint.config.mjs`** with `export default` (or
-`.cjs` with `module.exports`). A plain `.js` file breaks if the project is ever
-ESM; `.mjs` is unambiguous:
+commitlint config — **use `commitlint.config.js`** with `export default`.
+`package.json` declares `"type": "module"`, so a plain `.js` config is ESM:
 
 ```js
-// commitlint.config.mjs
+// commitlint.config.js
 export default { extends: ['@commitlint/config-conventional'] }
 ```
 
