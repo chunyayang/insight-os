@@ -4,6 +4,7 @@ import { mountSuspended } from '@nuxt/test-utils/runtime'
 import KpiCard from '../../app/components/dashboard/KpiCard.vue'
 import { useOrganizationStore } from '../../app/stores/organization'
 import type { KpiMetric, Money } from '../../app/types/api'
+import { stubElementSize } from './support/layout'
 
 const money: Money = { USD: 240_499.66, JPY: 38_304_797, TWD: 7_671_166.43, EUR: 223_875.69 }
 
@@ -18,6 +19,8 @@ function metric(overrides: Partial<KpiMetric> = {}): KpiMetric {
 }
 
 describe('KpiCard', () => {
+  stubElementSize()
+
   it('renders a monetary KPI in the presentation currency, USD by default', async () => {
     const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() } })
     const text = wrapper.text()

@@ -29,7 +29,6 @@ export default defineConfig({
         // Needs the Nuxt runtime: components, composables, auto-imports, plugins.
         test: {
           name: 'nuxt',
-          setupFiles: ['test/nuxt/support/setup.ts'],
           include: ['test/nuxt/**/*.{test,spec}.ts'],
           environment: 'nuxt',
         },

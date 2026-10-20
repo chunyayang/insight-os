@@ -1,9 +1,7 @@
 import { useToast } from '@nuxt/ui/composables/useToast'
+import { withNuxtContext } from './context'
 
-/**
- * `useToast()` for a test body. Called bare, outside any component, it makes Vue warn
- * about `inject()`; the app context is what `useNotify()` resolves it under too.
- */
+/** `useToast()` for a test body. Called bare, outside a component, its `inject()` warns. */
 export function useAppToast() {
-  return useNuxtApp().vueApp.runWithContext(() => useToast())
+  return withNuxtContext(() => useToast())
 }
