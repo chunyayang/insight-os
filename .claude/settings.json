@@ -5,12 +5,12 @@
       "Bash(pnpm *)",
       "Bash(gh *)",
       "Bash(npm *)",
-      "Bash(npx *)"
+      "Bash(npx *)",
+      "Bash(rm -rf node_modules)",
+      "Bash(rm -rf ./node_modules)"
     ],
     "ask": [
-      "Bash(git subrepo *)",
-      "Bash(rm -rf *)",
-      "Bash(rm *)"
+      "Bash(git subrepo *)"
     ],
     "deny": [
       "Read(./.env)",
