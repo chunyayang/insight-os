@@ -6,8 +6,6 @@ import { defineVitestProject } from '@nuxt/test-utils/config'
 // through Nuxt's resolver, so mirror it here for files that import '~/constants/...'.
 const appDir = fileURLToPath(new URL('./app', import.meta.url))
 
-// `.mts` so importing @nuxt/test-utils works without forcing "type":"module" on the
-// whole project (that would change how every other .js/.mjs config is parsed).
 export default defineConfig({
   test: {
     // No tests exist yet in the scaffold; feature slices add them. See testing-and-ci.

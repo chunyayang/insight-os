@@ -166,7 +166,7 @@ A comment that would go stale if the code below changed shape is already a liabi
 
 ## Testing & delivery
 
-- How to test, the Vitest/`@nuxt/test-utils`/Playwright setup, and the GitHub Actions CI gate live in the `testing-and-ci` skill. One gotcha to note here: use `vitest.config.mts` — do **not** add `"type": "module"` to `package.json` just for tests, it changes how every other `.js` config is parsed.
+- How to test, the Vitest/`@nuxt/test-utils`/Playwright setup, and the GitHub Actions CI gate live in the `testing-and-ci` skill. One thing to note here: `package.json` declares `"type": "module"`, so configs are plain `.ts`/`.js` (`vitest.config.ts`, `playwright.config.ts`, `eslint.config.js`, `commitlint.config.js`); don't rename them to `.mts`/`.mjs`.
 - Branching, commit conventions, Husky/commitlint hooks, the PR flow, and the Definition of Done live in the `dod-and-git-workflow` skill. Deploys are owned by **Vercel** (preview per PR, production on merge to `main`) — never scripted in CI.
 
 ## When unsure

@@ -28,16 +28,15 @@ pnpm add -D vitest @nuxt/test-utils @vue/test-utils happy-dom @playwright/test p
 
 ## Vitest configuration
 
-Use **`vitest.config.mts`** (the `.mts` extension) so importing `@nuxt/test-utils`
-works without forcing `"type": "module"` on the whole project — setting that at the
-root would change how every other `.js` config (postcss, tailwind, commitlint) is
-parsed. Do **not** add `"type": "module"` to `package.json` just for tests.
+Use **`vitest.config.ts`**. `package.json` declares `"type": "module"`, so every `.js`/`.ts`
+config is ESM and `@nuxt/test-utils` imports with no special extension. Do **not** rename
+configs to `.mts`/`.mjs` to get that.
 
 Use the **Vitest projects** API so fast Node unit tests and slow Nuxt-runtime tests
 stay separated (mixing them is the most common source of flaky Nuxt tests):
 
 ```ts
-// vitest.config.mts
+// vitest.config.ts
 import { defineConfig } from 'vitest/config'
 import { defineVitestProject } from '@nuxt/test-utils/config'
 
