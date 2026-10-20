@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { defineComponent, h, nextTick, reactive, ref, type Component } from 'vue'
-import { useToast } from '@nuxt/ui/composables/useToast'
+import { useAppToast } from './support/toast'
 import { UApp } from '#components'
 import type { TableColumn } from '@nuxt/ui'
 import DataTable from '../../app/components/common/DataTable.vue'
@@ -179,7 +179,7 @@ describe('DataTable', () => {
     const page1 = { page: 1, pageSize: 20, sort: 'amount', order: 'desc' as const }
 
     async function failAfter(next: Partial<ListQuery>) {
-      useToast().clear()
+      useAppToast().clear()
       const mounted = await mountTable({ query: page1 })
       mounted.query.value = { ...mounted.query.value, ...next }
       await nextTick()
@@ -195,7 +195,7 @@ describe('DataTable', () => {
 
       expect(updates.at(-1)).toEqual(page1)
       expect(wrapper.find('.error-state').exists()).toBe(false)
-      expect(useToast().toasts.value.at(-1)?.description).toBe(
+      expect(useAppToast().toasts.value.at(-1)?.description).toBe(
         "Couldn't load page 2. The page you were on is still shown.",
       )
     })
@@ -204,7 +204,7 @@ describe('DataTable', () => {
       const { updates } = await failAfter({ sort: 'name', order: 'asc', page: 1 })
 
       expect(updates.at(-1)).toEqual(page1)
-      expect(useToast().toasts.value.at(-1)?.description).toBe(
+      expect(useAppToast().toasts.value.at(-1)?.description).toBe(
         "Couldn't change the sort order. The rows keep the order they had.",
       )
     })
@@ -214,7 +214,7 @@ describe('DataTable', () => {
 
       expect(updates).toHaveLength(0)
       expect(wrapper.find('.error-state').exists()).toBe(true)
-      expect(useToast().toasts.value).toHaveLength(0)
+      expect(useAppToast().toasts.value).toHaveLength(0)
     })
 
     it('errors inline, without a second toast, when the page it went back to fails too', async () => {
@@ -226,11 +226,11 @@ describe('DataTable', () => {
       await nextTick()
 
       expect(wrapper.find('.error-state').exists()).toBe(true)
-      expect(useToast().toasts.value).toHaveLength(1)
+      expect(useAppToast().toasts.value).toHaveLength(1)
     })
 
     it('goes back to the last response that arrived, not the last query that was asked', async () => {
-      useToast().clear()
+      useAppToast().clear()
       const { query, updates, live } = await mountTable({ query: page1 })
       const page2 = { ...page1, page: 2 }
 
@@ -250,13 +250,13 @@ describe('DataTable', () => {
     })
 
     it('errors inline when the page in hand fails, with nothing to go back to', async () => {
-      useToast().clear()
+      useAppToast().clear()
       const { wrapper, live } = await mountTable({ query: page1 })
       live.error = failure
       await nextTick()
 
       expect(wrapper.find('.error-state').exists()).toBe(true)
-      expect(useToast().toasts.value).toHaveLength(0)
+      expect(useAppToast().toasts.value).toHaveLength(0)
     })
   })
 

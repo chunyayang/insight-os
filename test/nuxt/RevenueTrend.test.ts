@@ -4,6 +4,7 @@ import { mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime'
 import RevenueTrend from '../../app/components/dashboard/RevenueTrend.vue'
 import { useOrganizationStore } from '../../app/stores/organization'
 import type { ApiResponse, RevenueResponse } from '../../app/types/api'
+import { stubElementSize } from './support/layout'
 
 const revenueFixture: ApiResponse<RevenueResponse> = {
   data: {
@@ -28,6 +29,8 @@ const revenueFixture: ApiResponse<RevenueResponse> = {
 registerEndpoint('/api/analytics/revenue', () => revenueFixture)
 
 describe('RevenueTrend', () => {
+  stubElementSize()
+
   it("plots every line in the organization's presentation currency, not a hardcoded USD", async () => {
     const wrapper = await mountSuspended(RevenueTrend)
 

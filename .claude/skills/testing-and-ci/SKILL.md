@@ -104,6 +104,18 @@ component, testing Nuxt UI internals, and exhaustive E2E flows.
   test gets deterministic data. Keep stub shapes identical to `mock-api-contract`.
 - `mockNuxtImport('useState', …)` — mock an auto-imported composable (once per import
   per file; it's a hoisted `vi.mock` macro).
+- `useAppToast()` (`test/nuxt/support/toast.ts`) — `useToast()` for a test body. Called
+  bare outside a component it makes Vue warn about `inject()`; this enters it through
+  `nuxtApp.runWithContext`, the way `plugins/vue-query.ts` enters `useNotify()`. Call
+  app code that runs outside a component the same way, never with a context of its own.
+- **A passing run prints nothing.** Fix a warning at its source, and in the test when
+  the test is its source, not by changing app code. A file that mounts a chart calls
+  `stubElementSize()` (`test/nuxt/support/layout.ts`): happy-dom does no layout, and
+  ECharts won't init on 0×0. A test that provokes a warning on purpose spies on
+  `console.warn`, asserts it, and restores it in `afterEach`. The one filtered message
+  is Vue's `<Suspense>` notice (`onConsoleLog` in `vitest.config`).
+- Vitest hides console output from passing tests by default, so check this with
+  `pnpm vitest run --silent=false`.
 
 ## Package scripts
 

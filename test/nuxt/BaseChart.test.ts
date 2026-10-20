@@ -2,8 +2,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import BaseChart from '../../app/components/charts/BaseChart.vue'
+import { stubElementSize } from './support/layout'
 
 describe('BaseChart', () => {
+  stubElementSize()
+
   it('forces animation off while the OS asks for reduced motion, and follows it live', async () => {
     let onChange: ((e: { matches: boolean }) => void) | undefined
     vi.spyOn(window, 'matchMedia').mockReturnValue({
