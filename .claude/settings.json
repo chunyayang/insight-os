@@ -5,7 +5,8 @@
       "Bash(pnpm *)",
       "Bash(gh *)",
       "Bash(npm *)",
-      "Bash(npx *)"
+      "Bash(npx *)",
+      "Bash(rm -rf node_modules)"
     ],
     "ask": [
       "Bash(git subrepo *)",
