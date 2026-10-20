@@ -9,13 +9,13 @@
     ],
     "ask": [
       "Bash(git subrepo *)",
-      "Bash(rm -rf *)"
+      "Bash(rm -rf *)",
+      "Bash(rm *)"
     ],
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",
-      "Read(./secrets/**)",
-      "Bash(rm -rf *)"
+      "Read(./secrets/**)"
     ]
   }
 }
