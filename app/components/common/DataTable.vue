@@ -251,12 +251,13 @@ function exportCsv() {
 /**
  * Forward `#<column>-cell` / `#<column>-header` straight through to UTable. Ours are held
  * back: each is declared below with an overridable default, and forwarding would redeclare
- * the same slot name twice.
+ * the same slot name twice. A function, not a `computed`: `slots` is not reactive, so a
+ * computed would never see a slot the parent adds later.
  */
 const OWN_SLOTS = ['toolbar', 'empty', 'loading']
-const forwardedSlots = computed(() =>
-  Object.keys(slots).filter((name) => !OWN_SLOTS.includes(name)),
-)
+function forwardedSlots(): string[] {
+  return Object.keys(slots).filter((name) => !OWN_SLOTS.includes(name))
+}
 </script>
 
 <template>
@@ -303,7 +304,7 @@ const forwardedSlots = computed(() =>
           rowCount: pagination?.total ?? rows.length,
         }"
       >
-        <template v-for="name in forwardedSlots" :key="name" #[name]="slotProps">
+        <template v-for="name in forwardedSlots()" :key="name" #[name]="slotProps">
           <slot :name="name" v-bind="slotProps ?? {}" />
         </template>
 

@@ -121,6 +121,27 @@ describe('DataTable', () => {
     expect(wrapper.findAll('thead button')).toHaveLength(1)
   })
 
+  it('forwards a cell slot the parent adds after mount', async () => {
+    const withSlot = ref(false)
+    const harness = defineComponent({
+      setup: () => () =>
+        h(UApp as Component, null, {
+          default: () =>
+            h(
+              DataTable as Component,
+              { columns, rows, pagination, caption: 'Customers', query: { page: 1 } },
+              withSlot.value ? { 'name-cell': () => 'slotted' } : {},
+            ),
+        }),
+    })
+    const wrapper = await mountSuspended(harness)
+    expect(wrapper.text()).not.toContain('slotted')
+
+    withSlot.value = true
+    await nextTick()
+    expect(wrapper.text()).toContain('slotted')
+  })
+
   it('renders its empty state instead of a bare table when there are no rows', async () => {
     const { wrapper } = await mountTable({
       rows: [],
