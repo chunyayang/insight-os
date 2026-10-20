@@ -223,17 +223,8 @@ const inlineError = computed(() => (reverting.value ? undefined : props.error))
 const canExport = computed(() => can('export:csv'))
 
 /**
- * A denied control is `aria-disabled`, never `disabled`. A `disabled` button leaves the tab
- * order and emits no events, which puts the tooltip out of reach of everyone without a mouse —
- * and the tooltip is a pointer affordance regardless (Reka ignores `pointerType === 'touch'`
- * by design), so activation has to say it out loud as well.
- *
- * Nothing to export YET is the other case: transient, self-explanatory, and nobody needs it
- * spelled out. That one stays truly disabled.
- *
- * Read off the rows rather than `loading`, because the two part company: `keepPreviousData`
- * holds the page on screen through a refetch, and rows a person can read are rows they can
- * export. Only the very first load has nothing in hand, and that is an empty `rows` already.
+ * Nothing to export yet is plainly `disabled`: transient, and needs no explaining. Read off
+ * `rows`, not `loading`: `keepPreviousData` keeps a page exportable through a refetch.
  */
 const exportUnavailable = computed(() => props.rows.length === 0)
 
@@ -274,7 +265,9 @@ function forwardedSlots(): string[] {
 
       <UTooltip v-if="csv && shouldRender('export:csv')" :text="exportTooltip">
         <!-- The button is the tooltip's own trigger: `focus` does not bubble, so a wrapper
-             around it would leave the tooltip closed for anyone arriving by keyboard. -->
+             around it would leave the tooltip closed for anyone arriving by keyboard. A denied
+             role gets `aria-disabled`: `disabled` drops the tab stop and the click, and the
+             tooltip never opens on touch, so the click has to explain the denial itself. -->
         <UButton
           :label="t('common.table.exportCsv')"
           icon="i-lucide-download"
