@@ -69,7 +69,7 @@ const initials = computed(() =>
     <!-- Rail toggle on desktop, drawer opener on mobile. Both icon-only -> aria-label. -->
     <UButton
       class="topbar__rail-toggle rounded-full"
-      icon="i-lucide-menu"
+      :icon="ui.sidebarCollapsed ? 'i-lucide-panel-left-open' : 'i-lucide-panel-left-close'"
       :aria-label="ui.sidebarCollapsed ? t('nav.expand') : t('nav.collapse')"
       color="neutral"
       variant="ghost"
@@ -134,6 +134,7 @@ const initials = computed(() =>
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-height: var(--ui-header-height); /* lines its border up with the sidebar header's */
   padding: 0.625rem 1rem;
   background: var(--ui-bg);
   border-block-end: 1px solid var(--ui-border);
