@@ -26,9 +26,9 @@ export interface NavGroup {
  */
 export const NAV_GROUPS: NavGroup[] = [
   {
-    key: 'main',
+    key: 'overview',
     items: [
-      { key: 'dashboard', to: '/', icon: 'i-lucide-house' },
+      { key: 'dashboard', to: '/', icon: 'i-lucide-layout-dashboard' },
       {
         key: 'analytics',
         to: '/analytics',
@@ -38,13 +38,13 @@ export const NAV_GROUPS: NavGroup[] = [
       {
         key: 'aiAssistant',
         to: '/ai-assistant',
-        icon: 'i-lucide-messages-square',
+        icon: 'i-lucide-bot',
         ability: 'ai:chat',
       },
     ],
   },
   {
-    key: 'manage',
+    key: 'operations',
     items: [
       { key: 'customers', to: '/customers', icon: 'i-lucide-users' },
       {
@@ -64,7 +64,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'org',
     items: [
-      { key: 'team', to: '/team', icon: 'i-lucide-user-cog', ability: 'team:manage' },
+      { key: 'team', to: '/team', icon: 'i-lucide-folder-users', ability: 'team:manage' },
       { key: 'notifications', to: '/notifications', icon: 'i-lucide-bell' },
       { key: 'settings', to: '/settings', icon: 'i-lucide-settings' },
     ],
