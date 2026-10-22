@@ -5,41 +5,36 @@
  * The responsive strategy (spec §5.1) lives in ShellSidebar.
  */
 const ui = useUiStore()
+const router = useRouter()
 
 // Seeds the organization store's settings once per session (spec §4.10) so they are
 // readable anywhere in the app, not just on Settings.
 useOrgSettingsQuery()
+
+// UDashboardGroup pins the shell to the viewport, so pages scroll inside <main> and Nuxt's
+// scrollBehavior, which moves the window, can't reach them. Same rule as Nuxt's: a new
+// path starts at the top, a query or hash change on the same path keeps its place.
+const main = useTemplateRef('main')
+let lastPath = router.currentRoute.value.path
+useRuntimeHook('page:finish', () => {
+  const { path } = router.currentRoute.value
+  if (path === lastPath) return
+  lastPath = path
+  main.value?.scrollTo({ top: 0 })
+})
 </script>
 
 <template>
-  <div class="shell">
+  <UDashboardGroup class="bg-muted">
     <ShellSidebar />
 
-    <div class="shell__column">
+    <!-- The default slot, not #header/#body: it keeps <main> as the scroll container. -->
+    <UDashboardPanel>
       <ShellTopbar @toggle-sidebar="ui.toggleSidebar()" @open-mobile-nav="ui.openMobileNav()" />
 
-      <main class="shell__main p-4 md:p-6">
+      <main ref="main" class="flex-1 overflow-y-auto p-4 md:p-6">
         <slot />
       </main>
-    </div>
-  </div>
+    </UDashboardPanel>
+  </UDashboardGroup>
 </template>
-
-<style scoped>
-.shell {
-  min-height: 100dvh;
-  display: flex;
-  background: var(--ui-bg-muted);
-}
-
-.shell__column {
-  flex: 1;
-  min-width: 0; /* lets wide tables/charts scroll instead of blowing out the row */
-  display: flex;
-  flex-direction: column;
-}
-
-.shell__main {
-  flex: 1;
-}
-</style>
