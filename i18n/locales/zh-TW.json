@@ -54,8 +54,8 @@
   },
   "nav": {
     "groups": {
-      "main": "主要",
-      "manage": "管理",
+      "overview": "總覽",
+      "operations": "營運",
       "org": "組織"
     },
     "items": {

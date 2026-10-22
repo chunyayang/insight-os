@@ -54,8 +54,8 @@
   },
   "nav": {
     "groups": {
-      "main": "Main",
-      "manage": "Manage",
+      "overview": "Overview",
+      "operations": "Operations",
       "org": "Organization"
     },
     "items": {

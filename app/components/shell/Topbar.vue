@@ -68,8 +68,8 @@ const initials = computed(() =>
   <header class="topbar">
     <!-- Rail toggle on desktop, drawer opener on mobile. Both icon-only -> aria-label. -->
     <UButton
-      class="topbar__rail-toggle rounded-full"
-      icon="i-lucide-menu"
+      class="rounded-full max-lg:hidden"
+      :icon="ui.sidebarCollapsed ? 'i-lucide-panel-left-open' : 'i-lucide-panel-left-close'"
       :aria-label="ui.sidebarCollapsed ? t('nav.expand') : t('nav.collapse')"
       color="neutral"
       variant="ghost"
@@ -77,7 +77,7 @@ const initials = computed(() =>
       @click="emit('toggleSidebar')"
     />
     <UButton
-      class="topbar__drawer-toggle rounded-full"
+      class="rounded-full lg:hidden"
       icon="i-lucide-menu"
       :aria-label="t('nav.openMenu')"
       color="neutral"
@@ -86,7 +86,7 @@ const initials = computed(() =>
       @click="emit('openMobileNav')"
     />
 
-    <div class="topbar__search">
+    <div class="topbar__search max-sm:hidden">
       <UInput
         v-model="search"
         icon="i-lucide-search"
@@ -134,6 +134,7 @@ const initials = computed(() =>
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-height: var(--ui-header-height); /* lines its border up with the sidebar header's */
   padding: 0.625rem 1rem;
   background: var(--ui-bg);
   border-block-end: 1px solid var(--ui-border);
@@ -149,25 +150,5 @@ const initials = computed(() =>
   align-items: center;
   gap: 0.375rem;
   margin-inline-start: auto;
-}
-
-.topbar__drawer-toggle {
-  display: none;
-}
-
-/* Below the tablet breakpoint the rail toggle gives way to the drawer opener. */
-@media (max-width: 1023px) {
-  .topbar__rail-toggle {
-    display: none;
-  }
-  .topbar__drawer-toggle {
-    display: inline-flex;
-  }
-}
-
-@media (max-width: 640px) {
-  .topbar__search {
-    display: none;
-  }
 }
 </style>
