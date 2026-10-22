@@ -18,7 +18,7 @@ useOrgSettingsQuery()
     <div class="shell__column">
       <ShellTopbar @toggle-sidebar="ui.toggleSidebar()" @open-mobile-nav="ui.openMobileNav()" />
 
-      <main class="shell__main">
+      <main class="shell__main p-4 md:p-6">
         <slot />
       </main>
     </div>
@@ -41,12 +41,5 @@ useOrgSettingsQuery()
 
 .shell__main {
   flex: 1;
-  padding: 1.5rem;
-}
-
-@media (max-width: 767px) {
-  .shell__main {
-    padding: 1rem;
-  }
 }
 </style>
