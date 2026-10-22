@@ -11,7 +11,13 @@ const { t } = useI18n()
 const isMobile = ref(false)
 let mobileQuery: MediaQueryList | undefined
 
+// USidebar keeps its overlay's open state across the desktop breakpoint and resyncs it only
+// when `open` changes on mobile, which it doesn't when the rail is collapsed. Remounting it
+// on the way to desktop starts the next overlay closed.
+const sidebarKey = ref(0)
+
 function syncMobile() {
+  if (isMobile.value && !mobileQuery!.matches) sidebarKey.value++
   isMobile.value = mobileQuery!.matches
   ui.closeMobileNav()
 }
@@ -36,6 +42,7 @@ const open = computed({
 
 <template>
   <USidebar
+    :key="sidebarKey"
     v-model:open="open"
     collapsible="icon"
     :title="t('common.appName')"
