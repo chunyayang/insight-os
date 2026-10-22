@@ -13,17 +13,9 @@ export const useUiStore = defineStore('ui', () => {
   /** Mobile drawer visibility — transient, not persisted. */
   const mobileNavOpen = ref(false)
 
-  function toggleSidebar() {
-    sidebarCollapsed.value = !sidebarCollapsed.value
-  }
-
-  function openMobileNav() {
-    mobileNavOpen.value = true
-  }
-
   function closeMobileNav() {
     mobileNavOpen.value = false
   }
 
-  return { sidebarCollapsed, mobileNavOpen, toggleSidebar, openMobileNav, closeMobileNav }
+  return { sidebarCollapsed, mobileNavOpen, closeMobileNav }
 })

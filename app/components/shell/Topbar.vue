@@ -2,11 +2,8 @@
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { ROLES } from '~/constants/permissions'
 
-const emit = defineEmits<{ toggleSidebar: []; openMobileNav: [] }>()
-
 const { t } = useI18n()
 const auth = useAuthStore()
-const ui = useUiStore()
 
 const search = ref('')
 
@@ -66,25 +63,10 @@ const initials = computed(() =>
 
 <template>
   <header class="topbar">
-    <!-- Rail toggle on desktop, drawer opener on mobile. Both icon-only -> aria-label. -->
-    <UButton
-      class="rounded-full max-lg:hidden"
-      :icon="ui.sidebarCollapsed ? 'i-lucide-panel-left-open' : 'i-lucide-panel-left-close'"
-      :aria-label="ui.sidebarCollapsed ? t('nav.expand') : t('nav.collapse')"
-      color="neutral"
-      variant="ghost"
-      square
-      @click="emit('toggleSidebar')"
-    />
-    <UButton
-      class="rounded-full lg:hidden"
-      icon="i-lucide-menu"
-      :aria-label="t('nav.openMenu')"
-      color="neutral"
-      variant="ghost"
-      square
-      @click="emit('openMobileNav')"
-    />
+    <!-- Rail toggle on desktop, slide-over opener below `lg`; each hides itself at the
+         other width and brings its own localized aria-label. -->
+    <UDashboardSidebarCollapse class="rounded-full" square />
+    <UDashboardSidebarToggle class="rounded-full" square />
 
     <div class="topbar__search max-sm:hidden">
       <UInput

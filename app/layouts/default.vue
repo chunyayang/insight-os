@@ -2,9 +2,10 @@
 /**
  * Authenticated app shell: full-height sidebar beside the top bar and page.
  *
- * The responsive strategy (spec §5.1) lives in ShellSidebar.
+ * The responsive strategy (spec §5.1) lives in ShellSidebar. The group is not persistent:
+ * the rail preference is the ui store's cookie, bound through ShellSidebar's
+ * v-model:collapsed, not a second cookie of the group's own.
  */
-const ui = useUiStore()
 const router = useRouter()
 
 // Seeds the organization store's settings once per session (spec §4.10) so they are
@@ -25,12 +26,12 @@ useRuntimeHook('page:finish', () => {
 </script>
 
 <template>
-  <UDashboardGroup class="bg-muted">
+  <UDashboardGroup :persistent="false" unit="rem" class="bg-muted">
     <ShellSidebar />
 
     <!-- The default slot, not #header/#body: it keeps <main> as the scroll container. -->
     <UDashboardPanel>
-      <ShellTopbar @toggle-sidebar="ui.toggleSidebar()" @open-mobile-nav="ui.openMobileNav()" />
+      <ShellTopbar />
 
       <main ref="main" class="flex-1 overflow-y-auto p-4 md:p-6">
         <slot />

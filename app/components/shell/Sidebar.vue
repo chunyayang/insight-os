@@ -1,59 +1,38 @@
 <script setup lang="ts">
 /**
- * Docked sidebar on desktop, collapsible to an icon rail; below 1024px USidebar swaps it
- * for an overlay, where `open` drives the overlay instead of the rail.
+ * Docked sidebar on desktop, collapsible to an icon rail; below `lg` UDashboardSidebar
+ * swaps it for a slide-over. The rail (`collapsed`) and the overlay (`open`) are separate
+ * models, so the overlay never touches the persisted rail preference.
  */
 const ui = useUiStore()
 const { t } = useI18n()
 
-// Matches USidebar's own breakpoint. False until mounted, as in USidebar, so the server
-// and the first client render agree.
-const isMobile = ref(false)
-let mobileQuery: MediaQueryList | undefined
-
-// USidebar keeps its overlay's open state across the desktop breakpoint and resyncs it only
-// when `open` changes on mobile, which it doesn't when the rail is collapsed. Remounting it
-// on the way to desktop starts the next overlay closed.
-const sidebarKey = ref(0)
-
-function syncMobile() {
-  if (isMobile.value && !mobileQuery!.matches) sidebarKey.value++
-  isMobile.value = mobileQuery!.matches
-  ui.closeMobileNav()
-}
-
+// `lg:hidden` only hides an overlay left open across the breakpoint: it stays a modal,
+// keeping the desktop shell inert and aria-hidden. Close it on every crossing instead.
+let lgQuery: MediaQueryList | undefined
 onMounted(() => {
-  mobileQuery = window.matchMedia('(max-width: 1023px)')
-  syncMobile()
-  mobileQuery.addEventListener('change', syncMobile)
+  lgQuery = window.matchMedia('(min-width: 64rem)')
+  lgQuery.addEventListener('change', ui.closeMobileNav)
 })
-onBeforeUnmount(() => mobileQuery?.removeEventListener('change', syncMobile))
-
-// Desktop writes are ignored: USidebar only writes `open` there to sync itself across the
-// breakpoint, and that must not overwrite the persisted rail preference. The toggle
-// changes the store directly.
-const open = computed({
-  get: () => (isMobile.value ? ui.mobileNavOpen : !ui.sidebarCollapsed),
-  set: (value) => {
-    if (isMobile.value) ui.mobileNavOpen = value
-  },
-})
+onBeforeUnmount(() => lgQuery?.removeEventListener('change', ui.closeMobileNav))
 </script>
 
 <template>
-  <USidebar
-    :key="sidebarKey"
-    v-model:open="open"
-    collapsible="icon"
-    :title="t('common.appName')"
-    :ui="{ container: 'bg-default' }"
+  <UDashboardSidebar
+    v-model:collapsed="ui.sidebarCollapsed"
+    v-model:open="ui.mobileNavOpen"
+    collapsible
+    :default-size="16"
+    :collapsed-size="4"
+    :menu="{ title: t('common.appName') }"
+    :ui="{ root: 'bg-default' }"
   >
-    <template #title="{ state }">
-      <ShellBrand :collapsed="state === 'collapsed'" />
+    <template #header="{ collapsed }">
+      <ShellBrand :collapsed="collapsed" />
     </template>
 
-    <template #default="{ state }">
-      <ShellNavMenu :collapsed="state === 'collapsed'" @navigate="ui.closeMobileNav()" />
+    <template #default="{ collapsed }">
+      <ShellNavMenu :collapsed="collapsed" @navigate="ui.closeMobileNav()" />
     </template>
-  </USidebar>
+  </UDashboardSidebar>
 </template>
