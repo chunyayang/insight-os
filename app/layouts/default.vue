@@ -4,7 +4,9 @@
  *
  * The responsive strategy (spec §5.1) lives in ShellSidebar. The group is not persistent:
  * the rail preference is the ui store's cookie, bound through ShellSidebar's
- * v-model:collapsed, not a second cookie of the group's own.
+ * v-model:collapsed, not a second cookie of the group's own. Below `lg` the group is
+ * released so the window scrolls: phones keep scroll restoration on back/forward and an
+ * address bar that shrinks on scroll.
  */
 const router = useRouter()
 
@@ -12,9 +14,10 @@ const router = useRouter()
 // readable anywhere in the app, not just on Settings.
 useOrgSettingsQuery()
 
-// UDashboardGroup pins the shell to the viewport, so pages scroll inside <main> and Nuxt's
-// scrollBehavior, which moves the window, can't reach them. Same rule as Nuxt's: a new
-// path starts at the top, a query or hash change on the same path keeps its place.
+// From `lg` UDashboardGroup pins the shell to the viewport and pages scroll inside <main>,
+// which Nuxt's scrollBehavior (it moves the window) can't reach. Same rule as Nuxt's: a new
+// path starts at the top, a query or hash change on the same path keeps its place. Below
+// `lg` <main> doesn't scroll, so this is a no-op and Nuxt's own behaviour applies.
 const main = useTemplateRef('main')
 let lastPath = router.currentRoute.value.path
 useRuntimeHook('page:finish', () => {
@@ -26,14 +29,18 @@ useRuntimeHook('page:finish', () => {
 </script>
 
 <template>
-  <UDashboardGroup :persistent="false" unit="rem" class="bg-muted">
+  <UDashboardGroup
+    :persistent="false"
+    unit="rem"
+    class="bg-muted max-lg:static max-lg:overflow-visible"
+  >
     <ShellSidebar />
 
     <!-- The default slot, not #header/#body: it keeps <main> as the scroll container. -->
     <UDashboardPanel>
       <ShellTopbar />
 
-      <main ref="main" class="flex-1 overflow-y-auto p-4 md:p-6">
+      <main ref="main" class="flex-1 p-4 md:p-6 lg:overflow-y-auto">
         <slot />
       </main>
     </UDashboardPanel>
