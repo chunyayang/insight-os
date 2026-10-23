@@ -2,11 +2,8 @@
 import type { DropdownMenuItem } from '@nuxt/ui'
 import { ROLES } from '~/constants/permissions'
 
-const emit = defineEmits<{ toggleSidebar: []; openMobileNav: [] }>()
-
 const { t } = useI18n()
 const auth = useAuthStore()
-const ui = useUiStore()
 
 const search = ref('')
 
@@ -65,39 +62,32 @@ const initials = computed(() =>
 </script>
 
 <template>
-  <header class="topbar">
-    <!-- Rail toggle on desktop, drawer opener on mobile. Both icon-only -> aria-label. -->
-    <UButton
-      class="rounded-full max-lg:hidden"
-      :icon="ui.sidebarCollapsed ? 'i-lucide-panel-left-open' : 'i-lucide-panel-left-close'"
-      :aria-label="ui.sidebarCollapsed ? t('nav.expand') : t('nav.collapse')"
-      color="neutral"
-      variant="ghost"
-      square
-      @click="emit('toggleSidebar')"
-    />
-    <UButton
-      class="rounded-full lg:hidden"
-      icon="i-lucide-menu"
-      :aria-label="t('nav.openMenu')"
-      color="neutral"
-      variant="ghost"
-      square
-      @click="emit('openMobileNav')"
-    />
+  <!-- The navbar's own toggle opens the slide-over below `lg`; the collapse button is the
+       desktop rail toggle. Each hides itself at the other width.
+       Sticky because below `lg` the window scrolls, not the panel body; from `lg` the header
+       sits outside the scrolling body, so it stays put either way. z-10 lifts it over
+       positioned page content (charts, cards) while staying under Nuxt UI's z-50 overlays. -->
+  <UDashboardNavbar
+    as="header"
+    :toggle="{ class: 'rounded-full' }"
+    :ui="{ root: 'sticky top-0 z-10 bg-default', left: 'flex-1' }"
+  >
+    <template #leading>
+      <UDashboardSidebarCollapse class="rounded-full" square />
+    </template>
 
-    <div class="topbar__search max-sm:hidden">
+    <template #trailing>
       <UInput
         v-model="search"
         icon="i-lucide-search"
         :placeholder="t('topbar.searchPlaceholder')"
         :aria-label="t('topbar.search')"
         size="sm"
-        class="w-full"
+        class="w-full max-w-104 max-sm:hidden"
       />
-    </div>
+    </template>
 
-    <div class="topbar__actions">
+    <template #right>
       <!-- One link, not a button nested inside one: UButton renders the anchor itself
            when `to` is set, and UChip decorates it without adding another tab stop. -->
       <UChip :text="unreadCount" :show="unreadCount > 0" color="error" size="lg" inset>
@@ -125,30 +115,6 @@ const initials = computed(() =>
           square
         />
       </UDropdownMenu>
-    </div>
-  </header>
+    </template>
+  </UDashboardNavbar>
 </template>
-
-<style scoped>
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-height: var(--ui-header-height); /* lines its border up with the sidebar header's */
-  padding: 0.625rem 1rem;
-  background: var(--ui-bg);
-  border-block-end: 1px solid var(--ui-border);
-}
-
-.topbar__search {
-  flex: 1;
-  max-width: 26rem;
-}
-
-.topbar__actions {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  margin-inline-start: auto;
-}
-</style>
