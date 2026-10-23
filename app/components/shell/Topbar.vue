@@ -63,11 +63,14 @@ const initials = computed(() =>
 
 <template>
   <!-- The navbar's own toggle opens the slide-over below `lg`; the collapse button is the
-       desktop rail toggle. Each hides itself at the other width. -->
+       desktop rail toggle. Each hides itself at the other width.
+       Sticky because below `lg` the window scrolls, not the panel body; from `lg` the header
+       sits outside the scrolling body, so it stays put either way. z-10 lifts it over
+       positioned page content (charts, cards) while staying under Nuxt UI's z-50 overlays. -->
   <UDashboardNavbar
     as="header"
     :toggle="{ class: 'rounded-full' }"
-    :ui="{ root: 'bg-default', left: 'flex-1' }"
+    :ui="{ root: 'sticky top-0 z-10 bg-default', left: 'flex-1' }"
   >
     <template #leading>
       <UDashboardSidebarCollapse class="rounded-full" square />
