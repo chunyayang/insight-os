@@ -25,7 +25,7 @@ onBeforeUnmount(() => lgQuery?.removeEventListener('change', ui.closeMobileNav))
     :default-size="16"
     :collapsed-size="4"
     :menu="{ title: t('common.appName') }"
-    :ui="{ root: 'bg-default' }"
+    :ui="{ root: 'bg-default', content: 'max-w-xs' }"
   >
     <template #header="{ collapsed }">
       <ShellBrand :collapsed="collapsed" />
