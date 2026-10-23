@@ -14,17 +14,17 @@ const router = useRouter()
 // readable anywhere in the app, not just on Settings.
 useOrgSettingsQuery()
 
-// From `lg` UDashboardGroup pins the shell to the viewport and pages scroll inside <main>,
-// which Nuxt's scrollBehavior (it moves the window) can't reach. Same rule as Nuxt's: a new
-// path starts at the top, a query or hash change on the same path keeps its place. Below
-// `lg` <main> doesn't scroll, so this is a no-op and Nuxt's own behaviour applies.
+// From `lg` UDashboardGroup pins the shell to the viewport and pages scroll inside the
+// panel's body, which Nuxt's scrollBehavior (it moves the window) can't reach. Same rule as
+// Nuxt's: a new path starts at the top, a query or hash change on the same path keeps its
+// place. Below `lg` the body doesn't scroll, so this is a no-op and Nuxt's own behaviour applies.
 const main = useTemplateRef('main')
 let lastPath = router.currentRoute.value.path
 useRuntimeHook('page:finish', () => {
   const { path } = router.currentRoute.value
   if (path === lastPath) return
   lastPath = path
-  main.value?.scrollTo({ top: 0 })
+  main.value?.closest('[data-slot="body"]')?.scrollTo({ top: 0 })
 })
 </script>
 
@@ -36,13 +36,17 @@ useRuntimeHook('page:finish', () => {
   >
     <ShellSidebar />
 
-    <!-- The default slot, not #header/#body: it keeps <main> as the scroll container. -->
-    <UDashboardPanel>
-      <ShellTopbar />
+    <!-- The body scrolls only from `lg`, matching the group: below it the window scrolls. -->
+    <UDashboardPanel :ui="{ body: 'max-lg:overflow-visible' }">
+      <template #header>
+        <ShellTopbar />
+      </template>
 
-      <main ref="main" class="flex-1 p-4 md:p-6 lg:overflow-y-auto">
-        <slot />
-      </main>
+      <template #body>
+        <main ref="main">
+          <slot />
+        </main>
+      </template>
     </UDashboardPanel>
   </UDashboardGroup>
 </template>
