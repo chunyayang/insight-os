@@ -55,12 +55,13 @@ useRuntimeHook('page:finish', () => {
   <UDashboardGroup
     :persistent="false"
     unit="rem"
-    class="bg-muted max-lg:static max-lg:overflow-visible"
+    class="bg-muted max-lg:static max-lg:overflow-visible print:static print:overflow-visible"
   >
     <ShellSidebar />
 
-    <!-- The body scrolls only from `lg`, matching the group: below it the window scrolls. -->
-    <UDashboardPanel :ui="{ body: 'max-lg:overflow-visible' }">
+    <!-- The body scrolls only from `lg`, matching the group: below it, and in print, the
+         window scrolls, so a printed page runs to its full length. -->
+    <UDashboardPanel :ui="{ body: 'max-lg:overflow-visible print:overflow-visible' }">
       <template #header>
         <ShellTopbar />
       </template>
