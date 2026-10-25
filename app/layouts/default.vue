@@ -16,15 +16,38 @@ useOrgSettingsQuery()
 
 // From `lg` UDashboardGroup pins the shell to the viewport and pages scroll inside the
 // panel's body, which Nuxt's scrollBehavior (it moves the window) can't reach. Same rule as
-// Nuxt's: a new path starts at the top, a query or hash change on the same path keeps its
-// place. Below `lg` the body doesn't scroll, so this is a no-op and Nuxt's own behaviour applies.
+// Nuxt's: a new path starts at the top, back/forward returns to where that entry was left, a
+// query or hash change on the same path keeps its place. Below `lg` the body doesn't scroll,
+// so this is a no-op and Nuxt's own behaviour applies.
 const main = useTemplateRef('main')
+const body = () => main.value?.closest('[data-slot="body"]')
 let lastPath = router.currentRoute.value.path
+
+// Vue Router numbers history entries (`history.state.position`). A navigation that starts on
+// an entry other than the one last landed on is a back/forward traversal.
+const scrollByEntry = new Map<number | undefined, number>()
+let entry: number | undefined
+let traversal = false
+if (import.meta.client) {
+  entry = history.state?.position
+  const stopBefore = router.beforeEach(() => {
+    scrollByEntry.set(entry, body()?.scrollTop ?? 0)
+    traversal = history.state?.position !== entry
+  })
+  const stopAfter = router.afterEach((_to, _from, failure) => {
+    if (!failure) entry = history.state?.position
+  })
+  onScopeDispose(() => {
+    stopBefore()
+    stopAfter()
+  })
+}
+
 useRuntimeHook('page:finish', () => {
   const { path } = router.currentRoute.value
   if (path === lastPath) return
   lastPath = path
-  main.value?.closest('[data-slot="body"]')?.scrollTo({ top: 0 })
+  body()?.scrollTo({ top: traversal ? (scrollByEntry.get(entry) ?? 0) : 0 })
 })
 </script>
 
