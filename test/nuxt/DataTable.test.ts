@@ -296,9 +296,8 @@ describe('DataTable', () => {
       const { wrapper } = await mountTable({ csv }, 'viewer')
 
       await buttonWithText(wrapper, 'Export CSV')?.trigger('click')
-      await nextTick()
 
-      expect(document.body.textContent).toContain("Your role can't export data.")
+      expect(useAppToast().toasts.value.at(-1)?.title).toBe("Your role can't export data.")
     })
 
     /** Nothing in hand yet and nothing to explain, so the plain disabled treatment is right. */
