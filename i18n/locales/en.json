@@ -183,6 +183,10 @@
     "general": {
       "title": "General",
       "saved": "Settings saved.",
+      "defaultMarket": {
+        "label": "Default operating market",
+        "help": "The market your Dashboard opens on. This is a personal setting: it changes only your own view."
+      },
       "presentationCurrency": {
         "label": "Presentation currency",
         "help": "Set the presentation currency for cross-market aggregated data and dual-currency fields in 'Customers' and 'Campaigns'. Amounts from all markets will be converted to this currency at applicable exchange rates for consolidated analysis.",

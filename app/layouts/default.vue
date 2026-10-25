@@ -10,9 +10,10 @@
  */
 const router = useRouter()
 
-// Seeds the organization store's settings once per session (spec §4.10) so they are
+// Seeds the organization and preferences stores once per session (spec §4.10) so they are
 // readable anywhere in the app, not just on Settings.
 useOrgSettingsQuery()
+useUserSettingsQuery()
 
 // From `lg` UDashboardGroup pins the shell to the viewport and pages scroll inside the
 // panel's body, which Nuxt's scrollBehavior (it moves the window) can't reach. Same rule as

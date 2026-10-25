@@ -183,6 +183,10 @@
     "general": {
       "title": "一般",
       "saved": "設定已儲存。",
+      "defaultMarket": {
+        "label": "預設營運市場",
+        "help": "您的儀表板預設顯示的市場。此為個人設定，僅影響您自己的檢視畫面。"
+      },
       "presentationCurrency": {
         "label": "表達貨幣 (Presentation Currency)",
         "help": "設定跨市場彙總數據，以及「顧客」與「行銷活動」雙貨幣欄位的主要呈現貨幣。系統將依指定匯率，將各市場金額統一轉換為此貨幣，以利集團合併分析。",
