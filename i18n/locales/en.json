@@ -68,10 +68,7 @@
       "team": "Team",
       "notifications": "Notifications",
       "settings": "Settings"
-    },
-    "collapse": "Collapse sidebar",
-    "expand": "Expand sidebar",
-    "openMenu": "Open navigation"
+    }
   },
   "topbar": {
     "searchPlaceholder": "Search markets, customers, campaigns",
