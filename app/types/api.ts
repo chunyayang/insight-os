@@ -120,6 +120,19 @@ export interface OrgSettings {
 
 export type UpdateOrgSettingsRequest = Partial<OrgSettings>
 
+/* ─────────────────────────── User settings ─────────────────────────── */
+
+/**
+ * One signed-in user's preferences, separate from `OrgSettings`: every role may write
+ * their own (spec §4.10). `defaultMarket` seeds the session default a page's market
+ * filter falls back to, and the Dashboard's scope.
+ */
+export interface UserSettings {
+  defaultMarket: MarketCode | 'All'
+}
+
+export type UpdateUserSettingsRequest = Partial<UserSettings>
+
 /* ─────────────────────────── Dashboard ─────────────────────────── */
 
 export interface KpiMetric {
