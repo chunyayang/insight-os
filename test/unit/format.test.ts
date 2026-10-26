@@ -1,8 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  dayPeriod,
   formatCompactCurrency,
   formatCurrency,
   formatDelta,
+  formatLongDate,
   formatMoney,
   formatMonthDay,
   formatPercent,
@@ -128,5 +130,58 @@ describe('locale mapping', () => {
     expect(intlLocale('zh-TW')).toBe('zh-TW')
     expect(intlLocale('en')).toBe('en-US')
     expect(intlLocale('anything-else')).toBe('en-US')
+  })
+})
+
+describe("the viewer's day", () => {
+  /** Pins the zone the formatters read by name; returned whole so the machine's has no say. */
+  function inTimeZone(timeZone: string) {
+    vi.spyOn(Intl.DateTimeFormat.prototype, 'resolvedOptions').mockReturnValue({
+      locale: 'en-US',
+      calendar: 'gregory',
+      numberingSystem: 'latn',
+      timeZone,
+    })
+  }
+
+  beforeEach(() => {
+    // Date only: the full install replaces Intl.DateTimeFormat and the spy would miss.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    // 08:30 Friday in Taipei, 20:30 Thursday in New York.
+    vi.setSystemTime(new Date('2026-07-03T00:30:00Z'))
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  it("dates and greets in the viewer's zone, not UTC", () => {
+    inTimeZone('Asia/Taipei')
+    expect(formatLongDate('en-US')).toBe('Friday, July 3, 2026')
+    // ICU versions disagree on the space before the weekday.
+    expect(formatLongDate('zh-TW')).toMatch(/^2026年7月3日\s?星期五$/)
+    expect(dayPeriod()).toBe('morning')
+  })
+
+  /** The other side of the date line from the same instant. */
+  it('puts a viewer west of UTC on the previous evening', () => {
+    inTimeZone('America/New_York')
+    expect(formatLongDate('en-US')).toBe('Thursday, July 2, 2026')
+    expect(dayPeriod()).toBe('evening')
+  })
+
+  it('splits the day at 05, 12 and 18', () => {
+    inTimeZone('UTC')
+    const at = (hour: number) => dayPeriod(new Date(Date.UTC(2026, 6, 3, hour)))
+    expect([4, 5, 11, 12, 17, 18, 0].map(at)).toEqual([
+      'evening',
+      'morning',
+      'morning',
+      'afternoon',
+      'afternoon',
+      'evening',
+      'evening',
+    ])
   })
 })

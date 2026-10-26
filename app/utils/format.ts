@@ -125,6 +125,42 @@ export function formatDateTime(iso: string, locale: SupportedLocale): string {
   )
 }
 
+/**
+ * The viewer's own zone, read by name rather than left to Intl's default so the zone a
+ * formatter uses is one value a test can pin. Browser-only in meaning: on the server it
+ * names the host's zone, so callers render its output on the client alone.
+ */
+function viewerTimeZone(): string {
+  return new Intl.DateTimeFormat().resolvedOptions().timeZone
+}
+
+/** Today's date in the viewer's zone, in full: "Friday, July 3, 2026" / "2026年7月3日 星期五". */
+export function formatLongDate(locale: SupportedLocale, now: Date = new Date()): string {
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: viewerTimeZone(),
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(now)
+}
+
+export type DayPeriod = 'morning' | 'afternoon' | 'evening'
+
+/** Which part of the viewer's day it is: morning 05–11, afternoon 12–17, evening otherwise. */
+export function dayPeriod(now: Date = new Date()): DayPeriod {
+  const hour = Number(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: viewerTimeZone(),
+      hour: 'numeric',
+      hourCycle: 'h23',
+    }).format(now),
+  )
+  if (hour >= 5 && hour < 12) return 'morning'
+  if (hour >= 12 && hour < 18) return 'afternoon'
+  return 'evening'
+}
+
 /** Relative time for notifications/activity ("2 hours ago"). */
 export function formatRelativeTime(
   iso: string,
