@@ -81,7 +81,10 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "subtitle": "Today's performance across your markets.",
+    "subtitle": {
+      "all": "Today's performance across all markets.",
+      "market": "Today's performance in the {market} market."
+    },
     "kpi": {
       "revenue": "Today's Revenue",
       "orders": "Orders",
@@ -93,7 +96,7 @@
     "alerts": {
       "title": "Anomaly alerts",
       "askAi": "Ask AI why",
-      "empty": "No anomalies detected — all markets look normal.",
+      "empty": "No anomalies detected.",
       "severity": {
         "critical": "Critical",
         "warning": "Warning",

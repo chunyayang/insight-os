@@ -81,7 +81,10 @@
   },
   "dashboard": {
     "title": "儀表板",
-    "subtitle": "今日各市場的營運表現。",
+    "subtitle": {
+      "all": "今日所有市場的營運表現。",
+      "market": "今日{market}市場的營運表現。"
+    },
     "kpi": {
       "revenue": "今日營收",
       "orders": "訂單數",
@@ -93,7 +96,7 @@
     "alerts": {
       "title": "異常警示",
       "askAi": "詢問 AI 原因",
-      "empty": "未偵測到異常 — 所有市場運作正常。",
+      "empty": "未偵測到異常。",
       "severity": {
         "critical": "嚴重",
         "warning": "警告",
