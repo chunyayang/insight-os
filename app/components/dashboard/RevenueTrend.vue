@@ -12,13 +12,18 @@ import type { TrendSeries } from '~/components/charts/TrendLineChart.vue'
  * of them render in the org's presentation currency (currency-model.md §3) — a
  * cross-market aggregate has no functional currency, and even a single-market line
  * must match the others' scale. Not the Analytics selector, which is scoped there.
+ *
+ * The tabs open on the default operating market, so the chart starts on the KPI cards'
+ * market (spec §4.2). A tab picked here stays in the component and never writes back.
  */
 const { t } = useI18n()
 const fmt = useFormat()
 const organization = useOrganizationStore()
 const filters = useFiltersStore()
+const preferences = usePreferencesStore()
 
-const market = ref<MarketFilter>('All')
+// Seeded once: the Dashboard mounts this only after the user's settings have loaded.
+const market = ref<MarketFilter>(preferences.defaultMarket)
 const { data, isPending, isError, error, refetch } = useRevenueSeries({ market })
 
 // The query scopes itself to the global range, so the title names that range rather

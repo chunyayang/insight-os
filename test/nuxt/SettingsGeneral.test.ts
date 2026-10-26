@@ -1,10 +1,35 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
-import { mountSuspended } from '@nuxt/test-utils/runtime'
+import type { VueWrapper } from '@vue/test-utils'
+import { readBody } from 'h3'
+import { mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime'
 import Harness from './support/SettingsGeneralHarness.vue'
 import { useAuthStore } from '../../app/stores/auth'
 import { useOrganizationStore } from '../../app/stores/organization'
-import type { Role } from '../../app/types/api'
+import { usePreferencesStore } from '../../app/stores/preferences'
+import type { ApiResponse, Role, UserSettings } from '../../app/types/api'
+
+let saved: UserSettings = { defaultMarket: 'All' }
+registerEndpoint('/api/settings/me', {
+  method: 'GET',
+  handler: (): ApiResponse<UserSettings> => ({ data: saved }),
+})
+registerEndpoint('/api/settings/me', {
+  method: 'PATCH',
+  handler: async (event): Promise<ApiResponse<UserSettings>> => {
+    saved = { ...saved, ...(await readBody<Partial<UserSettings>>(event)) }
+    return { data: saved }
+  },
+})
+
+/** The control a field's label points at — each field is found by what it is, not its order. */
+function control(wrapper: VueWrapper, label: string) {
+  const id = wrapper
+    .findAll('label')
+    .find((l) => l.text() === label)
+    ?.attributes('for')
+  return wrapper.find(`#${id}`)
+}
 
 // Signing in AFTER mount, not before: mountSuspended boots a real Nuxt app whose own
 // Pinia plugin installs the active instance the component's stores resolve against,
@@ -32,19 +57,30 @@ describe('SettingsGeneral', () => {
     expect(wrapper.find('[aria-disabled="true"], [disabled]').exists()).toBe(false)
   })
 
-  it('disables the field for a Viewer, with a tooltip explaining why', async () => {
+  it.each<Role>(['viewer', 'analyst'])(
+    'disables the currency for a %s — it is Admin-only — but not their default market',
+    async (role) => {
+      const wrapper = await mountSuspended(Harness)
+      signInAs(role)
+      await nextTick()
+
+      expect(control(wrapper, 'Presentation currency').attributes('disabled')).toBeDefined()
+      expect(control(wrapper, 'Default operating market').attributes('disabled')).toBeUndefined()
+    },
+  )
+
+  it("saves a Viewer's default market and updates the session default", async () => {
     const wrapper = await mountSuspended(Harness)
     signInAs('viewer')
     await nextTick()
 
-    expect(wrapper.find('[aria-disabled="true"], [disabled]').exists()).toBe(true)
-  })
+    const id = control(wrapper, 'Default operating market').attributes('id')
+    const select = wrapper
+      .findAllComponents({ name: 'USelect' })
+      .find((c) => c.find(`#${id}`).exists())
+    select!.vm.$emit('update:modelValue', 'JP')
 
-  it('disables the field for an Analyst too — the currency is Admin-only', async () => {
-    const wrapper = await mountSuspended(Harness)
-    signInAs('analyst')
-    await nextTick()
-
-    expect(wrapper.find('[aria-disabled="true"], [disabled]').exists()).toBe(true)
+    await vi.waitFor(() => expect(usePreferencesStore().defaultMarket).toBe('JP'))
+    expect(saved.defaultMarket).toBe('JP')
   })
 })

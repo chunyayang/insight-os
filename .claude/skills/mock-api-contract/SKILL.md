@@ -81,6 +81,8 @@ interface ApiError {
   - `GET /api/campaigns` , `GET /api/campaigns/abtests`
   - `GET /api/data-sources` , `GET /api/data-sources/sync-status`
   - `GET /api/team/members` , `GET /api/team/activity`
+  - `GET` / `PATCH /api/settings/org` → organization policy (`OrgSettings`); `PATCH` is Admin only
+  - `GET` / `PATCH /api/settings/me` → the signed-in user's own preferences (`UserSettings`); any role, own record only
   - `POST /api/ai/chat` → AI Assistant analysis response
   - `GET /api/notifications`
 

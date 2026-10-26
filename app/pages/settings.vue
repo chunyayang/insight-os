@@ -1,9 +1,5 @@
 <script setup lang="ts">
-/**
- * General tab only, for now — org name, default operating market, and timezone are
- * later slices. This exists so Settings has a real seam for the presentation currency
- * rather than a placeholder standing in for it.
- */
+/** General tab only, for now — the organization name and the other tabs are later slices. */
 const { t } = useI18n()
 </script>
 

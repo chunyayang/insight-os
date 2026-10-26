@@ -13,22 +13,20 @@ export const dashboardKeys = {
 }
 
 /**
- * Dashboard summary. The market filter comes from Pinia as a reactive ref and flows
- * into the query key, so changing it refetches automatically. So does the locale: the
- * payload's AI summary is written in it.
- *
- * Note what is NOT here: display currency. The payload carries all four currencies, so
- * switching currency is a client-side key switch with no request.
+ * Dashboard summary, scoped to the session's default operating market (spec §4.2): read from
+ * the preferences store, never from the URL or another page's filter. `/` takes no `?market=`.
+ * No currency param: the payload carries all four, so a currency switch needs no request.
  */
 export function useDashboardSummary() {
   const { $api } = useNuxtApp()
-  const filters = useFiltersStore()
+  const preferences = usePreferencesStore()
+  const settings = useUserSettingsQuery()
   const { locale } = useI18n()
 
-  const market = computed(() => filters.market)
+  const market = computed(() => preferences.defaultMarket)
 
   return useQuery({
-    // A computed key keeps the query reactive to the Pinia filter.
+    // Locale is in the key because the payload's AI summary is written in it.
     queryKey: computed(() => dashboardKeys.summary(market.value, locale.value)),
     queryFn: async () => {
       const response = await $api<ApiResponse<DashboardSummary>>('/dashboard/summary', {
@@ -36,5 +34,8 @@ export function useDashboardSummary() {
       })
       return response.data
     },
+    // Wait for the user's settings, so the page never fetches `All` and then refetches their
+    // market. A failed settings load leaves the default at `All`.
+    enabled: computed(() => !settings.isPending.value),
   })
 }

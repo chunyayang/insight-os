@@ -81,7 +81,10 @@
   },
   "dashboard": {
     "title": "儀表板",
-    "subtitle": "今日各市場的營運表現。",
+    "subtitle": {
+      "all": "今日所有市場的營運表現。",
+      "market": "今日{market}市場的營運表現。"
+    },
     "kpi": {
       "revenue": "今日營收",
       "orders": "訂單數",
@@ -93,7 +96,7 @@
     "alerts": {
       "title": "異常警示",
       "askAi": "詢問 AI 原因",
-      "empty": "未偵測到異常 — 所有市場運作正常。",
+      "empty": "未偵測到異常。",
       "severity": {
         "critical": "嚴重",
         "warning": "警告",
@@ -183,6 +186,10 @@
     "general": {
       "title": "一般",
       "saved": "設定已儲存。",
+      "defaultMarket": {
+        "label": "預設營運市場",
+        "help": "您的儀表板預設顯示的市場。此為個人設定，僅影響您自己的檢視畫面。"
+      },
       "presentationCurrency": {
         "label": "表達貨幣 (Presentation Currency)",
         "help": "設定跨市場彙總數據，以及「顧客」與「行銷活動」雙貨幣欄位的主要呈現貨幣。系統將依指定匯率，將各市場金額統一轉換為此貨幣，以利集團合併分析。",

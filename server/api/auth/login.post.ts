@@ -1,11 +1,5 @@
 import type { ApiResponse, LoginRequest, LoginResponse, Role } from '../../../app/types/api'
 
-const DEMO_USERS: Record<Role, { id: string; name: string; email: string }> = {
-  admin: { id: 'u-001', name: 'Avery Chen', email: 'avery.chen@insight-os.demo' },
-  analyst: { id: 'u-002', name: 'Jordan Miles', email: 'jordan.miles@insight-os.demo' },
-  viewer: { id: 'u-003', name: 'Sam Okafor', email: 'sam.okafor@insight-os.demo' },
-}
-
 /**
  * Mock sign-in. The demo role picker seeds the session role so RBAC can be reviewed
  * without a real IdP; a short password deliberately fails so the error path
