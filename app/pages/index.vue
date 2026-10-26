@@ -4,23 +4,12 @@
  * No business logic lives here (derivation belongs in the API/mocks, formatting in
  * useFormat, permissions in useCan).
  */
-const { t } = useI18n()
 const { data, isPending, isError, error, refetch, isFetching } = useDashboardSummary()
-const preferences = usePreferencesStore()
-
-/** Names the market the summary is scoped to, so the page says what it shows. */
-const subtitle = computed(() =>
-  preferences.defaultMarket === 'All'
-    ? t('dashboard.subtitle.all')
-    : t('dashboard.subtitle.market', {
-        market: t(`common.markets.${preferences.defaultMarket.toLowerCase()}`),
-      }),
-)
 </script>
 
 <template>
   <div>
-    <CommonPageHeader :title="t('dashboard.title')" :subtitle="subtitle" />
+    <DashboardGreeting />
 
     <!-- Loading: skeletons matching the real layout, not a spinner. USkeleton takes no
          size props — its box is set with utilities, and the heights mirror the cards

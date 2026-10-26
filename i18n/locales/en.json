@@ -80,11 +80,12 @@
     "signedInAs": "Signed in as"
   },
   "dashboard": {
-    "title": "Dashboard",
-    "subtitle": {
-      "all": "Today's performance across all markets.",
-      "market": "Today's performance in the {market} market."
+    "greeting": {
+      "morning": "Good morning, {name}",
+      "afternoon": "Good afternoon, {name}",
+      "evening": "Good evening, {name}"
     },
+    "subtitle": "{date} · {scope}",
     "kpi": {
       "revenue": "Today's Revenue",
       "orders": "Orders",
