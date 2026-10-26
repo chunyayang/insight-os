@@ -60,13 +60,19 @@ describe('useDashboardSummary', () => {
     await vi.waitFor(() => expect(summaryMarkets).toEqual(['JP']))
   })
 
-  it('follows a change to the default, and ignores a market picked on Customers', async () => {
+  it('follows a change to the default', async () => {
     await mountProbe()
     signIn()
     await vi.waitFor(() => expect(summaryMarkets).toEqual(['All']))
 
     usePreferencesStore().setDefaultMarket('DE')
     await vi.waitFor(() => expect(summaryMarkets.at(-1)).toBe('DE'))
+  })
+
+  it('ignores a market picked on Customers', async () => {
+    await mountProbe()
+    signIn()
+    await vi.waitFor(() => expect(summaryMarkets).toEqual(['All']))
 
     const before = summaryMarkets.length
     useFiltersStore().setMarket('TW')
