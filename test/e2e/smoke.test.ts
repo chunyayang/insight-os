@@ -8,6 +8,10 @@ import { expect, test } from '@nuxt/test-utils/playwright'
  * one flow, not exhaustive coverage (see testing-and-ci).
  */
 test.describe('Insight OS smoke', () => {
+  // The Dashboard's h1 greets the user by the time of day, so match any of the three.
+  const greeting = /^Good (morning|afternoon|evening), /
+  const greetingZh = /^(早安|午安|晚安)，/
+
   test('signs in and renders the dashboard with the JP anomaly', async ({ page, goto }) => {
     // Unauthenticated users are bounced to login by the global guard.
     await goto('/', { waitUntil: 'hydration' })
@@ -19,7 +23,7 @@ test.describe('Insight OS smoke', () => {
 
     // Lands on the dashboard.
     await expect(page).toHaveURL(/^[^?]*\/$/)
-    await expect(page.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: greeting, level: 1 })).toBeVisible()
 
     // KPI tiles resolve past their skeletons. `exact` matters: each label also appears
     // inside its sparkline's accessible caption ("14-day trend for …").
@@ -40,7 +44,7 @@ test.describe('Insight OS smoke', () => {
     await page.getByRole('radio', { name: 'Viewer' }).check()
     await page.getByRole('button', { name: 'Sign in' }).click()
 
-    await expect(page.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: greeting, level: 1 })).toBeVisible()
 
     // *(Hidden)* means the nav entry is gone…
     await expect(page.getByRole('link', { name: 'Team' })).toHaveCount(0)
@@ -55,7 +59,7 @@ test.describe('Insight OS smoke', () => {
     await page.getByLabel('Email').fill('avery@insight-os.demo')
     await page.getByLabel('Password', { exact: true }).fill('secret123')
     await page.getByRole('button', { name: 'Sign in' }).click()
-    await expect(page.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: greeting, level: 1 })).toBeVisible()
 
     // Dark mode is a class on <html>, persisted in a cookie.
     await page.getByRole('button', { name: 'Toggle theme' }).click()
@@ -64,6 +68,6 @@ test.describe('Insight OS smoke', () => {
     // zh-TW swaps copy in place (no_prefix keeps the URL stable).
     await page.getByRole('combobox').first().click()
     await page.getByRole('option', { name: '繁體中文' }).click()
-    await expect(page.getByRole('heading', { name: '儀表板', level: 1 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: greetingZh, level: 1 })).toBeVisible()
   })
 })

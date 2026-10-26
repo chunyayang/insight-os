@@ -11,6 +11,8 @@ test.describe('Shell scroll restoration', () => {
   // Below `lg` the window scrolls and Nuxt restores it, so there is nothing of ours to test.
   test.skip(({ viewport }) => (viewport?.width ?? 0) < 1024, 'the panel body scrolls only from lg')
 
+  // The Dashboard's h1 greets the user by the time of day, so match any of the three.
+  const greeting = /^Good (morning|afternoon|evening), /
   const body = (page: Page) => page.locator('main')
   const scrollTop = (page: Page) =>
     body(page).evaluate((main) => main.closest('[data-slot="body"]')!.scrollTop)
@@ -42,7 +44,7 @@ test.describe('Shell scroll restoration', () => {
     await scrollTo(page, 150)
 
     await page.goBack()
-    await expect(page.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: greeting, level: 1 })).toBeVisible()
     await expect.poll(() => scrollTop(page)).toBe(300)
 
     await page.goForward()
