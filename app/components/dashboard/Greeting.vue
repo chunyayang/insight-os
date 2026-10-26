@@ -14,14 +14,14 @@ const preferences = usePreferencesStore()
 // First word of the name: a CJK name with no space stays whole.
 const firstName = computed(() => auth.user?.name.split(' ')[0] ?? '')
 
-const scope = computed(() => t(`common.markets.${preferences.defaultMarket.toLowerCase()}`))
+const market = computed(() => t(`common.markets.${preferences.defaultMarket.toLowerCase()}`))
 </script>
 
 <template>
   <ClientOnly>
     <CommonPageHeader
       :title="t(`dashboard.greeting.${dayPeriod()}`, { name: firstName })"
-      :subtitle="t('dashboard.subtitle', { date: longDate(), scope })"
+      :subtitle="t('dashboard.subtitle', { date: longDate(), market })"
     />
     <template #fallback>
       <div class="greeting__fallback">

@@ -85,7 +85,7 @@
       "afternoon": "Good afternoon, {name}",
       "evening": "Good evening, {name}"
     },
-    "subtitle": "{date} · {scope}",
+    "subtitle": "{date} · {market}",
     "kpi": {
       "revenue": "Today's Revenue",
       "orders": "Orders",

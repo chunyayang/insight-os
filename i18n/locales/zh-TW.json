@@ -85,7 +85,7 @@
       "afternoon": "午安，{name}",
       "evening": "晚安，{name}"
     },
-    "subtitle": "{date} · {scope}",
+    "subtitle": "{date} · {market}",
     "kpi": {
       "revenue": "今日營收",
       "orders": "訂單數",
