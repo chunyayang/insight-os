@@ -26,6 +26,8 @@ jobs:
 
       # --frozen-lockfile fails loudly if pnpm-lock.yaml drifts from package.json.
       - run: pnpm install --frozen-lockfile
+      # postinstall's `nuxt prepare` rewrites .nuxtrc when a module's recorded version is stale.
+      - run: git diff --exit-code .nuxtrc
 
       - run: pnpm lint
       - run: pnpm typecheck
