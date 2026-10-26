@@ -13,16 +13,9 @@ export const dashboardKeys = {
 }
 
 /**
- * Dashboard summary, scoped to the session's default operating market (spec §4.2). That
- * scope is configuration, read straight from the preferences store, never from the URL or a
- * page's filter: `/` takes no `?market=`, and no other page's market control reaches it. The
- * locale is in the key too: the payload's AI summary is written in it.
- *
- * It waits while the user's settings load, so the page never fetches `All` only to refetch
- * the user's market a moment later. A failed settings load leaves the default at `All`.
- *
- * Note what is NOT here: display currency. The payload carries all four currencies, so
- * switching currency is a client-side key switch with no request.
+ * Dashboard summary, scoped to the session's default operating market (spec §4.2): read from
+ * the preferences store, never from the URL or another page's filter. `/` takes no `?market=`.
+ * No currency param: the payload carries all four, so a currency switch needs no request.
  */
 export function useDashboardSummary() {
   const { $api } = useNuxtApp()
@@ -33,6 +26,7 @@ export function useDashboardSummary() {
   const market = computed(() => preferences.defaultMarket)
 
   return useQuery({
+    // Locale is in the key because the payload's AI summary is written in it.
     queryKey: computed(() => dashboardKeys.summary(market.value, locale.value)),
     queryFn: async () => {
       const response = await $api<ApiResponse<DashboardSummary>>('/dashboard/summary', {
@@ -40,6 +34,8 @@ export function useDashboardSummary() {
       })
       return response.data
     },
+    // Wait for the user's settings, so the page never fetches `All` and then refetches their
+    // market. A failed settings load leaves the default at `All`.
     enabled: computed(() => !settings.isPending.value),
   })
 }
