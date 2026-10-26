@@ -80,11 +80,12 @@
     "signedInAs": "登入身分"
   },
   "dashboard": {
-    "title": "儀表板",
-    "subtitle": {
-      "all": "今日所有市場的營運表現。",
-      "market": "今日{market}市場的營運表現。"
+    "greeting": {
+      "morning": "早安，{name}",
+      "afternoon": "午安，{name}",
+      "evening": "晚安，{name}"
     },
+    "subtitle": "{date} · {market}",
     "kpi": {
       "revenue": "今日營收",
       "orders": "訂單數",

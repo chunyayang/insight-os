@@ -6,6 +6,7 @@ import {
   formatDate,
   formatDateTime,
   formatDelta,
+  formatLongDate,
   formatMoney,
   formatMonthDay,
   formatNumber,
@@ -57,6 +58,8 @@ export function useFormat() {
     /** Calendar date without the year, for dense axes: "Sep 17". */
     monthDay: (isoDate: string) => formatMonthDay(isoDate, loc.value),
     dateTime: (iso: string) => formatDateTime(iso, loc.value),
+    /** Today in the viewer's zone, in full. Client-only: the server doesn't know the zone. */
+    longDate: (now?: Date) => formatLongDate(loc.value, now),
     relativeTime: (iso: string, now?: Date) => formatRelativeTime(iso, loc.value, now),
   }
 }
