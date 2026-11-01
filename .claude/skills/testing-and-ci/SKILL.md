@@ -1,6 +1,6 @@
 ---
 name: testing-and-ci
-description: Testing stack and CI pipeline for the Insight OS analytics platform — Vitest + @nuxt/test-utils + @vue/test-utils for unit/component/Nuxt-runtime tests, Playwright for an E2E smoke, and a single GitHub Actions CI workflow (pnpm + Node 24) that lints, type-checks, tests, and builds every PR. Deployment is owned by Vercel, not CI. ALWAYS consult this skill when writing or editing any test, adding or changing vitest.config / playwright.config, deciding what to test for a new feature, adding a test script, or touching anything under .github/workflows/. This is an MVP — test the risky logic, not everything.
+description: Testing stack and CI pipeline for the Insight OS analytics platform — Vitest + @nuxt/test-utils + @vue/test-utils for unit/component/Nuxt-runtime tests, Playwright for an E2E smoke, and a single GitHub Actions CI workflow (pnpm + Node 26) that lints, type-checks, tests, and builds every PR. Deployment is owned by Vercel, not CI. ALWAYS consult this skill when writing or editing any test, adding or changing vitest.config / playwright.config, deciding what to test for a new feature, adding a test script, or touching anything under .github/workflows/. This is an MVP — test the risky logic, not everything.
 ---
 
 # Insight OS — Testing & CI
@@ -9,7 +9,7 @@ The testing bar for the MVP is **deliberately minimal**: cover the logic that is
 expensive to get wrong (money formatting, RBAC, cross-market mapping) plus one
 end-to-end happy path — not a coverage target. Verify installed versions in
 `package.json` before relying on version-specific API; this skill targets
-**Nuxt 4 + `@nuxt/test-utils` (Vitest projects API) + Node 24 + pnpm**.
+**Nuxt 4 + `@nuxt/test-utils` (Vitest projects API) + Node 26 + pnpm**.
 
 ## Test stack
 
@@ -251,7 +251,7 @@ jobs:
       - uses: pnpm/action-setup@v4          # must come BEFORE setup-node
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile  # fails if lockfile is out of sync
       - run: pnpm lint

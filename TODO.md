@@ -54,7 +54,7 @@ Legend: ✅ done · 🔜 next · ⬜ pending
   come from Tailwind v4's own theme; the motion keyframes had zero consumers. The
   `insight-os-design-tokens` skill is deleted. Chart colors are the one exception and now live as
   hex in TypeScript (`MARKET_COLOR`, `CHART_CHROME`) because Chart.js cannot consume `oklch()`.
-- **Node 24 · pnpm 11** — `onlyBuiltDependencies`/`allowBuilds` live in `pnpm-workspace.yaml`
+- **Node 26 · pnpm 11** — `onlyBuiltDependencies`/`allowBuilds` live in `pnpm-workspace.yaml`
   (pnpm 11 no longer reads the `pnpm` field in `package.json`).
 - **`package.json` declares `"type": "module"`** — Playwright loads a `.ts` config as CJS
   unless the package is ESM, so `import.meta.url` threw; the project-wide field fixes that
