@@ -8,7 +8,7 @@ Nuxt 4 (`app/` dir) · TypeScript · Vue 3 `<script setup>` · Nuxt UI 4 ·
 Tailwind CSS v4 · Pinia · TanStack Vue Query ·
 Apache ECharts (`vue-echarts`) · `@nuxtjs/i18n`. Verify exact versions in `package.json` before adding deps.
 
-Package manager: **pnpm** (commit `pnpm-lock.yaml`; set the `packageManager` field in `package.json`). Node: **24**.
+Package manager: **pnpm** (commit `pnpm-lock.yaml`; set the `packageManager` field in `package.json`). Node: **26**.
 
 ## Layout (Nuxt 4)
 App code lives in `app/`: `components/{charts,common,<module>}/`,
