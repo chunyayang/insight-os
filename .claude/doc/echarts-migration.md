@@ -190,21 +190,21 @@ high-density mobile hardware — so the swap shipped. See **Outcome** below for 
 
 ### PRs 4–7 — net-new chart types (gated, not scheduled)
 
-- **PR 4 `feature/ai-point-annotations`** (gate: AI Assistant Chat build) — §4.4.1. Extend
+- **PR 4 `feat/ai-point-annotations`** (gate: AI Assistant Chat build) — §4.4.1. Extend
   `TrendLineChart.vue` (or a thin sibling) with `annotations?: {t,label}[]` → ECharts `markPoint`.
   Add `MarkPointComponent` to `app/utils/echarts.ts`'s `use()` list. `AiChatResponse.chart.annotations`
   already matches this shape — no type change needed for this PR specifically.
-- **PR 5 `feature/analytics-funnel-chart`** (gate: Analytics → Conversion Funnel tab) — §4.3.3. New
+- **PR 5 `feat/analytics-funnel-chart`** (gate: Analytics → Conversion Funnel tab) — §4.3.3. New
   `FunnelStage`/`FunnelSeries`/`FunnelResponse` types; new `FunnelChart.vue` using ECharts
   `series.funnel`, one per market, colored via `colorForMarket()`. Add `FunnelChart` to
   `app/utils/echarts.ts`'s `use()` list.
-- **PR 6 `feature/analytics-retention-heatmap`** (gate: Analytics → User Retention tab) — §4.3.4.
+- **PR 6 `feat/analytics-retention-heatmap`** (gate: Analytics → User Retention tab) — §4.3.4.
   New `CohortRetentionCell`/`CohortRetentionResponse` types; new `RetentionHeatmap.vue` using
   ECharts `series.heatmap` + `visualMap`. Add `HeatmapChart` + `VisualMapComponent` to
   `app/utils/echarts.ts`'s `use()` list. Needs a new theming primitive — `useChartTheme()` gains a
   *sequential* palette (low→high), since the existing categorical per-market palette doesn't fit a
   heatmap.
-- **PR 7 `feature/billing-usage-gauge`** (gate: Settings → Billing tab; lowest priority — not a
+- **PR 7 `feat/billing-usage-gauge`** (gate: Settings → Billing tab; lowest priority — not a
   hero flow) — §4.10.4. New `UsageGauge`/`BillingUsageResponse` types; new `UsageGauge.vue` using
   ECharts `series.gauge`. Gated in the page on `can('settings:admin')` —
   `DENIED_TREATMENT['settings:admin'] = 'hidden'` in `app/constants/permissions.ts`, so the tab is
