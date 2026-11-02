@@ -12,8 +12,12 @@ const router = useRouter()
 
 // Seeds the organization and preferences stores once per session (spec §4.10) so they are
 // readable anywhere in the app, not just on Settings.
-useOrgSettingsQuery()
-useUserSettingsQuery()
+const orgSettings = useOrgSettingsQuery()
+const userSettings = useUserSettingsQuery()
+// Fetched during SSR and handed over in the payload, so the client's first render already
+// holds the user's market and nothing on the page waits on a settings request. A failed
+// prefetch still renders the page; the client then fetches as usual.
+onServerPrefetch(() => Promise.allSettled([orgSettings.suspense(), userSettings.suspense()]))
 
 // From `lg` UDashboardGroup pins the shell to the viewport and pages scroll inside the
 // panel's body, which Nuxt's scrollBehavior (it moves the window) can't reach. Same rule as
