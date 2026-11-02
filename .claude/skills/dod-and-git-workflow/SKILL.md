@@ -16,10 +16,10 @@ One long-lived branch, always deployable:
 
 - **`main`** — always releasable; **protected** (no direct pushes, PR + green CI
   required). Merging here triggers the Vercel **production** deploy.
-- **Short-lived working branches**, branched from `main`, deleted after merge:
-  - `feature/<short-slug>` — new functionality
-  - `fix/<short-slug>` — bug fixes
-  - `chore/<short-slug>` / `docs/<short-slug>` — tooling, deps, docs
+- **Short-lived working branches**, branched from `main`, deleted after merge, named
+  `<type>/<short-slug>`. Branch prefixes follow the Conventional Commits types
+  (`feat/`, `fix/`, `refactor/`, `test/`, `ci/`, etc. — full list under "Commit
+  conventions" below), e.g. `feat/market-filter-per-page`.
 
 **No long-lived `staging` branch.** For a Vercel-hosted frontend, a staging branch
 would mean merging every change twice and constantly reconciling drift. Vercel's
