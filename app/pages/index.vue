@@ -5,6 +5,9 @@
  * useFormat, permissions in useCan).
  */
 const { data, isPending, isError, error, refetch, isFetching } = useDashboardSummary()
+// The trend fetches beside the summary, not after it: it needs only the user's settings,
+// to open on their default market.
+const { isPending: settingsPending } = useUserSettingsQuery()
 </script>
 
 <template>
@@ -19,7 +22,6 @@ const { data, isPending, isError, error, refetch, isFetching } = useDashboardSum
         <USkeleton v-for="n in 4" :key="n" class="h-36 rounded-xl" />
       </div>
       <USkeleton class="dash__block h-40 rounded-xl" />
-      <USkeleton class="dash__block h-88 rounded-xl" />
     </template>
 
     <CommonErrorState v-else-if="isError" :error="error" @retry="refetch()" />
@@ -41,11 +43,12 @@ const { data, isPending, isError, error, refetch, isFetching } = useDashboardSum
           @regenerate="refetch()"
         />
       </div>
-
-      <div class="dash__block">
-        <DashboardRevenueTrend />
-      </div>
     </template>
+
+    <USkeleton v-if="settingsPending" class="dash__block h-88 rounded-xl" />
+    <div v-else class="dash__block">
+      <DashboardRevenueTrend />
+    </div>
   </div>
 </template>
 
