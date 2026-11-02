@@ -100,6 +100,7 @@ Hard boundary — violating it is the most common review rejection:
   - Use a query-key factory per domain: `revenueKeys.byMarket(market, range)` — never inline array keys in components.
   - Page filters flow into queries as reactive refs read from the URL, already resolved through memory and defaults, so changing a filter changes the query key and refetches. A page with no control for a param reads its session default from Pinia directly.
   - Default `staleTime` 60s for analytics data; mutations must invalidate the relevant key factory branch.
+  - Only the session-seeding queries (org and user settings, in `layouts/default.vue`) are fetched during SSR, through `onServerPrefetch` + `suspense()`, and reach the client in the payload, so the first render already holds the session defaults. Page data fetches on the client: prefetching it would hold the HTML for its slowest request.
 
 ## API layer
 
