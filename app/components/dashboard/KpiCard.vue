@@ -31,7 +31,14 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
 </script>
 
 <template>
-  <article class="kpi">
+  <!-- Body only: a header would divide the label from the figure it names. -->
+  <UCard
+    as="article"
+    :ui="{
+      root: 'min-w-0',
+      body: 'flex flex-col gap-1.5 px-5 py-4.5 sm:px-5 sm:py-4.5',
+    }"
+  >
     <p class="kpi__label">{{ label }}</p>
     <p class="kpi__value">{{ displayValue }}</p>
 
@@ -53,22 +60,10 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
         :summary="t('dashboard.kpi.sparklineSummary', { metric: label })"
       />
     </div>
-  </article>
+  </UCard>
 </template>
 
 <style scoped>
-.kpi {
-  background: var(--ui-bg);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
-  padding: 1.125rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  min-width: 0;
-}
-
 .kpi__label {
   color: var(--ui-text-muted);
   font-size: 0.875rem;

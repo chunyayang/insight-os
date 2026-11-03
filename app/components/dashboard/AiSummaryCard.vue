@@ -21,7 +21,7 @@ const fmt = useFormat()
     as="section"
     aria-labelledby="ai-summary-heading"
     :ui="{
-      root: 'flex flex-col divide-y-0 rounded-xl shadow-sm',
+      root: 'flex flex-col divide-y-0',
       header: 'px-5 pt-5 pb-0 sm:px-5',
       body: 'flex-1 p-5 sm:p-5',
       footer:
@@ -65,9 +65,10 @@ const fmt = useFormat()
   color: var(--ui-text-highlighted);
 }
 
-/* Targeted by class, not by element: UIcon renders a <span>, not an <i>. */
+/* Targeted by class, not by element: UIcon renders a <span>, not an <i>. The icon is
+   decorative (aria-hidden), so it takes the bright fill rather than the text ink. */
 .ai-summary__icon {
-  color: var(--ui-secondary);
+  color: var(--ui-primary);
   font-size: 1.125rem;
 }
 

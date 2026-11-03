@@ -75,8 +75,18 @@ const chartSummary = computed(() =>
 </script>
 
 <template>
-  <section class="trend" aria-labelledby="trend-heading">
-    <header class="trend__header">
+  <!-- No divider under the header, like the AI summary beside it. The tooltip can run past
+       the chart's edge, so the card must not clip it. -->
+  <UCard
+    as="section"
+    aria-labelledby="trend-heading"
+    :ui="{
+      root: 'min-w-0 divide-y-0 overflow-visible',
+      header: 'flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-0 sm:px-5',
+      body: 'p-5 pt-4 sm:p-5 sm:pt-4',
+    }"
+  >
+    <template #header>
       <h2 id="trend-heading" class="trend__title">
         {{ t('dashboard.revenueTrend.title') }}
         <span class="trend__period">
@@ -106,7 +116,7 @@ const chartSummary = computed(() =>
         size="sm"
         @update:model-value="market = $event as MarketFilter"
       />
-    </header>
+    </template>
 
     <!-- Three-state floor: skeleton / error+retry / chart. -->
     <USkeleton v-if="isPending" class="h-72 rounded-xl" />
@@ -119,28 +129,10 @@ const chartSummary = computed(() =>
       :currency="organization.presentationCurrency"
       :fill="series.length === 1"
     />
-  </section>
+  </UCard>
 </template>
 
 <style scoped>
-.trend {
-  background: var(--ui-bg);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
-  padding: 1.25rem;
-  min-width: 0;
-}
-
-.trend__header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-block-end: 1rem;
-}
-
 .trend__title {
   font-size: 1rem;
   font-weight: 700;

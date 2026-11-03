@@ -38,7 +38,15 @@ function askAiLink(alert: AnomalyAlert) {
     />
 
     <ul v-else class="alerts">
-      <li v-for="alert in alerts" :key="alert.id" class="alerts__card">
+      <UCard
+        v-for="alert in alerts"
+        :key="alert.id"
+        as="li"
+        :ui="{
+          root: 'min-w-0',
+          body: 'flex flex-col items-start gap-2 px-4.5 py-4 sm:px-4.5 sm:py-4',
+        }"
+      >
         <div class="alerts__top">
           <UBadge
             :color="severityColor[alert.severity]"
@@ -59,7 +67,7 @@ function askAiLink(alert: AnomalyAlert) {
           size="sm"
           variant="ghost"
         />
-      </li>
+      </UCard>
     </ul>
   </section>
 </template>
@@ -77,19 +85,6 @@ function askAiLink(alert: AnomalyAlert) {
   grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
   gap: 1rem;
   list-style: none;
-}
-
-.alerts__card {
-  background: var(--ui-bg);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
-  padding: 1rem 1.125rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
-  min-width: 0;
 }
 
 .alerts__top {
