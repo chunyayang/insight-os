@@ -28,9 +28,9 @@ function askAiLink(alert: AnomalyAlert) {
 </script>
 
 <template>
-  <section aria-labelledby="alerts-heading">
-    <h2 id="alerts-heading" class="alerts__heading">{{ t('dashboard.alerts.title') }}</h2>
-
+  <!-- No visible heading: one over the cards would read as titling the Revenue Trend
+       beside them too. The section keeps its name for assistive tech. -->
+  <section :aria-label="t('dashboard.alerts.title')">
     <UEmpty
       v-if="alerts.length === 0"
       icon="i-lucide-circle-check"
@@ -43,7 +43,7 @@ function askAiLink(alert: AnomalyAlert) {
         :key="alert.id"
         as="li"
         :ui="{
-          root: 'min-w-0',
+          root: alert.severity === 'critical' ? 'min-w-0 ring-error' : 'min-w-0',
           body: 'flex flex-col items-start gap-2 px-4.5 py-4 sm:px-4.5 sm:py-4',
         }"
       >
@@ -59,13 +59,15 @@ function askAiLink(alert: AnomalyAlert) {
         <p class="alerts__message">{{ alert.message }}</p>
 
         <!-- `to` makes the UButton its own NuxtLink — wrapping it would nest a
-             <button> inside an <a>. -->
+             <button> inside an <a>. The tint matches the sidebar's active link. -->
         <UButton
           :to="askAiLink(alert)"
           :label="t('dashboard.alerts.askAi')"
+          icon="i-lucide-sparkles"
           trailing-icon="i-lucide-arrow-right"
           size="sm"
-          variant="ghost"
+          variant="soft"
+          class="bg-primary/12"
         />
       </UCard>
     </ul>
@@ -73,13 +75,6 @@ function askAiLink(alert: AnomalyAlert) {
 </template>
 
 <style scoped>
-.alerts__heading {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--ui-text-highlighted);
-  margin-block-end: 0.75rem;
-}
-
 .alerts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));

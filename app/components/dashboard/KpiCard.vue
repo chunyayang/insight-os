@@ -9,6 +9,14 @@ const organization = useOrganizationStore()
 
 const label = computed(() => t(`dashboard.kpi.${props.metric.key}`))
 
+// Keyed by the metric so a new KPI can't ship without an icon.
+const ICON: Record<KpiMetric['key'], string> = {
+  revenue: 'i-lucide-circle-dollar-sign',
+  orders: 'i-lucide-shopping-cart',
+  conversionRate: 'i-lucide-percent',
+  activeUsers: 'i-lucide-users',
+}
+
 /**
  * Every Dashboard KPI is a cross-market aggregate with no functional currency of its
  * own (currency-model.md §3), so a monetary value renders in the org's presentation
@@ -39,34 +47,53 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
       body: 'flex flex-col gap-1.5 px-5 py-4.5 sm:px-5 sm:py-4.5',
     }"
   >
-    <p class="kpi__label">{{ label }}</p>
+    <div class="kpi__top">
+      <p class="kpi__label">{{ label }}</p>
+      <UIcon :name="ICON[metric.key]" class="kpi__icon" aria-hidden="true" />
+    </div>
     <p class="kpi__value">{{ displayValue }}</p>
 
+    <!-- The delta and its caption share one tinted pill; the sparkline sits beside it. -->
     <div class="kpi__footer">
       <span class="kpi__delta" :class="`kpi__delta--${trend}`">
         <UIcon
           :name="trend === 'down' ? 'i-lucide-arrow-down-right' : 'i-lucide-arrow-up-right'"
           aria-hidden="true"
         />
-        {{ fmt.delta(metric.deltaPct) }}
+        <span class="kpi__delta-value">{{ fmt.delta(metric.deltaPct) }}</span>
+        {{ t('dashboard.kpi.vsYesterday') }}
       </span>
-      <span class="kpi__delta-caption">{{ t('dashboard.kpi.vsYesterday') }}</span>
-    </div>
 
-    <div class="kpi__spark">
-      <ChartsSparkline
-        :data="metric.sparkline"
-        :trend="trend"
-        :summary="t('dashboard.kpi.sparklineSummary', { metric: label })"
-      />
+      <div class="kpi__spark">
+        <ChartsSparkline
+          :data="metric.sparkline"
+          :trend="trend"
+          :summary="t('dashboard.kpi.sparklineSummary', { metric: label })"
+        />
+      </div>
     </div>
   </UCard>
 </template>
 
 <style scoped>
+.kpi__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
 .kpi__label {
   color: var(--ui-text-muted);
   font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Decorative (aria-hidden): the label already names the metric. */
+.kpi__icon {
+  flex-shrink: 0;
+  color: var(--ui-text-dimmed);
+  font-size: 1rem;
 }
 
 .kpi__value {
@@ -81,36 +108,48 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
 
 .kpi__footer {
   display: flex;
+  /* Centred, not bottom-aligned: the sparkline is taller than the pill, and pinning the pill
+     to its foot opened a gap between the figure and its delta. */
   align-items: center;
-  gap: 0.375rem;
-  flex-wrap: wrap;
-  font-size: 0.8125rem;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .kpi__delta {
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
+  gap: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.kpi__delta-value {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
-/* Direction colours are semantic tokens — they carry meaning, not decoration. */
+/* Direction colours are semantic tokens — they carry meaning, not decoration. The tint
+   takes the bright fill and the text the ink, like the sidebar's active link. */
 .kpi__delta--up {
   color: var(--ink-primary);
+  background: color-mix(in oklab, var(--ui-primary) 12%, transparent);
 }
 .kpi__delta--down {
   color: var(--ink-error);
+  background: color-mix(in oklab, var(--ui-error) 12%, transparent);
 }
 .kpi__delta--neutral {
-  color: var(--ui-text-muted);
+  color: var(--ui-text-toned);
+  background: var(--ui-bg-elevated);
 }
 
-.kpi__delta-caption {
-  color: var(--ui-text-muted);
-}
-
+/* Sized here because the chart fills whatever box it is given. It gives way to the pill
+   in a narrow card, or under a longer zh-TW caption, rather than wrapping below it. */
 .kpi__spark {
-  margin-block-start: 0.25rem;
+  flex: 1 1 0;
+  min-width: 3rem;
+  max-width: 6rem;
 }
 </style>
