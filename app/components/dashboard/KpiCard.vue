@@ -31,7 +31,15 @@ const displayValue = computed(() => {
   return fmt.number(value)
 })
 
-const trend = computed<'up' | 'down' | 'neutral'>(() => {
+type Trend = 'up' | 'down' | 'neutral'
+
+const TREND_ICON: Record<Trend, string> = {
+  up: 'i-lucide-arrow-up',
+  down: 'i-lucide-arrow-down',
+  neutral: 'i-lucide-minus',
+}
+
+const trend = computed<Trend>(() => {
   if (props.metric.deltaPct > 0) return 'up'
   if (props.metric.deltaPct < 0) return 'down'
   return 'neutral'
@@ -56,10 +64,7 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
     <!-- The delta and its caption share one tinted pill; the sparkline sits beside it. -->
     <div class="kpi__footer">
       <span class="kpi__delta" :class="`kpi__delta--${trend}`">
-        <UIcon
-          :name="trend === 'down' ? 'i-lucide-arrow-down-right' : 'i-lucide-arrow-up-right'"
-          aria-hidden="true"
-        />
+        <UIcon :name="TREND_ICON[trend]" aria-hidden="true" />
         <span class="kpi__delta-value">{{ fmt.delta(metric.deltaPct) }}</span>
         {{ t('dashboard.kpi.vsYesterday') }}
       </span>

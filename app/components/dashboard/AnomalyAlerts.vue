@@ -50,8 +50,9 @@ function askAiLink(alert: AnomalyAlert) {
         <div class="alerts__top">
           <UBadge
             :color="severityColor[alert.severity]"
-            variant="subtle"
+            variant="soft"
             :label="t(`dashboard.alerts.severity.${alert.severity}`)"
+            class="font-semibold uppercase"
           />
           <span class="alerts__time">{{ fmt.relativeTime(alert.detectedAt) }}</span>
         </div>
@@ -67,7 +68,7 @@ function askAiLink(alert: AnomalyAlert) {
           trailing-icon="i-lucide-arrow-right"
           size="sm"
           variant="soft"
-          class="bg-primary/12"
+          class="bg-primary/12 font-semibold"
         />
       </UCard>
     </ul>
@@ -85,6 +86,8 @@ function askAiLink(alert: AnomalyAlert) {
 .alerts__top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
