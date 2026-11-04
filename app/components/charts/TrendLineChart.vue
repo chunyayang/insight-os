@@ -33,7 +33,7 @@ const option = computed<ChartOption>(() => {
   const formatValue = (value: number) =>
     currency ? fmt.currency(value, currency) : fmt.number(value)
   const formatAxis = (value: number) =>
-    currency ? fmt.compactCurrency(value, currency) : fmt.compact(value)
+    currency ? fmt.compactCurrency(value, currency) : fmt.number(value)
 
   return {
     legend: {

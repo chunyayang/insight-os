@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import KpiCard from '../../app/components/dashboard/KpiCard.vue'
@@ -22,25 +22,40 @@ function metric(overrides: Partial<KpiMetric> = {}): KpiMetric {
 describe('KpiCard', () => {
   stubElementSize()
 
-  it('renders a monetary KPI in the presentation currency, USD by default', async () => {
-    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() } })
-    const text = wrapper.text()
+  afterEach(() => {
+    useOrganizationStore().setPresentationCurrency('USD')
+  })
 
-    expect(text).toContain('240,499.66')
-    expect(text).toContain('+5.0%')
+  // What a sighted reader sees: the full amount is in a screen-reader-only span.
+  const visible = (wrapper: { find: (s: string) => { text: () => string } }, selector: string) =>
+    wrapper.find(`${selector} [aria-hidden="true"]`).text()
+
+  it('abbreviates a monetary KPI in the presentation currency, USD by default', async () => {
+    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() } })
+
+    expect(visible(wrapper, '.kpi__value')).toBe('$240.5K')
+    expect(wrapper.text()).toContain('+5.0%')
+  })
+
+  it('keeps the full amount on hover and for screen readers', async () => {
+    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() } })
+    const value = wrapper.find('.kpi__value')
+
+    expect(value.attributes('title')).toBe('$240,499.66')
+    expect(value.find('.sr-only').text()).toBe('$240,499.66')
   })
 
   it('re-renders the KPI when the presentation currency changes — no selector on this page', async () => {
     const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() } })
-    expect(wrapper.text()).toContain('240,499.66') // USD default
+    expect(visible(wrapper, '.kpi__value')).toBe('$240.5K') // USD default
 
     // Settings → General is the only writer; the store is shared across the app, so a
     // Dashboard KPI reacts even though it has no currency control of its own.
     useOrganizationStore().setPresentationCurrency('EUR')
     await nextTick()
 
-    expect(wrapper.text()).toContain('223,875.69')
-    expect(wrapper.text()).not.toContain('240,499.66')
+    expect(visible(wrapper, '.kpi__value')).toBe('€223.9K')
+    expect(wrapper.find('.kpi__value').attributes('title')).toBe('€223,875.69')
   })
 
   it('formats a percentage KPI as a ratio, not a raw number', async () => {
@@ -88,7 +103,7 @@ describe('KpiCard', () => {
     const wrapper = await mountSuspended(KpiCard, {
       props: { metric: metric({ key: 'activeUsers', value: 67_000, deltaPct: 0 }) },
     })
-    expect(wrapper.text()).toContain('67,000')
+    expect(wrapper.find('.kpi__value').text()).toBe('67,000')
   })
 
   it('gives the sparkline an accessible text summary', async () => {
