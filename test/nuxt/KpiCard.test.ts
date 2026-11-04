@@ -77,11 +77,11 @@ describe('KpiCard', () => {
     expect(wrapper.find('.kpi__delta .iconify').exists()).toBe(false)
   })
 
-  it('draws a flat KPI sparkline in a neutral colour, not a categorical one', async () => {
+  it('draws a flat KPI sparkline in its own colour, not a market one', async () => {
     const wrapper = await mountSuspended(KpiCard, { props: { metric: metric({ deltaPct: 0 }) } })
     const option = wrapper.findComponent({ name: 'Echarts' }).props('option')
 
-    expect(option.series[0].color).toBe(useChartTheme().theme.value.text)
+    expect(option.series[0].color).toBe(useChartTheme().theme.value.flat)
   })
 
   it('renders a whole-number KPI with grouping', async () => {

@@ -145,8 +145,8 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
   background: color-mix(in oklab, var(--ui-error) 12%, transparent);
 }
 .kpi__delta--neutral {
-  color: var(--ui-text-toned);
-  background: var(--ui-bg-elevated);
+  color: var(--ink-info);
+  background: color-mix(in oklab, var(--ui-info) 12%, transparent);
 }
 
 /* Sized here because the chart fills whatever box it is given. It gives way to the pill
