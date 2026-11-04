@@ -34,20 +34,24 @@ const { isPending: settingsPending } = useUserSettingsQuery()
       <div class="dash__block">
         <DashboardAnomalyAlerts :alerts="data.alerts" />
       </div>
-
-      <div class="dash__block">
-        <DashboardAiSummaryCard
-          :text="data.aiSummary.text"
-          :generated-at="data.aiSummary.generatedAt"
-          :regenerating="isFetching"
-          @regenerate="refetch()"
-        />
-      </div>
     </template>
 
-    <USkeleton v-if="settingsPending" class="dash__block h-88 rounded-xl" />
-    <div v-else class="dash__block">
-      <DashboardRevenueTrend />
+    <!-- The trend and the summary share a row, but each keeps its own loading state: the
+         trend waits on the user's settings, the summary on the dashboard summary. -->
+    <div class="dash__block dash__row">
+      <USkeleton v-if="settingsPending" class="dash__trend h-88 rounded-xl" />
+      <DashboardRevenueTrend v-else class="dash__trend" />
+
+      <!-- No height: it stretches to the row the trend sets. -->
+      <USkeleton v-if="isPending" class="dash__summary rounded-xl" />
+      <DashboardAiSummaryCard
+        v-else-if="data"
+        class="dash__summary"
+        :text="data.aiSummary.text"
+        :generated-at="data.aiSummary.generatedAt"
+        :regenerating="isFetching"
+        @regenerate="refetch()"
+      />
     </div>
   </div>
 </template>
@@ -62,5 +66,23 @@ const { isPending: settingsPending } = useUserSettingsQuery()
 
 .dash__block {
   margin-block-start: 1.5rem;
+}
+
+/* Flex bases in a 2:1 ratio split the row two thirds to one third, and wrap to a stack
+   once both no longer fit, without a hardcoded breakpoint. Items stretch to the row's height. */
+.dash__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dash__trend {
+  flex: 2 1 36rem;
+  min-width: 0;
+}
+
+.dash__summary {
+  flex: 1 1 18rem;
+  min-width: 0;
 }
 </style>

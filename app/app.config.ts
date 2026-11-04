@@ -34,6 +34,10 @@ export default defineAppConfig({
         },
       ],
     },
+    // Cards share one silhouette app-wide; padding stays per use, since density varies.
+    card: {
+      slots: { root: 'rounded-xl shadow-sm' },
+    },
     button: {
       compoundVariants: [
         // White labels need a darker fill than the 500 the rest of the palette uses.

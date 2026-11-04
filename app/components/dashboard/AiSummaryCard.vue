@@ -12,17 +12,35 @@ const fmt = useFormat()
 </script>
 
 <template>
-  <section class="ai-summary" aria-labelledby="ai-summary-heading">
-    <header class="ai-summary__header">
-      <div>
-        <h2 id="ai-summary-heading" class="ai-summary__title">
-          <UIcon name="i-lucide-sparkles" class="ai-summary__icon" aria-hidden="true" />
-          {{ t('dashboard.aiSummary.title') }}
-        </h2>
-        <p class="ai-summary__meta">
-          {{ t('dashboard.aiSummary.generatedAt', { time: fmt.relativeTime(generatedAt) }) }}
-        </p>
-      </div>
+  <!--
+    The card stretches to the Revenue Trend's height when they share a row, so the body
+    grows and the footer stays at the bottom. Padding matches that card so the two titles line up.
+    Only the footer is divided off: the title runs straight into the summary it heads.
+  -->
+  <UCard
+    as="section"
+    aria-labelledby="ai-summary-heading"
+    :ui="{
+      root: 'flex flex-col divide-y-0',
+      header: 'px-5 pt-5 pb-0 sm:px-5',
+      body: 'flex-1 p-5 sm:p-5',
+      footer:
+        'flex flex-wrap items-center justify-between gap-3 border-t border-default px-5 py-3 sm:px-5',
+    }"
+  >
+    <template #header>
+      <h2 id="ai-summary-heading" class="ai-summary__title">
+        <UIcon name="i-lucide-sparkles" class="ai-summary__icon" aria-hidden="true" />
+        {{ t('dashboard.aiSummary.title') }}
+      </h2>
+    </template>
+
+    <p class="ai-summary__text">{{ text }}</p>
+
+    <template #footer>
+      <p class="ai-summary__meta">
+        {{ t('dashboard.aiSummary.generatedAt', { time: fmt.relativeTime(generatedAt) }) }}
+      </p>
 
       <UButton
         :label="t('dashboard.aiSummary.regenerate')"
@@ -33,31 +51,11 @@ const fmt = useFormat()
         :loading="regenerating"
         @click="emit('regenerate')"
       />
-    </header>
-
-    <p class="ai-summary__text">{{ text }}</p>
-  </section>
+    </template>
+  </UCard>
 </template>
 
 <style scoped>
-.ai-summary {
-  background: var(--ui-bg);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
-  padding: 1.25rem;
-  min-width: 0;
-}
-
-.ai-summary__header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-block-end: 0.75rem;
-}
-
 .ai-summary__title {
   display: flex;
   align-items: center;
@@ -67,21 +65,21 @@ const fmt = useFormat()
   color: var(--ui-text-highlighted);
 }
 
-/* Targeted by class, not by element: UIcon renders a <span>, not an <i>. */
+/* Targeted by class, not by element: UIcon renders a <span>, not an <i>. The icon is
+   decorative (aria-hidden), so it takes the bright fill rather than the text ink. */
 .ai-summary__icon {
-  color: var(--ui-secondary);
+  color: var(--ui-primary);
   font-size: 1.125rem;
-}
-
-.ai-summary__meta {
-  margin-block-start: 0.125rem;
-  color: var(--ui-text-muted);
-  font-size: 0.8125rem;
 }
 
 .ai-summary__text {
   color: var(--ui-text-muted);
   line-height: 1.6;
   max-width: 80ch;
+}
+
+.ai-summary__meta {
+  color: var(--ui-text-muted);
+  font-size: 0.8125rem;
 }
 </style>

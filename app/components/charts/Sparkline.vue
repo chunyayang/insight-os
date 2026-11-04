@@ -23,6 +23,7 @@ const strokeColor = computed(() => {
   // colours rather than the categorical ramp (which distinguishes series, not status).
   if (props.trend === 'up') return theme.value.positive
   if (props.trend === 'down') return theme.value.negative
+  if (props.trend === 'neutral') return theme.value.flat
   return colorAt(props.colorIndex ?? 0)
 })
 

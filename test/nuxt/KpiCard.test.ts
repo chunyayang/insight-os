@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import KpiCard from '../../app/components/dashboard/KpiCard.vue'
+import { useChartTheme } from '../../app/composables/useChartTheme'
 import { useOrganizationStore } from '../../app/stores/organization'
 import type { KpiMetric, Money } from '../../app/types/api'
 import { stubElementSize } from './support/layout'
@@ -57,6 +58,30 @@ describe('KpiCard', () => {
     expect(wrapper.text()).toContain('-18.0%')
     // Direction is conveyed by a semantic class, not colour alone.
     expect(wrapper.html()).toContain('kpi__delta--down')
+  })
+
+  it('shows a direction arrow on a delta that reads as a change', async () => {
+    const wrapper = await mountSuspended(KpiCard, {
+      props: { metric: metric({ deltaPct: 0.0005 }) },
+    })
+
+    expect(wrapper.find('.kpi__delta').text()).toContain('+0.1%')
+    expect(wrapper.find('.kpi__delta--up .iconify').exists()).toBe(true)
+  })
+
+  it.each([0, 0.0004, -0.0004])('shows no arrow on a delta of %d, which reads 0.0%%', async (d) => {
+    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric({ deltaPct: d }) } })
+
+    expect(wrapper.find('.kpi__delta').text()).toContain('0.0%')
+    expect(wrapper.find('.kpi__delta--neutral').exists()).toBe(true)
+    expect(wrapper.find('.kpi__delta .iconify').exists()).toBe(false)
+  })
+
+  it('draws a flat KPI sparkline in its own colour, not a market one', async () => {
+    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric({ deltaPct: 0 }) } })
+    const option = wrapper.findComponent({ name: 'Echarts' }).props('option')
+
+    expect(option.series[0].color).toBe(useChartTheme().theme.value.flat)
   })
 
   it('renders a whole-number KPI with grouping', async () => {

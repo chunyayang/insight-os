@@ -28,9 +28,9 @@ function askAiLink(alert: AnomalyAlert) {
 </script>
 
 <template>
-  <section aria-labelledby="alerts-heading">
-    <h2 id="alerts-heading" class="alerts__heading">{{ t('dashboard.alerts.title') }}</h2>
-
+  <!-- No visible heading: one over the cards would read as titling the Revenue Trend
+       beside them too. The section keeps its name for assistive tech. -->
+  <section :aria-label="t('dashboard.alerts.title')">
     <UEmpty
       v-if="alerts.length === 0"
       icon="i-lucide-circle-check"
@@ -38,12 +38,21 @@ function askAiLink(alert: AnomalyAlert) {
     />
 
     <ul v-else class="alerts">
-      <li v-for="alert in alerts" :key="alert.id" class="alerts__card">
+      <UCard
+        v-for="alert in alerts"
+        :key="alert.id"
+        as="li"
+        :ui="{
+          root: alert.severity === 'critical' ? 'min-w-0 ring-error' : 'min-w-0',
+          body: 'flex flex-col items-start gap-2 px-4.5 py-4 sm:px-4.5 sm:py-4',
+        }"
+      >
         <div class="alerts__top">
           <UBadge
             :color="severityColor[alert.severity]"
-            variant="subtle"
+            variant="soft"
             :label="t(`dashboard.alerts.severity.${alert.severity}`)"
+            class="font-semibold uppercase"
           />
           <span class="alerts__time">{{ fmt.relativeTime(alert.detectedAt) }}</span>
         </div>
@@ -51,27 +60,22 @@ function askAiLink(alert: AnomalyAlert) {
         <p class="alerts__message">{{ alert.message }}</p>
 
         <!-- `to` makes the UButton its own NuxtLink — wrapping it would nest a
-             <button> inside an <a>. -->
+             <button> inside an <a>. The tint matches the sidebar's active link. -->
         <UButton
           :to="askAiLink(alert)"
           :label="t('dashboard.alerts.askAi')"
+          icon="i-lucide-sparkles"
           trailing-icon="i-lucide-arrow-right"
           size="sm"
-          variant="ghost"
+          variant="soft"
+          class="bg-primary/12 font-semibold"
         />
-      </li>
+      </UCard>
     </ul>
   </section>
 </template>
 
 <style scoped>
-.alerts__heading {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--ui-text-highlighted);
-  margin-block-end: 0.75rem;
-}
-
 .alerts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
@@ -79,22 +83,11 @@ function askAiLink(alert: AnomalyAlert) {
   list-style: none;
 }
 
-.alerts__card {
-  background: var(--ui-bg);
-  border: 1px solid var(--ui-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
-  padding: 1rem 1.125rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
 .alerts__top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
   gap: 0.5rem;
   flex-wrap: wrap;
 }

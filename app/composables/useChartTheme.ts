@@ -22,12 +22,12 @@ export function areaGradient(color: string, topAlpha = 0.3) {
 
 /**
  * Chart chrome — the non-series colours ECharts draws (axes, ticks, tooltip surface and
- * text) plus the two trend-direction colours.
+ * text) plus the three trend colours.
  *
  * Hex for the same reason as MARKET_COLOR: zrender's color parser only understands
  * hex/`rgb()`/`hsl()`/the CSS named-color table — no `oklch()`, no `var()` resolution —
  * so it cannot consume what Nuxt UI's `--ui-*` tokens resolve to. These mirror the
- * slate/emerald/red steps Nuxt UI derives from app.config.ts — keep them in step by
+ * slate/emerald/red/blue steps Nuxt UI derives from app.config.ts — keep them in step by
  * hand rather than reading them back out of the DOM.
  */
 const CHART_CHROME = {
@@ -37,6 +37,7 @@ const CHART_CHROME = {
     surface: '#ffffff', // matches --ui-bg
     positive: '#059669', // emerald-600, matches --ui-primary
     negative: '#dc2626', // red-600, matches --ui-error
+    flat: '#2563eb', // blue-600, matches --ui-info
   },
   dark: {
     grid: '#1e293b', // slate-800
@@ -44,6 +45,7 @@ const CHART_CHROME = {
     surface: '#0f172a', // slate-900
     positive: '#34d399', // emerald-400
     negative: '#f87171', // red-400
+    flat: '#60a5fa', // blue-400
   },
 } as const
 
