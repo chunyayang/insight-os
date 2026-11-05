@@ -147,7 +147,7 @@ export interface AnomalyAlert {
   severity: 'info' | 'warning' | 'critical'
   market: MarketCode
   metricKey: KpiMetric['key']
-  message: string // English; UI may localize by code if provided
+  message: string // in the request's `locale`
   detectedAt: string // ISO 8601
 }
 

@@ -7,7 +7,7 @@ import type {
 } from '../../../app/types/api'
 
 /**
- * Dashboard KPIs + anomaly alerts + AI daily summary, the summary in the request's `locale`.
+ * Dashboard KPIs + anomaly alerts + AI daily summary, the text in the request's `locale`.
  *
  * Monetary KPIs carry a full `Money` map (all four currencies, each aggregated
  * server-side from daily-converted amounts) plus FxProvenance for audit — the client
@@ -83,7 +83,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<DashboardSu
     },
   ]
 
-  const alerts: AnomalyAlert[] = buildAlerts(activeMarkets, today)
+  const alerts: AnomalyAlert[] = buildAlerts(activeMarkets, locale, today)
 
   return ok({
     date: todayIso,

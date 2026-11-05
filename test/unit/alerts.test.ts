@@ -14,7 +14,7 @@ const today = new Date('2026-03-30T00:00:00Z')
 
 describe('anomaly alerts', () => {
   it('raises a critical JP conversion alert derived from the seeded anomaly', () => {
-    const jp = buildAlerts(MARKETS, today).find((a) => a.market === 'JP')
+    const jp = buildAlerts(MARKETS, 'en', today).find((a) => a.market === 'JP')
     expect(jp).toBeDefined()
     expect(jp!.severity).toBe('critical')
     expect(jp!.metricKey).toBe('conversionRate')
@@ -30,22 +30,35 @@ describe('anomaly alerts', () => {
     expect(percent).toBeLessThan(26)
   })
 
+  it('writes every alert in the requested locale, with the same figures', () => {
+    const figures = (message: string) => message.match(/\d+%/g)
+    const en = buildAlerts(MARKETS, 'en', today)
+    const zh = buildAlerts(MARKETS, 'zh-TW', today)
+
+    expect(zh.map((a) => a.id)).toEqual(en.map((a) => a.id))
+    zh.forEach((alert, i) => {
+      expect(alert.message).toMatch(/\p{Script=Han}/u)
+      expect(alert.message).not.toBe(en[i]!.message)
+      expect(figures(alert.message)).toEqual(figures(en[i]!.message))
+    })
+  })
+
   it('only reports alerts for markets in scope', () => {
-    const jpOnly = buildAlerts(['JP'], today)
+    const jpOnly = buildAlerts(['JP'], 'en', today)
     expect(jpOnly.map((a) => a.id)).toEqual(['anom_cl290f8aj0001'])
 
-    const usOnly = buildAlerts(['US'], today)
+    const usOnly = buildAlerts(['US'], 'en', today)
     expect(usOnly).toEqual([])
   })
 
   it('covers the spec severities across the full market set', () => {
-    const severities = new Set(buildAlerts(MARKETS, today).map((a) => a.severity))
+    const severities = new Set(buildAlerts(MARKETS, 'en', today).map((a) => a.severity))
     expect(severities).toContain('critical')
     expect(severities).toContain('warning')
   })
 
   it('emits ISO 8601 timestamps', () => {
-    for (const alert of buildAlerts(MARKETS, today)) {
+    for (const alert of buildAlerts(MARKETS, 'en', today)) {
       expect(alert.detectedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/)
       expect(Number.isNaN(Date.parse(alert.detectedAt))).toBe(false)
     }
@@ -101,7 +114,7 @@ describe('the Dashboard story, today against yesterday', () => {
     const percent = Math.round(change(now, users) * 100)
 
     expect(percent).toBeGreaterThan(0)
-    const alert = buildAlerts(['TW'], now)[0]!
+    const alert = buildAlerts(['TW'], 'en', now)[0]!
     expect(alert.message).toContain(`up ${percent}%`)
     expect(buildAiSummary(['TW'], 'en', now)).toContain(`${percent}%`)
     expect(buildAiSummary(['TW'], 'zh-TW', now)).toContain(`${percent}%`)

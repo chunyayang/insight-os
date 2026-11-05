@@ -15,13 +15,33 @@ import { isoDate, addDays } from './dates'
  * trend line, and the AI Assistant's explanation all describe one coherent story rather
  * than three independently invented numbers.
  */
+/** One alert per anomaly, written in each locale as translations of each other. */
+const ALERT_MESSAGES = {
+  en: {
+    jpConversion: (pct: number) => `JP conversion rate down ${pct}% vs the 7-day average.`,
+    dePayments: 'DE payment failures trending above normal for 3 hours.',
+    twUsers: (pct: number) =>
+      `TW active users up ${pct}% vs yesterday following the seasonal campaign.`,
+  },
+  'zh-TW': {
+    jpConversion: (pct: number) => `日本轉換率較 7 日平均下降 ${pct}%。`,
+    dePayments: '德國付款失敗率已連續 3 小時高於正常水準。',
+    twUsers: (pct: number) => `受季節性活動帶動，台灣活躍用戶較昨日增加 ${pct}%。`,
+  },
+}
+
 /** TW's active users, today against yesterday, as a whole percent. */
 function twUsersUpPct(today: Date): number {
   const users = (date: Date) => dailyMetrics('TW', isoDate(date), today).activeUsers
   return Math.round(pctChange(users(today), users(addDays(today, -1))) * 100)
 }
 
-export function buildAlerts(markets: MarketCode[], today = new Date()): AnomalyAlert[] {
+export function buildAlerts(
+  markets: MarketCode[],
+  locale: LocaleCode,
+  today = new Date(),
+): AnomalyAlert[] {
+  const messages = ALERT_MESSAGES[locale]
   const alerts: AnomalyAlert[] = []
 
   if (markets.includes(ANOMALY_MARKET)) {
@@ -50,7 +70,7 @@ export function buildAlerts(markets: MarketCode[], today = new Date()): AnomalyA
       severity: 'critical',
       market: ANOMALY_MARKET,
       metricKey: 'conversionRate',
-      message: `JP conversion rate down ${dropPct}% vs the 7-day average.`,
+      message: messages.jpConversion(dropPct),
       detectedAt: new Date(today.getTime() - 1000 * 60 * 42).toISOString(),
     })
   }
@@ -61,7 +81,7 @@ export function buildAlerts(markets: MarketCode[], today = new Date()): AnomalyA
       severity: 'warning',
       market: 'DE',
       metricKey: 'orders',
-      message: 'DE payment failures trending above normal for 3 hours.',
+      message: messages.dePayments,
       detectedAt: new Date(today.getTime() - 1000 * 60 * 175).toISOString(),
     })
   }
@@ -72,7 +92,7 @@ export function buildAlerts(markets: MarketCode[], today = new Date()): AnomalyA
       severity: 'info',
       market: 'TW',
       metricKey: 'activeUsers',
-      message: `TW active users up ${twUsersUpPct(today)}% vs yesterday following the seasonal campaign.`,
+      message: messages.twUsers(twUsersUpPct(today)),
       detectedAt: new Date(today.getTime() - 1000 * 60 * 320).toISOString(),
     })
   }

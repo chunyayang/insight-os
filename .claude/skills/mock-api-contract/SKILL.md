@@ -70,7 +70,7 @@ interface ApiError {
 - `GET` for reads, `POST` create, `PATCH` partial update, `DELETE` remove. Reads never mutate.
 - Resource examples (align endpoints to the sidebar IA):
   - `GET /api/dashboard/summary?market=All&locale=zh-TW` → today's KPIs + AI daily summary + anomaly alerts
-  - `GET /api/anomalies/:id` → one `AnomalyAlert`, for a chat opened from *Ask AI why →*
+  - `GET /api/anomalies/:id?locale=zh-TW` → one `AnomalyAlert`, for a chat opened from *Ask AI why →*
   - `GET /api/analytics/revenue?range=30d&markets=US,JP` → revenue series by market
   - `GET /api/analytics/funnel?market=JP&range=7d`
   - `GET /api/analytics/retention?range=90d`
@@ -135,7 +135,7 @@ interface AnomalyAlert {
   severity: 'info' | 'warning' | 'critical'
   market: MarketCode
   metricKey: KpiMetric['key']
-  message: string                  // English; UI may localize by code if provided
+  message: string                  // in the request's `locale` (see *AI text and locale*)
   detectedAt: string               // ISO 8601
 }
 
@@ -236,6 +236,7 @@ AI text arrives in the interface language (`/product-spec` → `spec.md` §2, *I
 
 - **Every request for AI text carries `locale`** (`LocaleCode`): a query param on a `GET`, a body field on `POST /api/ai/chat`. No other request does. An unknown locale is `400 VALIDATION_FAILED`.
 - **The query key for AI text includes the locale,** read from `useI18n().locale`, so a language switch refetches it, and switching back is a cache hit.
+- **An anomaly alert's `message` is in the request's locale too,** written as translations of each other with the same figures. It arrives with the Dashboard summary's request, or on `GET /api/anomalies/:id?locale=`.
 - **A cached summary is one analysis, presented per locale.** The Dashboard's `aiSummary` and a customer's `ai-summary` must say the same thing in every language, never a separate generation per language. `generatedAt` is when the analysis ran, so it is the same in each locale. The mock returns canned text in both locales, with the two versions written as translations of each other.
 
 ## AI Assistant endpoint (POST /api/ai/chat)

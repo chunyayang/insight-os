@@ -26,7 +26,7 @@ export function useDashboardSummary() {
   const market = computed(() => preferences.defaultMarket)
 
   return useQuery({
-    // Locale is in the key because the payload's AI summary is written in it.
+    // Locale is in the key because the payload's AI summary and alerts are written in it.
     queryKey: computed(() => dashboardKeys.summary(market.value, locale.value)),
     queryFn: async () => {
       const response = await $api<ApiResponse<DashboardSummary>>('/dashboard/summary', {
