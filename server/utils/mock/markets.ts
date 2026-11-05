@@ -1,5 +1,5 @@
 import type { MarketCode, Money } from '../../../app/types/api'
-import { convertDay, MARKET_FUNCTIONAL_CURRENCY, roundMoney } from './fx'
+import { convertDay, MARKET_FUNCTIONAL_CURRENCY, roundMoney, sumMoney } from './fx'
 import { seededRange } from './seed'
 import { isoDate, addDays } from './dates'
 
@@ -31,10 +31,39 @@ export function isAnomalousDay(market: MarketCode, date: string, today = new Dat
   return date >= windowStart && date <= isoDate(today)
 }
 
+type MetricKey = 'revenue' | 'orders' | 'conv' | 'users'
+
+/**
+ * Today as a multiple of yesterday. The Dashboard reads today against yesterday, so this table
+ * decides which way each KPI card points on any date, and the alerts and AI summary quote the
+ * results. Orders follow users x conversion, so a market's metrics agree with each other.
+ */
+const TODAY_VS_YESTERDAY: Record<MarketCode, Record<MetricKey, number>> = {
+  US: { revenue: 1.12, orders: 1.067, conv: 0.97, users: 1.1 },
+  JP: { revenue: 0.92, orders: 0.91, conv: 0.9, users: 1.01 },
+  TW: { revenue: 1.18, orders: 1.17, conv: 0.96, users: 1.22 },
+  DE: { revenue: 0.98, orders: 0.97, conv: 0.94, users: 1.03 },
+}
+
 /** Weekends run lighter than weekdays — keeps trend lines believable. */
 function seasonality(date: string): number {
   const dow = new Date(`${date}T00:00:00Z`).getUTCDay()
   return dow === 0 || dow === 6 ? 0.82 : 1
+}
+
+function metricFactor(market: MarketCode, metric: MetricKey, date: string, today: Date): number {
+  const todayIso = isoDate(today)
+  const yesterdayIso = isoDate(addDays(today, -1))
+  const isLatest = date === todayIso
+
+  // Yesterday takes today's day-of-week level: a weekend edge between them would swamp the table.
+  const seasonDate = isLatest || date === yesterdayIso ? todayIso : date
+  const jitterDate = isLatest ? yesterdayIso : date
+
+  // A rate does not soften at the weekend the way volumes do.
+  const season = metric === 'conv' ? 1 : seasonality(seasonDate)
+  const jitter = seededRange(`m:${market}:${metric}:${jitterDate}`, 0.92, 1.08)
+  return season * jitter * (isLatest ? TODAY_VS_YESTERDAY[market][metric] : 1)
 }
 
 export interface DailyMetrics {
@@ -49,17 +78,16 @@ export interface DailyMetrics {
 
 export function dailyMetrics(market: MarketCode, date: string, today = new Date()): DailyMetrics {
   const base = BASELINE[market]
-  const jitter = seededRange(`m:${market}:${date}`, 0.92, 1.08)
-  const factor = seasonality(date) * jitter
+  const factor = (metric: MetricKey) => metricFactor(market, metric, date, today)
   const anomaly = isAnomalousDay(market, date, today) ? ANOMALY_FACTOR : 1
 
   return {
     date,
     market,
-    revenueNative: Math.round(base.revenue * factor * anomaly),
-    orders: Math.round(base.orders * factor * anomaly),
-    conversionRate: Number((base.conv * factor * anomaly).toFixed(5)),
-    activeUsers: Math.round(base.users * factor),
+    revenueNative: Math.round(base.revenue * factor('revenue') * anomaly),
+    orders: Math.round(base.orders * factor('orders') * anomaly),
+    conversionRate: Number((base.conv * factor('conv') * anomaly).toFixed(5)),
+    activeUsers: Math.round(base.users * factor('users')),
   }
 }
 
@@ -67,4 +95,20 @@ export function dailyMetrics(market: MarketCode, date: string, today = new Date(
 export function dailyRevenueMoney(market: MarketCode, date: string, today = new Date()): Money {
   const { revenueNative } = dailyMetrics(market, date, today)
   return roundMoney(convertDay(revenueNative, MARKET_FUNCTIONAL_CURRENCY[market], date))
+}
+
+/** Revenue across markets on one day: the sum of each market's daily-converted amounts. */
+export function revenueOn(markets: MarketCode[], date: string, today = new Date()): Money {
+  return roundMoney(sumMoney(markets.map((m) => dailyRevenueMoney(m, date, today))))
+}
+
+/** Conversion across markets on one day: an average of the markets' rates, not a sum. */
+export function conversionOn(markets: MarketCode[], date: string, today = new Date()): number {
+  const total = markets.reduce((t, m) => t + dailyMetrics(m, date, today).conversionRate, 0)
+  return total / markets.length
+}
+
+/** Change as a ratio, rounded so the cards and the summary quote one figure. */
+export function pctChange(current: number, previous: number): number {
+  return previous === 0 ? 0 : Number(((current - previous) / previous).toFixed(4))
 }
