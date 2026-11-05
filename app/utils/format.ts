@@ -49,16 +49,10 @@ export function formatNumber(
   return new Intl.NumberFormat(locale, options).format(value)
 }
 
-/** Abbreviated form for dense KPI tiles (e.g. 1.2M). */
-export function formatCompactNumber(value: number, locale: SupportedLocale): string {
-  return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(
-    value,
-  )
-}
-
 /**
- * Abbreviated currency for chart axes: "$100K" in en-US, "US$100K" in zh-TW. The locale
- * picks the symbol and sign; the suffix is K/M/B in every locale (currency-model.md §3).
+ * Abbreviated currency for chart axes and the Today's Revenue KPI card: "$100K" in en-US,
+ * "US$100K" in zh-TW. The locale picks the symbol and sign; the suffix is K/M/B in every
+ * locale (currency-model.md §3).
  */
 export function formatCompactCurrency(
   value: number,

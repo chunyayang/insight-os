@@ -18,17 +18,23 @@ const ICON: Record<KpiMetric['key'], string> = {
 }
 
 /**
- * Every Dashboard KPI is a cross-market aggregate with no functional currency of its
- * own (currency-model.md §3), so a monetary value renders in the org's presentation
- * currency and changes with it — not the Analytics selector, which is scoped there.
- * The value is read straight out of the Money map — the client picks a key, it never
- * converts.
+ * A monetary KPI renders in the org's presentation currency. The amount is read straight out
+ * of the Money map — the client picks a key, it never converts.
  */
 const displayValue = computed(() => {
   const value = props.metric.value
-  if (typeof value === 'object') return fmt.money(value, organization.presentationCurrency)
+  if (typeof value === 'object') {
+    const currency = organization.presentationCurrency
+    return fmt.compactCurrency(value[currency], currency)
+  }
   if (props.metric.key === 'conversionRate') return fmt.percent(value)
   return fmt.number(value)
+})
+
+// Only an amount is abbreviated, so only an amount has a fuller form to offer.
+const fullAmount = computed(() => {
+  const value = props.metric.value
+  return typeof value === 'object' ? fmt.money(value, organization.presentationCurrency) : undefined
 })
 
 // The delta shows one decimal of a percent, so anything smaller than this reads "0.0%"
@@ -54,7 +60,14 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
       <p class="kpi__label">{{ label }}</p>
       <UIcon :name="ICON[metric.key]" class="kpi__icon" aria-hidden="true" />
     </div>
-    <p class="kpi__value">{{ displayValue }}</p>
+    <!-- An amount is abbreviated on screen, full on hover and for screen readers. -->
+    <p class="kpi__value" :title="fullAmount">
+      <template v-if="fullAmount">
+        <span class="sr-only">{{ fullAmount }}</span>
+        <span aria-hidden="true">{{ displayValue }}</span>
+      </template>
+      <template v-else>{{ displayValue }}</template>
+    </p>
 
     <!-- The delta and its caption share one tinted pill; the sparkline sits beside it. -->
     <div class="kpi__footer">

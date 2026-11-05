@@ -1,7 +1,6 @@
 import type { CurrencyCode, Money } from '~/types/api'
 import {
   formatCompactCurrency,
-  formatCompactNumber,
   formatCurrency,
   formatDate,
   formatDateTime,
@@ -39,13 +38,15 @@ export function useFormat() {
 
     /** A bare amount whose currency is already known. */
     currency: (value: number, currency: CurrencyCode) => formatCurrency(value, currency, loc.value),
-    /** Abbreviated amount for chart axes; tooltips and cells use the full `currency`. */
+    /**
+     * Abbreviated amount, only for chart axes and the Today's Revenue KPI card; tooltips and
+     * cells use the full `currency` (currency-model.md §3).
+     */
     compactCurrency: (value: number, currency: CurrencyCode) =>
       formatCompactCurrency(value, currency, loc.value),
 
     number: (value: number, options?: Intl.NumberFormatOptions) =>
       formatNumber(value, loc.value, options),
-    compact: (value: number) => formatCompactNumber(value, loc.value),
 
     /** Ratios: 0.031 -> "3.1%". */
     percent: (value: number, fractionDigits?: number) =>
