@@ -18,10 +18,8 @@ const ICON: Record<KpiMetric['key'], string> = {
 }
 
 /**
- * A monetary KPI renders in the org's presentation currency and changes with it — not the
- * Analytics selector, which is scoped there. The spec's functional-currency line for a
- * single-market scope (currency-model.md §3) is not built yet. The amount is read straight
- * out of the Money map — the client picks a key, it never converts.
+ * A monetary KPI renders in the org's presentation currency. The amount is read straight out
+ * of the Money map — the client picks a key, it never converts.
  */
 const displayValue = computed(() => {
   const value = props.metric.value
