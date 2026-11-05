@@ -290,6 +290,7 @@ interface AiChatResponse {
 ## Mock implementation notes
 
 - Put deterministic-ish generators in `server/utils/mock/` seeded so data is stable within a session but varied across markets; bake in the JP weekly anomaly explicitly.
+- The Dashboard's story holds on any date: `TODAY_VS_YESTERDAY` in `server/utils/mock/markets.ts` sets each market's day-over-day movement, which gives the KPI cards revenue, orders and active users up and conversion down. Alerts and the AI summary compute any figure they quote from the same data rather than hardcoding it.
 - Respect all query params in the mock (pagination, sort, filters) so the UI's controls are genuinely exercised, not decorative.
 - Add the 200–500ms delay in a shared helper so it's consistent and easy to remove for tests.
 - Keep one endpoint capable of returning an `ApiError` (e.g. a failed sync row / retry) to exercise the error + i18n path end to end, inline and in a Toast.

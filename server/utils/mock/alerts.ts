@@ -1,5 +1,13 @@
 import type { AnomalyAlert, LocaleCode, MarketCode } from '../../../app/types/api'
-import { ANOMALY_MARKET, ANOMALY_WINDOW_DAYS, dailyMetrics, isAnomalousDay } from './markets'
+import {
+  ANOMALY_MARKET,
+  ANOMALY_WINDOW_DAYS,
+  conversionOn,
+  dailyMetrics,
+  isAnomalousDay,
+  pctChange,
+  revenueOn,
+} from './markets'
 import { isoDate, addDays } from './dates'
 
 /**
@@ -7,6 +15,12 @@ import { isoDate, addDays } from './dates'
  * trend line, and the AI Assistant's explanation all describe one coherent story rather
  * than three independently invented numbers.
  */
+/** TW's active users, today against yesterday, as a whole percent. */
+function twUsersUpPct(today: Date): number {
+  const users = (date: Date) => dailyMetrics('TW', isoDate(date), today).activeUsers
+  return Math.round(pctChange(users(today), users(addDays(today, -1))) * 100)
+}
+
 export function buildAlerts(markets: MarketCode[], today = new Date()): AnomalyAlert[] {
   const alerts: AnomalyAlert[] = []
 
@@ -58,7 +72,7 @@ export function buildAlerts(markets: MarketCode[], today = new Date()): AnomalyA
       severity: 'info',
       market: 'TW',
       metricKey: 'activeUsers',
-      message: 'TW organic traffic up 12% following the seasonal campaign.',
+      message: `TW active users up ${twUsersUpPct(today)}% vs yesterday following the seasonal campaign.`,
       detectedAt: new Date(today.getTime() - 1000 * 60 * 320).toISOString(),
     })
   }
@@ -68,26 +82,45 @@ export function buildAlerts(markets: MarketCode[], today = new Date()): AnomalyA
 
 /*
  * One analysis, written in each locale as translations of each other: a language switch must
- * never change what the summary says. zh-TW sentences join without spaces.
+ * never change what the summary says. zh-TW sentences join without spaces. A percentage is
+ * computed the way its KPI card computes it, so the two always read the same.
  */
 const SUMMARY_SENTENCES = {
   en: {
+    up: (pct: string) => `up ${pct}`,
+    down: (pct: string) => `down ${pct}`,
+    flat: 'flat',
+    headline: (revenue: string, conversion: string) =>
+      `Revenue is ${revenue} vs yesterday and conversion is ${conversion}.`,
+    usDemand: 'US demand is the main driver, with orders and active users both up.',
+    twCampaign: (pct: number) =>
+      `Taiwan's seasonal campaign lifted active users ${pct}% vs yesterday.`,
     anomaly:
-      'Japan is the outlier today: conversion has been depressed for a week, and the drop tracks a checkout latency spike rather than a traffic shortfall — sessions are flat while completed orders are not.',
-    steady:
-      'US and TW are steady against their 30-day baselines, with weekend softness in line with the usual pattern.',
+      'Japan is the outlier: conversion has been depressed for a week, and the drop tracks a checkout latency spike rather than a traffic shortfall — active users are holding while completed orders fall.',
     payments:
-      'Germany warrants a look: payment failures are elevated, which is suppressing otherwise healthy order volume.',
+      'Germany warrants a look: payment failures are elevated, holding orders below yesterday.',
   },
   'zh-TW': {
+    up: (pct: string) => `上升 ${pct}`,
+    down: (pct: string) => `下降 ${pct}`,
+    flat: '持平',
+    headline: (revenue: string, conversion: string) =>
+      `營收較昨日${revenue}，轉換率${conversion}。`,
+    usDemand: '美國需求是主要動力，訂單與活躍用戶皆上升。',
+    twCampaign: (pct: number) => `台灣的季節性活動使活躍用戶較昨日增加 ${pct}%。`,
     anomaly:
-      '日本是今天的異常市場：轉換率已連續一週偏低，且下滑與結帳延遲飆升同步，而非流量不足——工作階段持平，完成的訂單卻減少。',
-    steady: '美國與台灣相對 30 日基準維持穩定，週末略為走弱，與一貫模式相符。',
-    payments: '德國值得留意：付款失敗率偏高，壓抑了原本健康的訂單量。',
+      '日本是異常市場：轉換率已連續一週偏低，且下滑與結帳延遲飆升同步，而非流量不足——活躍用戶持穩，完成的訂單卻減少。',
+    payments: '德國值得留意：付款失敗率偏高，使訂單低於昨日。',
   },
-} satisfies Record<LocaleCode, Record<string, string>>
+}
 
-/** The AI daily summary narrative, in `locale` — leads with the anomaly when it is present. */
+const ONE_DECIMAL_PERCENT = new Intl.NumberFormat('en-US', {
+  style: 'percent',
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+})
+
+/** The AI daily summary narrative, in `locale`: the day's movement, then each market's part in it. */
 export function buildAiSummary(
   markets: MarketCode[],
   locale: LocaleCode,
@@ -95,12 +128,29 @@ export function buildAiSummary(
 ): string {
   const sentences = SUMMARY_SENTENCES[locale]
   const todayIso = isoDate(today)
-  const anomalyActive =
-    markets.includes(ANOMALY_MARKET) && isAnomalousDay(ANOMALY_MARKET, todayIso, today)
+  const yesterdayIso = isoDate(addDays(today, -1))
 
-  const parts: string[] = []
-  if (anomalyActive) parts.push(sentences.anomaly)
-  parts.push(sentences.steady)
+  // One decimal of a percent, rounded as the card rounds it; what would read 0.0% is flat.
+  const movement = (change: number) => {
+    const pct = ONE_DECIMAL_PERCENT.format(Math.abs(change))
+    if (pct === '0.0%') return sentences.flat
+    return change > 0 ? sentences.up(pct) : sentences.down(pct)
+  }
+  const revenue = pctChange(
+    revenueOn(markets, todayIso, today).USD,
+    revenueOn(markets, yesterdayIso, today).USD,
+  )
+  const conversion = pctChange(
+    conversionOn(markets, todayIso, today),
+    conversionOn(markets, yesterdayIso, today),
+  )
+
+  const parts: string[] = [sentences.headline(movement(revenue), movement(conversion))]
+  if (markets.includes('US')) parts.push(sentences.usDemand)
+  if (markets.includes('TW')) parts.push(sentences.twCampaign(twUsersUpPct(today)))
+  if (markets.includes(ANOMALY_MARKET) && isAnomalousDay(ANOMALY_MARKET, todayIso, today)) {
+    parts.push(sentences.anomaly)
+  }
   if (markets.includes('DE')) parts.push(sentences.payments)
 
   return parts.join(locale === 'zh-TW' ? '' : ' ')
