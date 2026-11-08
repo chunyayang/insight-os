@@ -24,6 +24,9 @@ class ApiFetchError extends Error implements ApiError {
  */
 export default defineNuxtPlugin(() => {
   const token = useCookie<string | null>('insight-token')
+  // A call made while rendering on the server acts for the browser's request, so it
+  // carries that request's cookies, as the browser's own calls do.
+  const requestCookie = import.meta.server ? useRequestHeaders(['cookie']).cookie : undefined
 
   const api = $fetch.create({
     // Stays relative on the server too: Nitro's own $fetch (which .create() inherits)
@@ -48,6 +51,9 @@ export default defineNuxtPlugin(() => {
         !hasProtocol(request, { acceptRelative: true })
       if (token.value && targetsApi) {
         options.headers.set('Authorization', `Bearer ${token.value}`)
+      }
+      if (requestCookie && targetsApi) {
+        options.headers.set('cookie', requestCookie)
       }
     },
 

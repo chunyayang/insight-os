@@ -19,5 +19,5 @@ export default defineEventHandler(async (event): Promise<ApiResponse<UserSetting
 
   await mockLatency('settings-me-update')
   const patch = market === undefined ? {} : { defaultMarket: market }
-  return ok(updateUserSettings(DEMO_USERS[role].id, patch))
+  return ok(updateUserSettings(event, DEMO_USERS[role].id, patch))
 })
