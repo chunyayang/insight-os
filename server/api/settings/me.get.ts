@@ -6,5 +6,5 @@ export default defineEventHandler(async (event): Promise<ApiResponse<UserSetting
   if (!role) throw apiError(401, 'UNAUTHORIZED', 'Sign in to read your settings.')
 
   await mockLatency('settings-me')
-  return ok(getUserSettings(DEMO_USERS[role].id))
+  return ok(getUserSettings(event, DEMO_USERS[role].id))
 })

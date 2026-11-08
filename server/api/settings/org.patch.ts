@@ -1,3 +1,4 @@
+import { CURRENCY_CODES } from '../../../app/constants/markets'
 import { roleCan } from '../../../app/constants/permissions'
 import type { ApiResponse, OrgSettings, UpdateOrgSettingsRequest } from '../../../app/types/api'
 
@@ -14,7 +15,17 @@ export default defineEventHandler(async (event): Promise<ApiResponse<OrgSettings
   }
 
   const body = await readBody<UpdateOrgSettingsRequest>(event)
-  await mockLatency('settings-org-update')
+  const currency = body?.presentationCurrency
+  if (currency !== undefined && !CURRENCY_CODES.includes(currency)) {
+    throw apiError(
+      400,
+      'VALIDATION_FAILED',
+      `presentationCurrency must be one of ${CURRENCY_CODES.join(', ')}.`,
+      { field: 'presentationCurrency' },
+    )
+  }
 
-  return ok(updateOrgSettings(body))
+  await mockLatency('settings-org-update')
+  const patch = currency === undefined ? {} : { presentationCurrency: currency }
+  return ok(updateOrgSettings(event, patch))
 })
