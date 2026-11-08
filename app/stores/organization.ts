@@ -4,8 +4,8 @@ import type { CurrencyCode } from '~/types/api'
 /**
  * Organization-level configuration — one value, read by everyone, that only
  * Settings → General can write. Session-scoped UI state seeded from an org setting
- * (`useOrgSettingsQuery`, called once from the authenticated layout), not server data
- * cloned into Pinia: this store holds the seeded value and the setter, never the fetch.
+ * (`useOrgSettingsQuery` copies its cached data in, and nothing else writes it), not
+ * server data cloned into Pinia: this store holds the seeded value, never the fetch.
  *
  * Distinct from `filters.displayCurrency`: that is an Analytics-only override the user
  * owns for one page. `presentationCurrency` is the IAS 21 presentation currency every

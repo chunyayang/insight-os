@@ -3,13 +3,12 @@ import type { ApiResponse, OrgSettings, UpdateOrgSettingsRequest } from '~/types
 import { orgSettingsKeys } from './useOrgSettingsQuery'
 
 /**
- * Settings → General is the only writer of organization config. On success the store
- * is seeded directly — every other surface reads it live, with no reason to wait on a
- * refetch — and the query is invalidated so a later reload confirms the same value.
+ * Settings → General is the only writer of organization config. The PATCH answers with
+ * the whole `OrgSettings`, so it becomes the query's data with no refetch, and the
+ * query's own seed carries it into the organization store.
  */
 export function useUpdatePresentationCurrencyMutation() {
   const { $api } = useNuxtApp()
-  const organization = useOrganizationStore()
   const queryClient = useQueryClient()
   const { success } = useNotify()
 
@@ -21,9 +20,10 @@ export function useUpdatePresentationCurrencyMutation() {
       })
       return response.data
     },
-    onSuccess: (data) => {
-      organization.setPresentationCurrency(data.presentationCurrency)
-      queryClient.invalidateQueries({ queryKey: orgSettingsKeys.all })
+    onSuccess: async (data) => {
+      // A read still in flight was sent before the save, and would land the old value after it.
+      await queryClient.cancelQueries({ queryKey: orgSettingsKeys.all })
+      queryClient.setQueryData(orgSettingsKeys.all, data)
       success('settings.general.saved')
     },
   })

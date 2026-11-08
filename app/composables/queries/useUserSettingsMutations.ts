@@ -3,12 +3,12 @@ import type { ApiResponse, UpdateUserSettingsRequest, UserSettings } from '~/typ
 import { userSettingsKeys } from './useUserSettingsQuery'
 
 /**
- * On success the store is seeded directly, so the Dashboard rescopes without waiting on
- * a refetch, and the query is invalidated so a later reload confirms the same value.
+ * The PATCH answers with the whole `UserSettings`, so it becomes the query's data with no
+ * refetch, and the query's own seed carries it into the preferences store.
  */
 export function useUpdateDefaultMarketMutation() {
   const { $api } = useNuxtApp()
-  const preferences = usePreferencesStore()
+  const auth = useAuthStore()
   const queryClient = useQueryClient()
   const { success } = useNotify()
 
@@ -20,9 +20,10 @@ export function useUpdateDefaultMarketMutation() {
       })
       return response.data
     },
-    onSuccess: (data) => {
-      preferences.setDefaultMarket(data.defaultMarket)
-      queryClient.invalidateQueries({ queryKey: userSettingsKeys.all })
+    onSuccess: async (data) => {
+      // A read still in flight was sent before the save, and would land the old value after it.
+      await queryClient.cancelQueries({ queryKey: userSettingsKeys.all })
+      queryClient.setQueryData(userSettingsKeys.me(auth.user?.id), data)
       success('settings.general.saved')
     },
   })

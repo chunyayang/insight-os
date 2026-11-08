@@ -8,8 +8,10 @@ export const userSettingsKeys = {
 }
 
 /**
- * The signed-in user's own settings. Called once from the authenticated layout to seed
- * the preferences store (spec §4.10); every other surface reads `usePreferencesStore()`.
+ * The signed-in user's own settings, which seed the preferences store (spec §4.10). The
+ * authenticated layout's call keeps the store seeded for the session; other callers want
+ * the loading state, and their seed copies the same cached data. Read the market itself
+ * from `usePreferencesStore()`.
  *
  * Until this user's settings arrive the store reads `'All'`, so a new sign-in never
  * starts on the previous user's market.
