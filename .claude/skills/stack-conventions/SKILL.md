@@ -99,7 +99,9 @@ Hard boundary — violating it is the most common review rejection:
   - Every query lives in `composables/queries/`, one file per domain.
   - Use a query-key factory per domain: `revenueKeys.byMarket(market, range)` — never inline array keys in components.
   - Page filters flow into queries as reactive refs read from the URL, already resolved through memory and defaults, so changing a filter changes the query key and refetches. A page with no control for a param reads its session default from Pinia directly.
-  - Default `staleTime` 60s for analytics data; mutations must invalidate the relevant key factory branch.
+  - Default `staleTime` 60s for analytics data.
+  - A mutation whose response is the whole resource writes it into the cache: `cancelQueries` on the key factory branch first, since a read in flight was sent before the save and would land the old value after it, then `setQueryData` on the exact key. No refetch: on a deployment with several instances, a read right after a write can reach one that hasn't seen it. A mutation that returns less, or changes data other queries derive from, invalidates the relevant key factory branch instead.
+  - A Pinia session default seeded from a query is written only by that query's seed, never by a mutation directly, so the store can never disagree with the cache.
   - Only the session-seeding queries (org and user settings, in `layouts/default.vue`) are fetched during SSR, through `onServerPrefetch` + `suspense()`, and reach the client in the payload, so the first render already holds the session defaults. Page data fetches on the client: prefetching it would hold the HTML for its slowest request.
 
 ## API layer
