@@ -23,6 +23,10 @@ export function useOrgSettingsQuery() {
       const response = await $api<ApiResponse<OrgSettings>>('/settings/org')
       return response.data
     },
+    // Organization policy, changed rarely (spec §4.10), and an Admin's save writes its
+    // response into the cache. Other sessions pick up a change on their next page load,
+    // which SSR fetches fresh.
+    staleTime: Infinity,
   })
 
   // Synchronous, so the store holds the currency before the layout, gated on this query's

@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import type { VueWrapper } from '@vue/test-utils'
 import { readBody } from 'h3'
 import { mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime'
-import { useQueryClient } from '@tanstack/vue-query'
+import { focusManager, useQueryClient } from '@tanstack/vue-query'
 import Harness from './support/SettingsGeneralHarness.vue'
 import { useAuthStore } from '../../app/stores/auth'
 import { useOrganizationStore } from '../../app/stores/organization'
@@ -89,6 +89,11 @@ describe('SettingsGeneral', () => {
     saved = { defaultMarket: 'All' }
     savedOrg = { presentationCurrency: 'USD' }
     holdReads = null
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+    focusManager.setFocused(undefined)
   })
 
   it("renders the organization store's current currency, and lets an Admin change it", async () => {
@@ -178,5 +183,23 @@ describe('SettingsGeneral', () => {
     await vi.waitFor(() => expect(useOrganizationStore().presentationCurrency).toBe('EUR'))
     await settle()
     expect(orgReads).toBe(reads)
+  })
+
+  it('never rereads the settings in the background, however long the session runs', async () => {
+    await mountSuspended(Harness)
+    signInAs('viewer')
+    await vi.waitFor(() => expect(settingsReads).toBeGreaterThan(0))
+    await vi.waitFor(() => expect(orgReads).toBeGreaterThan(0))
+    await settle()
+    const reads = { me: settingsReads, org: orgReads }
+
+    // Past the 60s every other query goes stale after, then back to the window.
+    const later = Date.now() + 61_000
+    vi.spyOn(Date, 'now').mockReturnValue(later)
+    focusManager.setFocused(false)
+    focusManager.setFocused(true)
+    await settle()
+
+    expect({ me: settingsReads, org: orgReads }).toEqual(reads)
   })
 })

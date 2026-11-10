@@ -29,6 +29,10 @@ export function useUserSettingsQuery() {
       return response.data
     },
     enabled: computed(() => Boolean(userId.value)),
+    // Only this user changes these, and a save writes its response into the cache, so no
+    // background refetch has anything to find. A change from another tab or device shows
+    // on the next page load, which SSR fetches fresh.
+    staleTime: Infinity,
   })
 
   // Synchronous, so the store holds the user's market before the layout, gated on this
