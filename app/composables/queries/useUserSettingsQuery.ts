@@ -8,10 +8,9 @@ export const userSettingsKeys = {
 }
 
 /**
- * The signed-in user's own settings, which seed the preferences store (spec §4.10). The
- * authenticated layout's call keeps the store seeded for the session; other callers want
- * the loading state, and their seed copies the same cached data. Read the market itself
- * from `usePreferencesStore()`.
+ * The signed-in user's own settings, which seed the preferences store (spec §4.10). Called
+ * only by the authenticated layout, which renders no page until it settles: pages read the
+ * market from `usePreferencesStore()` and never wait on this query themselves.
  *
  * Until this user's settings arrive the store reads `'All'`, so a new sign-in never
  * starts on the previous user's market.
@@ -32,8 +31,8 @@ export function useUserSettingsQuery() {
     enabled: computed(() => Boolean(userId.value)),
   })
 
-  // Synchronous, so the store holds the user's market before anything gated on this
-  // query's status (the Dashboard) sees it settle.
+  // Synchronous, so the store holds the user's market before the layout, gated on this
+  // query's status, renders the page.
   watch(
     () => query.data.value,
     (data) => preferences.setDefaultMarket(data?.defaultMarket ?? 'All'),

@@ -1,14 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent, h } from 'vue'
 import { mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime'
 import { useQueryClient } from '@tanstack/vue-query'
 import DashboardPage from '../../app/pages/index.vue'
-import { useAuthStore } from '../../app/stores/auth'
-import type {
-  ApiResponse,
-  DashboardSummary,
-  RevenueResponse,
-  UserSettings,
-} from '../../app/types/api'
+import { usePreferencesStore } from '../../app/stores/preferences'
+import type { ApiResponse, DashboardSummary, RevenueResponse } from '../../app/types/api'
 import { stubElementSize } from './support/layout'
 import { withNuxtContext } from './support/context'
 
@@ -25,9 +21,14 @@ registerEndpoint('/api/analytics/revenue', (event: { path: string }) => {
   return { data: { series: [], totalsByMarket: [] } } as unknown as ApiResponse<RevenueResponse>
 })
 
-registerEndpoint('/api/settings/me', (): ApiResponse<UserSettings> => ({
-  data: { defaultMarket: 'JP' },
-}))
+// The layout renders no page before the user's settings seed the store, so the page mounts
+// with the default market already in place.
+const SeededPage = defineComponent({
+  setup() {
+    usePreferencesStore().setDefaultMarket('JP')
+    return () => h(DashboardPage)
+  },
+})
 
 describe('Dashboard page', () => {
   stubElementSize()
@@ -35,7 +36,6 @@ describe('Dashboard page', () => {
 
   beforeEach(() => {
     withNuxtContext(() => useQueryClient().clear())
-    useAuthStore().signOut()
     revenueMarkets.length = 0
   })
 
@@ -45,13 +45,8 @@ describe('Dashboard page', () => {
   })
 
   it("fetches the revenue trend beside the summary, on the user's default market", async () => {
-    const wrapper = await mountSuspended(DashboardPage)
+    const wrapper = await mountSuspended(SeededPage)
     unmount = () => wrapper.unmount()
-    // After mount, for the reason SettingsGeneral.test.ts gives.
-    useAuthStore().signIn({
-      token: 'demo.viewer.stamp',
-      user: { id: 'u-003', name: 'Test User', email: 't@x.com', role: 'viewer' },
-    })
 
     await vi.waitFor(() => expect(revenueMarkets).toEqual(['JP']))
   })

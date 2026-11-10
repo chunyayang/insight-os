@@ -6,9 +6,8 @@ export const orgSettingsKeys = {
 }
 
 /**
- * Organization config, which seeds the organization store (spec §4.10). The authenticated
- * layout's call keeps the store seeded for the session; other callers want the loading
- * state, and their seed copies the same cached data. Every surface reads
+ * Organization config, which seeds the organization store (spec §4.10). Called only by the
+ * authenticated layout, which renders no page until it settles. Every surface reads
  * `useOrganizationStore()` rather than this query, so reading a setting never requests it.
  *
  * `useQuery` in this Vue Query version has no `onSuccess`, so the seed is a `watch`
@@ -26,12 +25,14 @@ export function useOrgSettingsQuery() {
     },
   })
 
+  // Synchronous, so the store holds the currency before the layout, gated on this query's
+  // status, renders the page.
   watch(
     () => query.data.value,
     (data) => {
       if (data) organization.setPresentationCurrency(data.presentationCurrency)
     },
-    { immediate: true },
+    { immediate: true, flush: 'sync' },
   )
 
   return query

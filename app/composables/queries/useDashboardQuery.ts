@@ -15,12 +15,13 @@ export const dashboardKeys = {
 /**
  * Dashboard summary, scoped to the session's default operating market (spec §4.2): read from
  * the preferences store, never from the URL or another page's filter. `/` takes no `?market=`.
+ * The layout renders no page before the store is seeded, so the first request is already
+ * scoped to the user's market.
  * No currency param: the payload carries all four, so a currency switch needs no request.
  */
 export function useDashboardSummary() {
   const { $api } = useNuxtApp()
   const preferences = usePreferencesStore()
-  const settings = useUserSettingsQuery()
   const { locale } = useI18n()
 
   const market = computed(() => preferences.defaultMarket)
@@ -34,8 +35,5 @@ export function useDashboardSummary() {
       })
       return response.data
     },
-    // Wait for the user's settings, so the page never fetches `All` and then refetches their
-    // market. A failed settings load leaves the default at `All`.
-    enabled: computed(() => !settings.isPending.value),
   })
 }
