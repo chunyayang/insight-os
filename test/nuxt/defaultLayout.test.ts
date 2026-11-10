@@ -23,11 +23,11 @@ async function release(name: 'me' | 'org', timeout?: number) {
 }
 let orgFails = false
 let orgReads = 0
-registerEndpoint('/api/settings/me', async (): Promise<ApiResponse<UserSettings>> => {
+registerEndpoint('/api/me/settings', async (): Promise<ApiResponse<UserSettings>> => {
   await hold('me')
   return { data: { defaultMarket: 'TW' } }
 })
-registerEndpoint('/api/settings/org', async (): Promise<ApiResponse<OrgSettings>> => {
+registerEndpoint('/api/org/settings', async (): Promise<ApiResponse<OrgSettings>> => {
   orgReads++
   await hold('org')
   if (orgFails) throw createError({ statusCode: 500, data: { error: { code: 'INTERNAL' } } })

@@ -16,7 +16,7 @@ let settingsReads = 0
 // While set, a read answers with what was saved when it arrived, but only once released:
 // a read that crosses a save.
 let holdReads: Promise<void> | null = null
-registerEndpoint('/api/settings/me', {
+registerEndpoint('/api/me/settings', {
   method: 'GET',
   handler: async (): Promise<ApiResponse<UserSettings>> => {
     settingsReads++
@@ -25,7 +25,7 @@ registerEndpoint('/api/settings/me', {
     return reply
   },
 })
-registerEndpoint('/api/settings/me', {
+registerEndpoint('/api/me/settings', {
   method: 'PATCH',
   handler: async (event): Promise<ApiResponse<UserSettings>> => {
     saved = { ...saved, ...(await readBody<Partial<UserSettings>>(event)) }
@@ -35,14 +35,14 @@ registerEndpoint('/api/settings/me', {
 
 let savedOrg: OrgSettings = { presentationCurrency: 'USD' }
 let orgReads = 0
-registerEndpoint('/api/settings/org', {
+registerEndpoint('/api/org/settings', {
   method: 'GET',
   handler: (): ApiResponse<OrgSettings> => {
     orgReads++
     return { data: savedOrg }
   },
 })
-registerEndpoint('/api/settings/org', {
+registerEndpoint('/api/org/settings', {
   method: 'PATCH',
   handler: async (event): Promise<ApiResponse<OrgSettings>> => {
     savedOrg = { ...savedOrg, ...(await readBody<Partial<OrgSettings>>(event)) }

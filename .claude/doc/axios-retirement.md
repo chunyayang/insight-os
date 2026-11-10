@@ -81,7 +81,7 @@ with `/`, so every `/api` call forwards it. Checked against Nuxt, Nitro and h3 s
   one `Authorization` header" translation with a broad, implicit one. The explicit translation
   would still be needed, because a bearer-token backend does not read the raw cookie.
 - Forwarding has no consumer today: the only inbound header `server/` reads is `Authorization`
-  (`server/api/settings/org.patch.ts`), which `$api` already sets itself.
+  (`server/api/org/settings.patch.ts`), which `$api` already sets itself.
 - It keeps the in-process shortcut — the `fetch` it wraps is the same Nitro `$fetch` — so it adds
   nothing to the `baseURL` question above.
 - On the client it is identical to the global `$fetch`.

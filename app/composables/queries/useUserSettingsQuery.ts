@@ -25,7 +25,7 @@ export function useUserSettingsQuery() {
   const query = useQuery({
     queryKey: computed(() => userSettingsKeys.me(userId.value)),
     queryFn: async () => {
-      const response = await $api<ApiResponse<UserSettings>>('/settings/me')
+      const response = await $api<ApiResponse<UserSettings>>('/me/settings')
       return response.data
     },
     enabled: computed(() => Boolean(userId.value)),

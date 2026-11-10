@@ -16,15 +16,17 @@ test.describe('Session settings from SSR', () => {
 
     // Signing in navigates on the client, which fetches the settings in the browser; only
     // a full load is rendered on the server.
+    const settingsPaths = ['/api/org/settings', '/api/me/settings']
     const settingsRequests: string[] = []
     page.on('request', (request) => {
-      if (new URL(request.url()).pathname.startsWith('/api/settings/')) {
+      if (settingsPaths.includes(new URL(request.url()).pathname)) {
         settingsRequests.push(request.url())
       }
     })
     await page.reload()
 
-    // The Dashboard waits on the user's settings, so its data showing means they are in.
+    // The layout renders no page until both settings are in, so the Dashboard's data showing
+    // means they are.
     await expect(page.getByText(/JP conversion rate down \d+%/)).toBeVisible()
     expect(settingsRequests).toEqual([])
   })

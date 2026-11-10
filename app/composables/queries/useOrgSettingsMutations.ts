@@ -14,7 +14,7 @@ export function useUpdatePresentationCurrencyMutation() {
 
   return useMutation({
     mutationFn: async (payload: UpdateOrgSettingsRequest): Promise<OrgSettings> => {
-      const response = await $api<ApiResponse<OrgSettings>>('/settings/org', {
+      const response = await $api<ApiResponse<OrgSettings>>('/org/settings', {
         method: 'PATCH',
         body: payload,
       })
