@@ -15,17 +15,20 @@ import { withNuxtContext } from './support/context'
 // Each settings read is held until released, so a test can let one land before the other.
 const held = new Map<'me' | 'org', () => void>()
 const hold = (name: 'me' | 'org') => new Promise<void>((resolve) => held.set(name, resolve))
-/** Answers that read once it has arrived. */
-async function release(name: 'me' | 'org') {
-  await vi.waitFor(() => expect(held.has(name)).toBe(true))
+/** Answers that read once it has arrived; `timeout` covers a retry's delay. */
+async function release(name: 'me' | 'org', timeout?: number) {
+  await vi.waitFor(() => expect(held.has(name)).toBe(true), { timeout })
   held.get(name)!()
+  held.delete(name)
 }
 let orgFails = false
+let orgReads = 0
 registerEndpoint('/api/settings/me', async (): Promise<ApiResponse<UserSettings>> => {
   await hold('me')
   return { data: { defaultMarket: 'TW' } }
 })
 registerEndpoint('/api/settings/org', async (): Promise<ApiResponse<OrgSettings>> => {
+  orgReads++
   await hold('org')
   if (orgFails) throw createError({ statusCode: 500, data: { error: { code: 'INTERNAL' } } })
   return { data: { presentationCurrency: 'JPY' } }
@@ -58,23 +61,21 @@ function signIn() {
 
 describe('default layout', () => {
   let unmount = () => {}
-  let defaults: ReturnType<ReturnType<typeof useQueryClient>['getDefaultOptions']>
 
   beforeEach(() => {
     withNuxtContext(() => useQueryClient().clear())
     useAuthStore().signOut()
     useOrganizationStore().setPresentationCurrency(DEFAULT_CURRENCY)
     usePreferencesStore().setDefaultMarket('All')
-    withNuxtContext(() => (defaults = useQueryClient().getDefaultOptions()))
     held.clear()
     pageSaw = undefined
     orgFails = false
+    orgReads = 0
   })
 
   afterEach(() => {
     held.forEach((resolve) => resolve())
     unmount()
-    withNuxtContext(() => useQueryClient().setDefaultOptions(defaults))
   })
 
   async function mountShell() {
@@ -97,20 +98,20 @@ describe('default layout', () => {
     expect(pageSaw).toEqual({ market: 'TW', currency: 'JPY' })
   })
 
-  it('renders the page on the fallbacks when a settings load fails', async () => {
-    withNuxtContext(() =>
-      useQueryClient().setDefaultOptions({
-        ...defaults,
-        queries: { ...defaults.queries, retry: false },
-      }),
-    )
+  it('retries a failed settings load once, then renders the page on the fallbacks', async () => {
     orgFails = true
     const wrapper = await mountShell()
     signIn()
 
     await release('me')
     await release('org')
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(wrapper.find('#page').exists()).toBe(false)
+
+    // The retry comes after Vue Query's 1s delay.
+    await release('org', 2000)
     await vi.waitFor(() => expect(wrapper.find('#page').exists()).toBe(true))
+    expect(orgReads).toBe(2)
     expect(pageSaw).toEqual({ market: 'TW', currency: DEFAULT_CURRENCY })
   })
 })

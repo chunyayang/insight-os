@@ -103,7 +103,7 @@ Hard boundary — violating it is the most common review rejection:
   - A mutation whose response is the whole resource writes it into the cache: `cancelQueries` on the key factory branch first, since a read in flight was sent before the save and would land the old value after it, then `setQueryData` on the exact key. No refetch: on a deployment with several instances, a read right after a write can reach one that hasn't seen it. A mutation that returns less, or changes data other queries derive from, invalidates the relevant key factory branch instead.
   - A Pinia session default seeded from a query is written only by that query's seed, never by a mutation directly, so the store can never disagree with the cache.
   - Only the session-seeding queries (org and user settings, in `layouts/default.vue`) are fetched during SSR, through `onServerPrefetch` + `suspense()`, and reach the client in the payload, so the first render already holds the session defaults. Page data fetches on the client: prefetching it would hold the HTML for its slowest request.
-  - The layout is the only caller of the org and user settings queries, and renders no page until both have settled (a failure settles too, leaving the fallbacks). A page reads the session defaults from Pinia and never calls or waits on those queries itself.
+  - The layout is the only caller of the org and user settings queries, and renders no page until both have settled (a failure settles too, leaving the fallbacks). They retry once, not the client default of three, so a failing load holds the page blank for about a second rather than several. A page reads the session defaults from Pinia and never calls or waits on those queries itself.
 
 ## API layer
 

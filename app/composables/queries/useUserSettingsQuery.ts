@@ -33,6 +33,10 @@ export function useUserSettingsQuery() {
     // background refetch has anything to find. A change from another tab or device shows
     // on the next page load, which SSR fetches fresh.
     staleTime: Infinity,
+    // Once, not the client default of three: the layout shows no page while this loads, so a
+    // load that keeps failing would hold it blank for seconds. One retry covers a blip; after
+    // that the page renders on the fallbacks. (On the server Vue Query never retries.)
+    retry: 1,
   })
 
   // Synchronous, so the store holds the user's market before the layout, gated on this

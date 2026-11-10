@@ -27,6 +27,10 @@ export function useOrgSettingsQuery() {
     // response into the cache. Other sessions pick up a change on their next page load,
     // which SSR fetches fresh.
     staleTime: Infinity,
+    // Once, not the client default of three: the layout shows no page while this loads, so a
+    // load that keeps failing would hold it blank for seconds. One retry covers a blip; after
+    // that the page renders on the fallbacks. (On the server Vue Query never retries.)
+    retry: 1,
   })
 
   // Synchronous, so the store holds the currency before the layout, gated on this query's
