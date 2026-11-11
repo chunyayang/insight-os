@@ -7,10 +7,6 @@ const { can, isDisabledWhenDenied } = useCan()
 const organization = useOrganizationStore()
 const preferences = usePreferencesStore()
 
-// Cache-shared with the layout's session seed — this just adds the loading/pending
-// state the form needs, not a second request.
-useOrgSettingsQuery()
-useUserSettingsQuery()
 const update = useUpdatePresentationCurrencyMutation()
 const updateMarket = useUpdateDefaultMarketMutation()
 

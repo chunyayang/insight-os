@@ -59,6 +59,24 @@ describe('RevenueTrend', () => {
     expect(usePreferencesStore().defaultMarket).toBe('All')
   })
 
+  it('follows a change to the default until a tab is picked here', async () => {
+    const wrapper = await mountSuspended(RevenueTrend)
+    const selected = () => wrapper.find('[role="tab"][aria-selected="true"]').text()
+    await vi.waitFor(() => expect(selected()).toBe('All'))
+
+    usePreferencesStore().setDefaultMarket('JP')
+    await vi.waitFor(() => expect(selected()).toBe('JP'))
+
+    await wrapper
+      .findAll('[role="tab"]')
+      .find((tab) => tab.text() === 'DE')!
+      .trigger('mousedown')
+    await vi.waitFor(() => expect(selected()).toBe('DE'))
+    usePreferencesStore().setDefaultMarket('TW')
+    await nextTick()
+    expect(selected()).toBe('DE')
+  })
+
   it("plots every line in the organization's presentation currency, not a hardcoded USD", async () => {
     const wrapper = await mountSuspended(RevenueTrend)
 

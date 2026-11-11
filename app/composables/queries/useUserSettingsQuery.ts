@@ -8,8 +8,9 @@ export const userSettingsKeys = {
 }
 
 /**
- * The signed-in user's own settings. Called once from the authenticated layout to seed
- * the preferences store (spec §4.10); every other surface reads `usePreferencesStore()`.
+ * The signed-in user's own settings, which seed the preferences store (spec §4.10). Called
+ * only by the authenticated layout, which renders no page until it settles: pages read the
+ * market from `usePreferencesStore()` and never wait on this query themselves.
  *
  * Until this user's settings arrive the store reads `'All'`, so a new sign-in never
  * starts on the previous user's market.
@@ -28,10 +29,18 @@ export function useUserSettingsQuery() {
       return response.data
     },
     enabled: computed(() => Boolean(userId.value)),
+    // Only this user changes these, and a save writes its response into the cache, so no
+    // background refetch has anything to find. A change from another tab or device shows
+    // on the next page load, which SSR fetches fresh.
+    staleTime: Infinity,
+    // Once, not the client default of three: the layout shows no page while this loads, so a
+    // load that keeps failing would hold it blank for seconds. One retry covers a blip; after
+    // that the page renders on the fallbacks. (On the server Vue Query never retries.)
+    retry: 1,
   })
 
-  // Synchronous, so the store holds the user's market before anything gated on this
-  // query's status (the Dashboard) sees it settle.
+  // Synchronous, so the store holds the user's market before the layout, gated on this
+  // query's status, renders the page.
   watch(
     () => query.data.value,
     (data) => preferences.setDefaultMarket(data?.defaultMarket ?? 'All'),

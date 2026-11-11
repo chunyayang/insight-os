@@ -14,7 +14,8 @@ import type { TrendSeries } from '~/components/charts/TrendLineChart.vue'
  * must match the others' scale. Not the Analytics selector, which is scoped there.
  *
  * The tabs open on the default operating market, so the chart starts on the KPI cards'
- * market (spec §4.2). A tab picked here stays in the component and never writes back.
+ * market (spec §4.2) and follows it until a tab is picked. A picked tab stays in the
+ * component and never writes back.
  */
 const { t } = useI18n()
 const fmt = useFormat()
@@ -22,8 +23,10 @@ const organization = useOrganizationStore()
 const filters = useFiltersStore()
 const preferences = usePreferencesStore()
 
-// Seeded once: the Dashboard mounts this only after the user's settings have loaded.
-const market = ref<MarketFilter>(preferences.defaultMarket)
+// The default market until a tab is picked here, so the chart follows a change to the
+// default as the KPI cards do.
+const picked = ref<MarketFilter>()
+const market = computed(() => picked.value ?? preferences.defaultMarket)
 const { data, isPending, isError, error, refetch } = useRevenueSeries({ market })
 
 // The query scopes itself to the global range, so the title names that range rather
@@ -114,7 +117,7 @@ const chartSummary = computed(() =>
           trigger: 'data-[state=active]:text-primary data-[state=inactive]:text-toned',
         }"
         size="sm"
-        @update:model-value="market = $event as MarketFilter"
+        @update:model-value="picked = $event as MarketFilter"
       />
     </template>
 

@@ -5,9 +5,6 @@
  * useFormat, permissions in useCan).
  */
 const { data, isPending, isError, error, refetch, isFetching } = useDashboardSummary()
-// The trend fetches beside the summary, not after it: it needs only the user's settings,
-// to open on their default market.
-const { isPending: settingsPending } = useUserSettingsQuery()
 </script>
 
 <template>
@@ -37,10 +34,9 @@ const { isPending: settingsPending } = useUserSettingsQuery()
     </template>
 
     <!-- The trend and the summary share a row, but each keeps its own loading state: the
-         trend waits on the user's settings, the summary on the dashboard summary. -->
+         trend fetches beside the summary, not after it. -->
     <div class="dash__block dash__row">
-      <USkeleton v-if="settingsPending" class="dash__trend h-88 rounded-xl" />
-      <DashboardRevenueTrend v-else class="dash__trend" />
+      <DashboardRevenueTrend class="dash__trend" />
 
       <!-- No height: it stretches to the row the trend sets. -->
       <USkeleton v-if="isPending" class="dash__summary rounded-xl" />

@@ -2,8 +2,8 @@ import type { MarketFilter } from '~/constants/markets'
 
 /**
  * The signed-in user's session defaults — seeded from their own settings
- * (`useUserSettingsQuery`, called once from the authenticated layout), not server data
- * cloned into Pinia: this store holds the seeded value and the setter, never the fetch.
+ * (`useUserSettingsQuery` copies its cached data in, and nothing else writes it), not
+ * server data cloned into Pinia: this store holds the seeded value, never the fetch.
  *
  * Distinct from `organization`, which holds org policy. `defaultMarket` is where one
  * person starts their day (spec §4.10): the fallback a page's market filter takes when

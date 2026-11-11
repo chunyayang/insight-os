@@ -14,9 +14,15 @@ const router = useRouter()
 // readable anywhere in the app, not just on Settings.
 const orgSettings = useOrgSettingsQuery()
 const userSettings = useUserSettingsQuery()
-// Fetched during SSR and handed over in the payload, so the client's first render already
-// holds the user's market and nothing on the page waits on a settings request. A failed
-// prefetch still renders the page; the client then fetches as usual.
+// No page renders until both have settled, so every page reads the session defaults from
+// the stores and none renders or fetches with a fallback first. A failed load settles too,
+// and the page renders on the fallbacks. Only the page waits: the shell renders at once.
+const settingsSettled = computed(
+  () => !orgSettings.isPending.value && !userSettings.isPending.value,
+)
+// Fetched during SSR and handed over in the payload, so a page load renders the page at once
+// and only a client-side navigation into the shell, after signing in, waits on them. A
+// failed prefetch still renders the page; the client then fetches as usual.
 onServerPrefetch(() => Promise.allSettled([orgSettings.suspense(), userSettings.suspense()]))
 
 // From `lg` UDashboardGroup pins the shell to the viewport and pages scroll inside the
@@ -73,7 +79,7 @@ useRuntimeHook('page:finish', () => {
 
       <template #body>
         <main ref="main">
-          <slot />
+          <slot v-if="settingsSettled" />
         </main>
       </template>
     </UDashboardPanel>
