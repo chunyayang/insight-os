@@ -14,7 +14,7 @@ export function useUpdateDefaultMarketMutation() {
 
   return useMutation({
     mutationFn: async (payload: UpdateUserSettingsRequest): Promise<UserSettings> => {
-      const response = await $api<ApiResponse<UserSettings>>('/settings/me', {
+      const response = await $api<ApiResponse<UserSettings>>('/me/settings', {
         method: 'PATCH',
         body: payload,
       })

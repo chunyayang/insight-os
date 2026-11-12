@@ -17,11 +17,11 @@ test.describe('Mock settings persistence', () => {
     const token = (await page.context().cookies()).find((c) => c.name === 'insight-token')
     const authorization = `Bearer ${decodeURIComponent(token!.value).replace(/"/g, '')}`
     const readMarket = async () => {
-      const res = await page.request.get('/api/settings/me', { headers: { authorization } })
+      const res = await page.request.get('/api/me/settings', { headers: { authorization } })
       return (await res.json()).data.defaultMarket
     }
 
-    await page.request.patch('/api/settings/me', {
+    await page.request.patch('/api/me/settings', {
       headers: { authorization },
       data: { defaultMarket: 'TW' },
     })

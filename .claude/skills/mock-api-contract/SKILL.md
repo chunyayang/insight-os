@@ -66,9 +66,19 @@ interface ApiError {
 
 ## URL & method conventions
 
-- Base path `/api`. RESTful nouns, plural, kebab where multi-word.
-- `GET` for reads, `POST` create, `PATCH` partial update, `DELETE` remove. Reads never mutate.
-- Resource examples (align endpoints to the sidebar IA):
+Resource-oriented, after Google's API Improvement Proposals: [AIP-121](https://google.aip.dev/121) (resource-oriented design), [AIP-122](https://google.aip.dev/122) (resource names) and [AIP-156](https://google.aip.dev/156) (singletons). Where this section differs, it wins. Every new endpoint follows it, so each page's endpoints can be named before the page is built.
+
+- **A path names a resource: what it is and who owns it.** It never names the page or tab that shows the resource, or the component that fetches it. The Security tab reads `/api/org/sso` and `/api/me/sessions`; the Appearance tab reads nothing, since theme and language live in cookies. Which queries the layout prefetches is a client rule (`stack-conventions` → *State management*), not a URL one.
+- **Every resource is a collection or a singleton.**
+  - **Collection:** a plural noun in kebab-case, such as `/api/customers` or `/api/org/api-keys`. `GET` lists it and `POST` creates in it. Each item sits at `/:id`, with `GET`, `PATCH` and `DELETE`.
+  - **Singleton:** one per parent, a singular noun, such as `/api/org/settings`. It takes `GET`, and `PATCH` when it's writable. It is never created or deleted. A read-only view computed from the data is also a singleton, such as `/api/dashboard/summary` or `/api/analytics/revenue`.
+  - **A child sits under its parent's item**, as in `/api/customers/:id/journeys`. A fixed word never sits where a parent's `:id` goes: `/api/campaigns/abtests` would collide with `/api/campaigns/:id`.
+- **The owner decides the prefix.**
+  - **The organization's business data sits at the top level:** customers, campaigns, analytics, data sources. The token scopes every request to the signed-in organization, so no path names one.
+  - **The account itself sits under two aliases the server resolves from the token.** `/api/org/…` is the organization: its configuration, members, keys and billing. `/api/me/…` is the signed-in user: their preferences, sessions and notifications. `me` is always the caller, so no path reaches another user's records.
+- **A setting is a field, not a path.** `/api/org/settings` and `/api/me/settings` are one record each. A new organization setting is a field on the first, and a new preference is a field on the second. Something gets its own path only when it's a collection, like sessions, or needs a permission of its own, like SSO.
+- **Methods:** `GET` reads, `POST` creates, `PATCH` updates part of a resource, `DELETE` removes it. Reads never mutate. An action that is none of these, such as retrying a sync job or verifying a 2FA code, is a `POST` to a verb under the resource: `POST /api/sync-jobs/:id/retry`. AIP-136 writes that as a `:retry` suffix instead, but a colon doesn't work in Nitro's file-based route names on every OS.
+- Endpoints, built and planned:
   - `GET /api/dashboard/summary?market=All&locale=zh-TW` → today's KPIs + AI daily summary + anomaly alerts
   - `GET /api/anomalies/:id?locale=zh-TW` → one `AnomalyAlert`, for a chat opened from *Ask AI why →*
   - `GET /api/analytics/revenue?range=30d&markets=US,JP` → revenue series by market
@@ -78,13 +88,20 @@ interface ApiError {
   - `GET /api/customers/:id`
   - `GET /api/customers/:id/journeys?pageSize=5`, then `&cursor=<nextCursor>` → the Journey tab's timeline, a page of journeys
   - `GET /api/customers/:id/ai-summary?locale=zh-TW` → the Journey tab's AI health summary
-  - `GET /api/campaigns` , `GET /api/campaigns/abtests`
-  - `GET /api/data-sources` , `GET /api/data-sources/sync-status`
-  - `GET /api/team/members` , `GET /api/team/activity`
-  - `GET` / `PATCH /api/settings/org` → organization policy (`OrgSettings`); `PATCH` is Admin only
-  - `GET` / `PATCH /api/settings/me` → the signed-in user's own preferences (`UserSettings`); any role, own record only
-  - `POST /api/ai/chat` → AI Assistant analysis response
-  - `GET /api/notifications`
+  - `GET /api/campaigns`
+  - `GET /api/ab-tests` → the A/B Test tab. A test is a site experiment, such as checkout button copy or a page layout, and belongs to no campaign, so it is a collection of its own rather than a child of `/api/campaigns/:id`.
+  - `GET /api/data-sources`, each source carrying its health and last sync time
+  - `GET /api/sync-jobs?latest=true` → the Sync Status tab: each source's most recent run, one row per source, as an `ApiListResponse` the tab shows without paging. Without `latest` the collection holds every run; nothing reads that yet. `POST /api/sync-jobs/:id/retry`
+  - `POST /api/ai/chat` → AI Assistant analysis response. An action, not a resource: the server keeps no conversation (`stack-conventions` → *State management*).
+  - Organization (`/api/org`):
+    - `GET` / `PATCH /api/org/settings` → organization policy (`OrgSettings`); `PATCH` is Admin only
+    - `GET /api/org/members`, `GET /api/org/activity` → Team's members and audit log
+    - Admin only: `GET` / `POST /api/org/api-keys`, `DELETE /api/org/api-keys/:id`; `GET /api/org/subscription`, `GET /api/org/usage`, `GET /api/org/invoices` (+ `/:id`); `GET` / `PATCH /api/org/sso`
+  - Signed-in user (`/api/me`):
+    - `GET` / `PATCH /api/me/settings` → the user's own preferences (`UserSettings`); any role
+    - `GET /api/me/sessions`, `DELETE /api/me/sessions/:id`
+    - `GET /api/me/notifications`
+    - 2FA is still to be designed with Security: turning it on is a verification flow, not a plain field update.
 
 ## Query parameter conventions (identical across all list endpoints)
 

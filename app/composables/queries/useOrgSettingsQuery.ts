@@ -20,7 +20,7 @@ export function useOrgSettingsQuery() {
   const query = useQuery({
     queryKey: orgSettingsKeys.all,
     queryFn: async () => {
-      const response = await $api<ApiResponse<OrgSettings>>('/settings/org')
+      const response = await $api<ApiResponse<OrgSettings>>('/org/settings')
       return response.data
     },
     // Organization policy, changed rarely (spec §4.10), and an Admin's save writes its
