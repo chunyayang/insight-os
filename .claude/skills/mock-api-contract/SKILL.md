@@ -88,9 +88,10 @@ Resource-oriented, after Google's API Improvement Proposals: [AIP-121](https://g
   - `GET /api/customers/:id`
   - `GET /api/customers/:id/journeys?pageSize=5`, then `&cursor=<nextCursor>` → the Journey tab's timeline, a page of journeys
   - `GET /api/customers/:id/ai-summary?locale=zh-TW` → the Journey tab's AI health summary
-  - `GET /api/campaigns`. A/B tests are their own collection, `GET /api/ab-tests`, or `GET /api/campaigns/:id/ab-tests` if each test belongs to one campaign: settle which when Campaigns is built.
+  - `GET /api/campaigns`
+  - `GET /api/ab-tests` → the A/B Test tab. A test is a site experiment, such as checkout button copy or a page layout, and belongs to no campaign, so it is a collection of its own rather than a child of `/api/campaigns/:id`.
   - `GET /api/data-sources`, each source carrying its health and last sync time
-  - `GET /api/sync-jobs?source=...` → the Sync Status tab's job log; `POST /api/sync-jobs/:id/retry`
+  - `GET /api/sync-jobs?latest=true` → the Sync Status tab: each source's most recent run, one row per source, as an `ApiListResponse` the tab shows without paging. Without `latest` the collection holds every run; nothing reads that yet. `POST /api/sync-jobs/:id/retry`
   - `POST /api/ai/chat` → AI Assistant analysis response. An action, not a resource: the server keeps no conversation (`stack-conventions` → *State management*).
   - Organization (`/api/org`):
     - `GET` / `PATCH /api/org/settings` → organization policy (`OrgSettings`); `PATCH` is Admin only
