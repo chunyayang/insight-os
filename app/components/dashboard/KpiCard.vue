@@ -85,7 +85,9 @@ const trend = computed<'up' | 'down' | 'neutral'>(() => {
         <ChartsSparkline
           :data="metric.sparkline"
           :trend="trend"
-          :summary="t('dashboard.kpi.sparklineSummary', { metric: label })"
+          :summary="
+            t('dashboard.kpi.sparklineSummary', { metric: label, days: metric.sparkline.length })
+          "
         />
       </div>
     </div>

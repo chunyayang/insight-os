@@ -110,7 +110,8 @@ describe('KpiCard', () => {
     const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() } })
     // The chart root is aria-hidden, so the meaning must live in the caption.
     expect(wrapper.html()).toContain('aria-hidden="true"')
-    expect(wrapper.text()).toMatch(/14-day trend/i)
+    // One point per day, so the caption's span follows the series the API sent.
+    expect(wrapper.text()).toMatch(/5-day trend/i)
   })
 
   it('keeps the sparkline out of pointer interaction', async () => {

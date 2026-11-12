@@ -92,7 +92,7 @@
       "conversionRate": "轉換率",
       "activeUsers": "活躍用戶",
       "vsYesterday": "與昨日相比",
-      "sparklineSummary": "{metric} 的 14 天趨勢"
+      "sparklineSummary": "{metric} 的 {days} 天趨勢"
     },
     "alerts": {
       "title": "異常警示",

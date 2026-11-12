@@ -92,7 +92,7 @@
       "conversionRate": "Conversion Rate",
       "activeUsers": "Active Users",
       "vsYesterday": "vs yesterday",
-      "sparklineSummary": "14-day trend for {metric}"
+      "sparklineSummary": "{days}-day trend for {metric}"
     },
     "alerts": {
       "title": "Anomaly alerts",
