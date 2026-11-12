@@ -18,6 +18,7 @@ const revenueFixture: ApiResponse<RevenueResponse> = {
     series: [
       {
         market: 'US',
+        functionalCurrency: 'USD',
         points: [{ t: '2026-09-17', value: { USD: 1000, JPY: 150_000, TWD: 31_000, EUR: 900 } }],
       },
     ],

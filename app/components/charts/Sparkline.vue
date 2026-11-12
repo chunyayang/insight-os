@@ -4,8 +4,8 @@ import type { ChartOption } from '~/utils/echarts'
 /**
  * Tiny inline trend for KPI tiles — no axes, no legend, no tooltip.
  *
- * A sparkline is shape-only and therefore currency-independent, which is why the API
- * returns it as a plain number[] even for monetary KPIs.
+ * A sparkline is shape-only, so the API returns a plain number[] even for monetary KPIs.
+ * Which currency those numbers are in is the server's choice; nothing here reads it.
  */
 const props = defineProps<{
   data: number[]

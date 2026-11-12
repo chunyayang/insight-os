@@ -2,7 +2,6 @@ import type {
   AnomalyAlert,
   ApiResponse,
   DashboardSummary,
-  KpiMetric,
   MarketCode,
 } from '../../../app/types/api'
 
@@ -11,7 +10,8 @@ import type {
  *
  * Monetary KPIs carry a full `Money` map (all four currencies, each aggregated
  * server-side from daily-converted amounts) plus FxProvenance for audit — the client
- * only picks a key to display and never converts.
+ * only picks a key to display and never converts. At single-market scope they also
+ * declare the market's `functionalCurrency`, which the client reads rather than derives.
  */
 export default defineEventHandler(async (event): Promise<ApiResponse<DashboardSummary>> => {
   const query = getQuery(event)
@@ -29,59 +29,11 @@ export default defineEventHandler(async (event): Promise<ApiResponse<DashboardSu
   // Today vs. yesterday, and a 7-day tail for the KPI sparklines: one weekly cycle, read at a glance.
   const { days } = resolveRange({ range: '30d' }, today)
   const todayIso = days.at(-1)!
-  const yesterdayIso = days.at(-2)!
-  const sparkDays = days.slice(-7)
-
-  function sumMetric(date: string, pick: (m: MarketCode) => number): number {
-    return activeMarkets.reduce((total, m) => total + pick(m), 0)
-  }
-
-  const revenueToday = revenueOn(activeMarkets, todayIso, today)
-  const revenueYesterday = revenueOn(activeMarkets, yesterdayIso, today)
-
-  const ordersToday = sumMetric(todayIso, (m) => dailyMetrics(m, todayIso, today).orders)
-  const ordersYesterday = sumMetric(
-    yesterdayIso,
-    (m) => dailyMetrics(m, yesterdayIso, today).orders,
+  const kpis = buildKpis(
+    activeMarkets,
+    { today: todayIso, yesterday: days.at(-2)!, spark: days.slice(-7) },
+    today,
   )
-
-  const usersToday = sumMetric(todayIso, (m) => dailyMetrics(m, todayIso, today).activeUsers)
-  const usersYesterday = sumMetric(
-    yesterdayIso,
-    (m) => dailyMetrics(m, yesterdayIso, today).activeUsers,
-  )
-
-  const convToday = conversionOn(activeMarkets, todayIso, today)
-  const convYesterday = conversionOn(activeMarkets, yesterdayIso, today)
-
-  const kpis: KpiMetric[] = [
-    {
-      key: 'revenue',
-      value: revenueToday,
-      // Delta is computed once in USD so it reads identically in every display
-      // currency — a currency switch must never appear to change performance.
-      deltaPct: pctChange(revenueToday.USD, revenueYesterday.USD),
-      sparkline: sparkDays.map((d) => revenueOn(activeMarkets, d, today).USD),
-    },
-    {
-      key: 'orders',
-      value: ordersToday,
-      deltaPct: pctChange(ordersToday, ordersYesterday),
-      sparkline: sparkDays.map((d) => sumMetric(d, (m) => dailyMetrics(m, d, today).orders)),
-    },
-    {
-      key: 'conversionRate',
-      value: Number(convToday.toFixed(5)),
-      deltaPct: pctChange(convToday, convYesterday),
-      sparkline: sparkDays.map((d) => conversionOn(activeMarkets, d, today)),
-    },
-    {
-      key: 'activeUsers',
-      value: usersToday,
-      deltaPct: pctChange(usersToday, usersYesterday),
-      sparkline: sparkDays.map((d) => sumMetric(d, (m) => dailyMetrics(m, d, today).activeUsers)),
-    },
-  ]
 
   const alerts: AnomalyAlert[] = buildAlerts(activeMarkets, locale, today)
 

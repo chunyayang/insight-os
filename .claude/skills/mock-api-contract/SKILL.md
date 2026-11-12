@@ -79,7 +79,7 @@ Resource-oriented, after Google's API Improvement Proposals: [AIP-121](https://g
 - **A setting is a field, not a path.** `/api/org/settings` and `/api/me/settings` are one record each. A new organization setting is a field on the first, and a new preference is a field on the second. Something gets its own path only when it's a collection, like sessions, or needs a permission of its own, like SSO.
 - **Methods:** `GET` reads, `POST` creates, `PATCH` updates part of a resource, `DELETE` removes it. Reads never mutate. An action that is none of these, such as retrying a sync job or verifying a 2FA code, is a `POST` to a verb under the resource: `POST /api/sync-jobs/:id/retry`. AIP-136 writes that as a `:retry` suffix instead, but a colon doesn't work in Nitro's file-based route names on every OS.
 - Endpoints, built and planned:
-  - `GET /api/dashboard/summary?market=All&locale=zh-TW` → today's KPIs + AI daily summary + anomaly alerts
+  - `GET /api/dashboard/summary?market=All&locale=zh-TW` → today's KPIs + AI daily summary + anomaly alerts. With a single `market`, the revenue KPI declares that market's `functionalCurrency`, and its delta and sparkline are computed in it; at `All` they stay in USD and `functionalCurrency` is `null`
   - `GET /api/anomalies/:id?locale=zh-TW` → one `AnomalyAlert`, for a chat opened from *Ask AI why →*
   - `GET /api/analytics/revenue?range=30d&markets=US,JP` → revenue series by market
   - `GET /api/analytics/funnel?market=JP&range=7d`
@@ -143,8 +143,9 @@ interface FxProvenance {            // audit metadata — NOT a reconstructable 
 interface KpiMetric {
   key: 'revenue' | 'orders' | 'conversionRate' | 'activeUsers'
   value: number | Money            // Money for monetary metrics (revenue); plain number otherwise
+  functionalCurrency: CurrencyCode | null  // the scoped market's, on a monetary metric; null at `All` and on counts and rates
   deltaPct: number                 // vs. comparison period; negative = down
-  sparkline: number[]              // mini-chart shape only (scale-invariant → currency-independent)
+  sparkline: number[]              // shape only; one market's monetary sparkline is in its functional currency
 }
 
 interface AnomalyAlert {
@@ -170,7 +171,11 @@ interface MarketSeries { market: MarketCode; points: TimeSeriesPoint[] }  // e.g
 // Monetary series carry Money per point: each day already converted at that day's
 // official rate, so summing points reproduces the historically-accurate total.
 interface MoneyPoint { t: string; value: Money }              // t = ISO date
-interface RevenueMarketSeries { market: MarketCode; points: MoneyPoint[] }
+interface RevenueMarketSeries {
+  market: MarketCode
+  functionalCurrency: CurrencyCode // declared, never derived from `market`
+  points: MoneyPoint[]
+}
 
 interface RevenueResponse {
   fx: FxProvenance                 // audit metadata for the day-by-day conversion (not a rate table)
