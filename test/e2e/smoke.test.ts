@@ -26,7 +26,7 @@ test.describe('Insight OS smoke', () => {
     await expect(page.getByRole('heading', { name: greeting, level: 1 })).toBeVisible()
 
     // KPI tiles resolve past their skeletons. `exact` matters: each label also appears
-    // inside its sparkline's accessible caption ("14-day trend for …").
+    // inside its sparkline's accessible caption ("7-day trend for …").
     await expect(page.getByText("Today's Revenue", { exact: true })).toBeVisible()
     await expect(page.getByText('Conversion Rate', { exact: true })).toBeVisible()
 
