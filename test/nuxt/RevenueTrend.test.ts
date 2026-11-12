@@ -138,14 +138,16 @@ describe('RevenueTrend', () => {
   })
 
   it('keeps a single-market tab picked at `All` in the presentation currency', async () => {
+    // EUR, so neither the series' JPY nor a hardcoded USD could pass for it.
+    useOrganizationStore().setPresentationCurrency('EUR')
     const wrapper = await mountLoaded()
 
     await wrapper
       .findAll('[role="tab"]')
       .find((tab) => tab.text() === 'JP')!
       .trigger('mousedown')
-    await vi.waitFor(() => expect(chartOption(wrapper).series[0]!.data).toEqual([51_000]))
-    expect(wrapper.text()).toContain('shown in USD')
+    await vi.waitFor(() => expect(chartOption(wrapper).series[0]!.data).toEqual([47_000]))
+    expect(wrapper.text()).toContain('shown in EUR')
   })
 
   it("plots every line in the organization's presentation currency, not a hardcoded USD", async () => {
