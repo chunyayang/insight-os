@@ -26,11 +26,11 @@ export default defineEventHandler(async (event): Promise<ApiResponse<DashboardSu
   await mockLatency('dashboard-summary')
 
   const today = new Date()
-  // Today vs. yesterday, and a 14-day tail for the KPI sparklines.
+  // Today vs. yesterday, and a 7-day tail for the KPI sparklines: one weekly cycle, read at a glance.
   const { days } = resolveRange({ range: '30d' }, today)
   const todayIso = days.at(-1)!
   const yesterdayIso = days.at(-2)!
-  const sparkDays = days.slice(-14)
+  const sparkDays = days.slice(-7)
 
   function sumMetric(date: string, pick: (m: MarketCode) => number): number {
     return activeMarkets.reduce((total, m) => total + pick(m), 0)
