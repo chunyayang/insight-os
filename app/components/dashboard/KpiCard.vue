@@ -18,15 +18,17 @@ const ICON: Record<KpiMetric['key'], string> = {
 }
 
 /**
- * A monetary KPI renders in the org's presentation currency. The amount is read straight out
- * of the Money map — the client picks a key, it never converts.
+ * A single market's amount is in the currency it declares, an aggregate's in the org's presentation
+ * currency (currency-model.md §3). The amount is read straight out of the Money map: the client
+ * picks a key, it never converts, and never infers a currency from the market.
  */
+const currency = computed(
+  () => props.metric.functionalCurrency ?? organization.presentationCurrency,
+)
+
 const displayValue = computed(() => {
   const value = props.metric.value
-  if (typeof value === 'object') {
-    const currency = organization.presentationCurrency
-    return fmt.compactCurrency(value[currency], currency)
-  }
+  if (typeof value === 'object') return fmt.compactCurrency(value[currency.value], currency.value)
   if (props.metric.key === 'conversionRate') return fmt.percent(value)
   return fmt.number(value)
 })
@@ -34,7 +36,7 @@ const displayValue = computed(() => {
 // Only an amount is abbreviated, so only an amount has a fuller form to offer.
 const fullAmount = computed(() => {
   const value = props.metric.value
-  return typeof value === 'object' ? fmt.money(value, organization.presentationCurrency) : undefined
+  return typeof value === 'object' ? fmt.money(value, currency.value) : undefined
 })
 
 // The delta shows one decimal of a percent, so anything smaller than this reads "0.0%"

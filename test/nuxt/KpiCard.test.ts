@@ -13,6 +13,7 @@ function metric(overrides: Partial<KpiMetric> = {}): KpiMetric {
   return {
     key: 'revenue',
     value: money,
+    functionalCurrency: null,
     deltaPct: 0.0501,
     sparkline: [1, 2, 3, 4, 5],
     ...overrides,
@@ -56,6 +57,20 @@ describe('KpiCard', () => {
 
     expect(visible(wrapper, '.kpi__value')).toBe('€223.9K')
     expect(wrapper.find('.kpi__value').attributes('title')).toBe('€223,875.69')
+  })
+
+  it('renders a single market in the currency it declares, whatever the presentation currency', async () => {
+    useOrganizationStore().setPresentationCurrency('EUR')
+    const wrapper = await mountSuspended(KpiCard, {
+      props: { metric: metric({ functionalCurrency: 'JPY' }) },
+    })
+    const value = wrapper.find('.kpi__value')
+
+    // One line, one currency: the abbreviation, the hover and the screen reader agree.
+    expect(visible(wrapper, '.kpi__value')).toBe('¥38.3M')
+    expect(value.attributes('title')).toBe('¥38,304,797')
+    expect(value.find('.sr-only').text()).toBe('¥38,304,797')
+    expect(value.text()).not.toContain('€')
   })
 
   it('formats a percentage KPI as a ratio, not a raw number', async () => {
