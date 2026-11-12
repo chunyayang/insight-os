@@ -138,8 +138,12 @@ export type UpdateUserSettingsRequest = Partial<UserSettings>
 export interface KpiMetric {
   key: 'revenue' | 'orders' | 'conversionRate' | 'activeUsers'
   value: number | Money // Money for monetary metrics (revenue); plain number otherwise
+  // The scoped market's currency on a monetary metric. null at `All`, an aggregate with none,
+  // and on a count or a rate, which has no currency.
+  functionalCurrency: CurrencyCode | null
   deltaPct: number // vs. comparison period; negative = down
-  sparkline: number[] // mini-chart shape only (scale-invariant → currency-independent)
+  // Shape only. A single market's monetary sparkline and delta are in its functional currency.
+  sparkline: number[]
 }
 
 export interface AnomalyAlert {
@@ -178,6 +182,7 @@ export interface MoneyPoint {
 }
 export interface RevenueMarketSeries {
   market: MarketCode
+  functionalCurrency: CurrencyCode // declared by the market's operation, never derived from `market`
   points: MoneyPoint[]
 }
 

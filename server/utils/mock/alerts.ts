@@ -9,6 +9,7 @@ import {
   revenueOn,
 } from './markets'
 import { isoDate, addDays } from './dates'
+import { revenueComparisonCurrency } from './kpis'
 
 /**
  * Derives anomaly alerts from the SAME seeded data the charts render, so the alert, the
@@ -156,9 +157,11 @@ export function buildAiSummary(
     if (pct === '0.0%') return sentences.flat
     return change > 0 ? sentences.up(pct) : sentences.down(pct)
   }
+  // The same currency as the revenue card's delta, so the two quote one figure.
+  const currency = revenueComparisonCurrency(markets)
   const revenue = pctChange(
-    revenueOn(markets, todayIso, today).USD,
-    revenueOn(markets, yesterdayIso, today).USD,
+    revenueOn(markets, todayIso, today)[currency],
+    revenueOn(markets, yesterdayIso, today)[currency],
   )
   const conversion = pctChange(
     conversionOn(markets, todayIso, today),

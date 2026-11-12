@@ -8,6 +8,7 @@ import {
   revenueOn,
 } from '../../server/utils/mock/markets'
 import { addDays, isoDate } from '../../server/utils/mock/dates'
+import { buildKpis } from '../../server/utils/mock/kpis'
 import { formatDelta } from '../../app/utils/format'
 
 const today = new Date('2026-03-30T00:00:00Z')
@@ -96,8 +97,14 @@ describe('the Dashboard story, today against yesterday', () => {
     for (const now of Object.values(dates)) {
       for (const scope of [MARKETS, ['US'], ['JP'], ['TW'], ['DE']] as const) {
         const markets = [...scope]
-        const revenue = change(now, (d) => revenueOn(markets, d, now).USD)
-        const conversion = change(now, (d) => conversionOn(markets, d, now))
+        const kpis = buildKpis(
+          markets,
+          { today: isoDate(now), yesterday: isoDate(addDays(now, -1)), spark: [] },
+          now,
+        )
+        const delta = (key: string) => kpis.find((k) => k.key === key)!.deltaPct
+        const revenue = delta('revenue')
+        const conversion = delta('conversionRate')
 
         for (const locale of ['en', 'zh-TW'] as const) {
           const summary = buildAiSummary(markets, locale, now)

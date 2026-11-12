@@ -36,6 +36,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<RevenueResp
 
   const series: RevenueMarketSeries[] = activeMarkets.map((market) => ({
     market,
+    functionalCurrency: MARKET_FUNCTIONAL_CURRENCY[market],
     points: days.map((date) => ({
       t: date,
       value: dailyRevenueMoney(market, date, today),

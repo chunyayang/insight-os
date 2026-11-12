@@ -1,21 +1,19 @@
 <script setup lang="ts">
 import type { TabsItem } from '@nuxt/ui'
-import type { MarketCode, RangeToken } from '~/types/api'
+import type { CurrencyCode, MarketCode, RangeToken } from '~/types/api'
 import { MARKETS, type MarketFilter } from '~/constants/markets'
 import type { TrendSeries } from '~/components/charts/TrendLineChart.vue'
 
 /**
- * 30-day revenue trend with market tabs.
+ * 30-day revenue trend, scoped like the KPI cards to the default operating market (spec §4.2).
  *
- * The market tabs are a DATA-SCOPE control: they flow into the query key and refetch.
- * Every line plots on one shared axis regardless of which market it represents, so all
- * of them render in the org's presentation currency (currency-model.md §3) — a
- * cross-market aggregate has no functional currency, and even a single-market line
- * must match the others' scale. Not the Analytics selector, which is scoped there.
+ * At `All` it has market tabs, a DATA-SCOPE control that flows into the query key and refetches.
+ * Every line, and every tab, plots in the org's presentation currency so the shared axis stays
+ * comparable as tabs switch (currency-model.md §3). A picked tab stays in the component and never
+ * writes back.
  *
- * The tabs open on the default operating market, so the chart starts on the KPI cards'
- * market (spec §4.2) and follows it until a tab is picked. A picked tab stays in the
- * component and never writes back.
+ * Scoped to a single market it has no tabs and plots in that market's functional currency, the
+ * same as the card above it, so the axis can't change currency under the reader.
  */
 const { t } = useI18n()
 const fmt = useFormat()
@@ -23,9 +21,14 @@ const organization = useOrganizationStore()
 const filters = useFiltersStore()
 const preferences = usePreferencesStore()
 
-// The default market until a tab is picked here, so the chart follows a change to the
-// default as the KPI cards do.
+// Tabs only at `All`. A change to the default drops the picked tab, so the chart lands on the
+// new default, as the KPI cards do, and a pick made at `All` can't outlive the tabs.
+const hasTabs = computed(() => preferences.defaultMarket === 'All')
 const picked = ref<MarketFilter>()
+watch(
+  () => preferences.defaultMarket,
+  () => (picked.value = undefined),
+)
 const market = computed(() => picked.value ?? preferences.defaultMarket)
 const { data, isPending, isError, error, refetch } = useRevenueSeries({ market })
 
@@ -57,14 +60,20 @@ const tabs = computed<TabsItem[]>(() =>
 // The title already names the period, so axis and tooltip dates drop the year.
 const labels = computed(() => data.value?.series[0]?.points.map((p) => fmt.monthDay(p.t)) ?? [])
 
+// Read from the series' declared field, never from the market. Without tabs there is one series.
+const currency = computed<CurrencyCode>(() =>
+  hasTabs.value
+    ? organization.presentationCurrency
+    : (data.value?.series[0]?.functionalCurrency ?? organization.presentationCurrency),
+)
+
 const series = computed<TrendSeries[]>(
   () =>
     data.value?.series.map((s) => ({
       label: t(`common.marketCode.${s.market.toLowerCase()}`),
       market: s.market as MarketCode,
-      // Read the presentation-currency key out of each point's Money map — no
-      // client-side conversion.
-      data: s.points.map((p) => p.value[organization.presentationCurrency]),
+      // A key read out of each point's Money map, never a client-side conversion.
+      data: s.points.map((p) => p.value[currency.value]),
     })) ?? [],
 )
 
@@ -72,7 +81,7 @@ const chartSummary = computed(() =>
   t('dashboard.revenueTrend.chartSummary', {
     days: labels.value.length,
     zone: zone.value,
-    currency: organization.presentationCurrency,
+    currency: currency.value,
   }),
 )
 </script>
@@ -109,6 +118,7 @@ const chartSummary = computed(() =>
         inactive labels sit on bg-elevated, where only text-toned holds WCAG AA.
       -->
       <UTabs
+        v-if="hasTabs"
         :model-value="market"
         :items="tabs"
         :content="false"
@@ -129,7 +139,7 @@ const chartSummary = computed(() =>
       :labels="labels"
       :series="series"
       :summary="chartSummary"
-      :currency="organization.presentationCurrency"
+      :currency="currency"
       :fill="series.length === 1"
     />
   </UCard>
