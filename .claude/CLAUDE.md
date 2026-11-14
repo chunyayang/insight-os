@@ -3,26 +3,13 @@
 AI-powered analytics SaaS (Frontend MVP) for cross-border e-commerce ops across
 four markets — US, JP, TW, DE. Ships EN + 繁體中文.
 
-## Stack
-Nuxt 4 (`app/` dir) · TypeScript · Vue 3 `<script setup>` · Nuxt UI 4 ·
-Tailwind CSS v4 · Pinia · TanStack Vue Query ·
-Apache ECharts (`vue-echarts`) · `@nuxtjs/i18n`. Verify exact versions in `package.json` before adding deps.
-
-Package manager: **pnpm** (commit `pnpm-lock.yaml`; set the `packageManager` field in `package.json`). Node: **26**.
-
-## Layout (Nuxt 4)
-App code lives in `app/`: `components/{charts,common,<module>}/`,
-`composables/{queries,...}`, `layouts/`, `middleware/`, `pages/` (mirror the sidebar IA),
-`stores/` (Pinia), `types/`, `constants/`. Mock API: `server/api/` (Nitro).
-i18n JSON: `i18n/locales/`.
-
 ## Hard rules (always apply)
 - **State boundary:** Vue Query owns all server data; Pinia owns UI state only. Never clone server data into Pinia.
 - **i18n:** no hardcoded user-facing strings; every key exists in BOTH `en.json` and `zh-TW.json`. Format numbers/dates/currency via `composables/useFormat.ts` (JPY and TWD = 0 decimals).
 - **Color:** no raw hex, no Tailwind palette colors (`bg-emerald-500` ✗). Use Nuxt UI semantic tokens (`--ui-primary`, `--ui-bg`, `--ui-text-muted`, …) or Tailwind theme vars/utilities for radii, shadow and type. The palette is declared once in `app/app.config.ts`. The **only** sanctioned raw hex is `MARKET_COLOR` / `CHART_CHROME` — zrender's color parser can't consume `oklch()`; don't "unify" those back into `--ui-*`. Dark mode is the `.dark` class, persisted via cookie.
 - **Money:** conversion is server-side (historical daily rates); the client only formats, never converts and never derives one currency from another. Which currency each surface shows is settled in `/product-spec` → `currency-model.md` — read it before touching a monetary display.
 - **Permissions:** central map in `app/constants/permissions.ts`, checked via `useCan()`. Client-side checks are UX only — re-enforce server-side.
-- **Pages are thin:** compose feature components + query composables; no business logic in pages. `<script setup lang="ts">` everywhere.
+- **Pages are thin:** compose feature components + query composables; no business logic in pages; `pages/` mirrors the sidebar IA. `<script setup lang="ts">` everywhere.
 - **Done means done:** every change meets the Definition of Done and passes CI (lint · typecheck · test · build) before merge to `main`. See `/dod-and-git-workflow` and `/testing-and-ci`.
 
 ## Detailed conventions live in skills (loaded on demand)
