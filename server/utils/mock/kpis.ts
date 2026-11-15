@@ -11,11 +11,11 @@ export function functionalCurrencyOf(markets: MarketCode[]): CurrencyCode | null
 }
 
 /**
- * The currency revenue is compared across days in: the KPI delta and sparkline, and the AI summary.
- * Always the currency the card shows, so the delta agrees with the amount beside it: one market's
- * own, an aggregate's the presentation currency (currency-model.md §3).
+ * The one currency the revenue KPI is in: its amount, delta and sparkline, and the AI summary's
+ * revenue movement. One market's own, an aggregate's the presentation currency
+ * (currency-model.md §3). Chosen here only, so the card can't pair one currency with another.
  */
-export function revenueComparisonCurrency(
+export function revenueCurrency(
   markets: MarketCode[],
   presentationCurrency: CurrencyCode,
 ): CurrencyCode {
@@ -35,10 +35,9 @@ export function buildKpis(
   const sum = (date: string, pick: (m: ReturnType<typeof dailyMetrics>) => number) =>
     markets.reduce((total, m) => total + pick(dailyMetrics(m, date, now)), 0)
 
-  const functionalCurrency = functionalCurrencyOf(markets)
-  const comparisonCurrency = revenueComparisonCurrency(markets, presentationCurrency)
-  const revenueToday = revenueOn(markets, days.today, now)
-  const revenueYesterday = revenueOn(markets, days.yesterday, now)
+  const currency = revenueCurrency(markets, presentationCurrency)
+  const revenue = (date: string) => revenueOn(markets, date, now)[currency]
+  const revenueToday = revenue(days.today)
 
   const ordersToday = sum(days.today, (d) => d.orders)
   const usersToday = sum(days.today, (d) => d.activeUsers)
@@ -48,14 +47,14 @@ export function buildKpis(
     {
       key: 'revenue',
       value: revenueToday,
-      functionalCurrency,
-      deltaPct: pctChange(revenueToday[comparisonCurrency], revenueYesterday[comparisonCurrency]),
-      sparkline: days.spark.map((d) => revenueOn(markets, d, now)[comparisonCurrency]),
+      currency,
+      deltaPct: pctChange(revenueToday, revenue(days.yesterday)),
+      sparkline: days.spark.map(revenue),
     },
     {
       key: 'orders',
       value: ordersToday,
-      functionalCurrency: null,
+      currency: null,
       deltaPct: pctChange(
         ordersToday,
         sum(days.yesterday, (d) => d.orders),
@@ -65,14 +64,14 @@ export function buildKpis(
     {
       key: 'conversionRate',
       value: Number(convToday.toFixed(5)),
-      functionalCurrency: null,
+      currency: null,
       deltaPct: pctChange(convToday, conversionOn(markets, days.yesterday, now)),
       sparkline: days.spark.map((d) => conversionOn(markets, d, now)),
     },
     {
       key: 'activeUsers',
       value: usersToday,
-      functionalCurrency: null,
+      currency: null,
       deltaPct: pctChange(
         usersToday,
         sum(days.yesterday, (d) => d.activeUsers),

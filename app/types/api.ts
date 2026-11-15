@@ -137,14 +137,13 @@ export type UpdateUserSettingsRequest = Partial<UserSettings>
 
 export interface KpiMetric {
   key: 'revenue' | 'orders' | 'conversionRate' | 'activeUsers'
-  value: number | Money // Money for monetary metrics (revenue); plain number otherwise
-  // The scoped market's currency on a monetary metric. null at `All`, an aggregate with none,
-  // and on a count or a rate, which has no currency.
-  functionalCurrency: CurrencyCode | null
+  value: number // an amount in `currency` on a monetary metric (revenue); a count or ratio otherwise
+  // The one currency of `value`, `deltaPct` and `sparkline` on a monetary metric, chosen by the
+  // server: the scoped market's functional currency, or at `All` the request's presentation
+  // currency (currency-model.md §6). null on a count or a rate, which has no currency.
+  currency: CurrencyCode | null
   deltaPct: number // vs. comparison period; negative = down
-  // Shape only. A monetary sparkline and delta are in the currency the card shows: a single
-  // market's functional currency, or at `All` the request's presentation currency.
-  sparkline: number[]
+  sparkline: number[] // shape only
 }
 
 export interface AnomalyAlert {
@@ -158,10 +157,10 @@ export interface AnomalyAlert {
 
 export interface DashboardSummary {
   date: string // ISO date
-  kpis: KpiMetric[] // monetary KPIs carry Money (all 4 currencies)
+  kpis: KpiMetric[] // a monetary KPI is in the one currency it declares
   alerts: AnomalyAlert[]
   aiSummary: AiSummary // in the request's `locale`
-  fx: FxProvenance // how the Money totals in this payload were derived (audit)
+  fx: FxProvenance // how the converted amounts in this payload were derived (audit)
 }
 
 /* ─────────────────────────── Time series ─────────────────────────── */
