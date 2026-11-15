@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildKpis } from '../../server/utils/mock/kpis'
 import { MARKETS, pctChange, revenueOn } from '../../server/utils/mock/markets'
-import type { MarketCode, Money } from '../../app/types/api'
+import type { CurrencyCode, MarketCode, Money } from '../../app/types/api'
 
 const now = new Date('2026-03-30T00:00:00Z')
 const days = {
@@ -17,8 +17,8 @@ const days = {
     '2026-03-30',
   ],
 }
-const revenueKpi = (markets: MarketCode[]) =>
-  buildKpis(markets, days, now).find((k) => k.key === 'revenue')!
+const revenueKpi = (markets: MarketCode[], presentationCurrency: CurrencyCode = 'USD') =>
+  buildKpis(markets, presentationCurrency, days, now).find((k) => k.key === 'revenue')!
 
 describe('Dashboard KPIs', () => {
   it.each([
@@ -40,17 +40,29 @@ describe('Dashboard KPIs', () => {
     expect(kpi.sparkline.at(-1)).toBe((kpi.value as Money).JPY)
   })
 
-  it('keeps an `All` revenue KPI in USD, declaring no functional currency', () => {
-    const kpi = revenueKpi(MARKETS)
-    const usd = (d: string) => revenueOn(MARKETS, d, now).USD
+  it('ignores the presentation currency for a single market', () => {
+    expect(revenueKpi(['JP'], 'EUR')).toEqual(revenueKpi(['JP'], 'USD'))
+  })
 
-    expect(kpi.functionalCurrency).toBeNull()
-    expect(kpi.deltaPct).toBe(pctChange(usd(days.today), usd(days.yesterday)))
-    expect(kpi.sparkline).toEqual(days.spark.map(usd))
+  it.each(['USD', 'EUR', 'JPY', 'TWD'] as const)(
+    'computes an `All` revenue delta and sparkline in the presentation currency, %s',
+    (currency) => {
+      const kpi = revenueKpi(MARKETS, currency)
+      const amount = (d: string) => revenueOn(MARKETS, d, now)[currency]
+
+      expect(kpi.functionalCurrency).toBeNull()
+      expect(kpi.deltaPct).toBe(pctChange(amount(days.today), amount(days.yesterday)))
+      expect(kpi.sparkline).toEqual(days.spark.map(amount))
+      expect(kpi.sparkline.at(-1)).toBe((kpi.value as Money)[currency])
+    },
+  )
+
+  it('gives a different `All` delta per presentation currency, since daily rates differ', () => {
+    expect(revenueKpi(MARKETS, 'EUR').deltaPct).not.toBe(revenueKpi(MARKETS, 'USD').deltaPct)
   })
 
   it('declares no currency on a count or a rate, even for one market', () => {
-    const others = buildKpis(['JP'], days, now).filter((k) => k.key !== 'revenue')
+    const others = buildKpis(['JP'], 'USD', days, now).filter((k) => k.key !== 'revenue')
 
     expect(others.map((k) => k.functionalCurrency)).toEqual([null, null, null])
   })

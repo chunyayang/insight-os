@@ -12,11 +12,14 @@ export function functionalCurrencyOf(markets: MarketCode[]): CurrencyCode | null
 
 /**
  * The currency revenue is compared across days in: the KPI delta and sparkline, and the AI summary.
- * One market uses its own, so a rate move can't read as performance. An aggregate keeps USD,
- * whichever presentation currency renders its amount (currency-model.md §3, still open there).
+ * Always the currency the card shows, so the delta agrees with the amount beside it: one market's
+ * own, an aggregate's the presentation currency (currency-model.md §3).
  */
-export function revenueComparisonCurrency(markets: MarketCode[]): CurrencyCode {
-  return functionalCurrencyOf(markets) ?? 'USD'
+export function revenueComparisonCurrency(
+  markets: MarketCode[],
+  presentationCurrency: CurrencyCode,
+): CurrencyCode {
+  return functionalCurrencyOf(markets) ?? presentationCurrency
 }
 
 /**
@@ -25,6 +28,7 @@ export function revenueComparisonCurrency(markets: MarketCode[]): CurrencyCode {
  */
 export function buildKpis(
   markets: MarketCode[],
+  presentationCurrency: CurrencyCode,
   days: { today: string; yesterday: string; spark: string[] },
   now = new Date(),
 ): KpiMetric[] {
@@ -32,7 +36,7 @@ export function buildKpis(
     markets.reduce((total, m) => total + pick(dailyMetrics(m, date, now)), 0)
 
   const functionalCurrency = functionalCurrencyOf(markets)
-  const comparisonCurrency = revenueComparisonCurrency(markets)
+  const comparisonCurrency = revenueComparisonCurrency(markets, presentationCurrency)
   const revenueToday = revenueOn(markets, days.today, now)
   const revenueYesterday = revenueOn(markets, days.yesterday, now)
 

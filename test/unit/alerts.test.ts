@@ -9,6 +9,7 @@ import {
 } from '../../server/utils/mock/markets'
 import { addDays, isoDate } from '../../server/utils/mock/dates'
 import { buildKpis } from '../../server/utils/mock/kpis'
+import { CURRENCY_CODES } from '../../app/constants/markets'
 import { formatDelta } from '../../app/utils/format'
 
 const today = new Date('2026-03-30T00:00:00Z')
@@ -96,20 +97,23 @@ describe('the Dashboard story, today against yesterday', () => {
 
     for (const now of Object.values(dates)) {
       for (const scope of [MARKETS, ['US'], ['JP'], ['TW'], ['DE']] as const) {
-        const markets = [...scope]
-        const kpis = buildKpis(
-          markets,
-          { today: isoDate(now), yesterday: isoDate(addDays(now, -1)), spark: [] },
-          now,
-        )
-        const delta = (key: string) => kpis.find((k) => k.key === key)!.deltaPct
-        const revenue = delta('revenue')
-        const conversion = delta('conversionRate')
+        for (const currency of CURRENCY_CODES) {
+          const markets = [...scope]
+          const kpis = buildKpis(
+            markets,
+            currency,
+            { today: isoDate(now), yesterday: isoDate(addDays(now, -1)), spark: [] },
+            now,
+          )
+          const delta = (key: string) => kpis.find((k) => k.key === key)!.deltaPct
+          const revenue = delta('revenue')
+          const conversion = delta('conversionRate')
 
-        for (const locale of ['en', 'zh-TW'] as const) {
-          const summary = buildAiSummary(markets, locale, now)
-          expect(summary).toContain(asCard(revenue))
-          expect(summary).toContain(asCard(conversion))
+          for (const locale of ['en', 'zh-TW'] as const) {
+            const summary = buildAiSummary(markets, locale, currency, now)
+            expect(summary).toContain(asCard(revenue))
+            expect(summary).toContain(asCard(conversion))
+          }
         }
       }
     }
@@ -123,8 +127,8 @@ describe('the Dashboard story, today against yesterday', () => {
     expect(percent).toBeGreaterThan(0)
     const alert = buildAlerts(['TW'], 'en', now)[0]!
     expect(alert.message).toContain(`up ${percent}%`)
-    expect(buildAiSummary(['TW'], 'en', now)).toContain(`${percent}%`)
-    expect(buildAiSummary(['TW'], 'zh-TW', now)).toContain(`${percent}%`)
+    expect(buildAiSummary(['TW'], 'en', 'USD', now)).toContain(`${percent}%`)
+    expect(buildAiSummary(['TW'], 'zh-TW', 'USD', now)).toContain(`${percent}%`)
   })
 
   it("holds Germany's orders below yesterday, as its summary sentence says", () => {
@@ -135,21 +139,21 @@ describe('the Dashboard story, today against yesterday', () => {
 
 describe('AI daily summary', () => {
   it('names Japan as the outlier while the anomaly is active', () => {
-    expect(buildAiSummary(MARKETS, 'en', today)).toContain('Japan is the outlier')
-    expect(buildAiSummary(MARKETS, 'zh-TW', today)).toContain('日本是異常市場')
+    expect(buildAiSummary(MARKETS, 'en', 'USD', today)).toContain('Japan is the outlier')
+    expect(buildAiSummary(MARKETS, 'zh-TW', 'USD', today)).toContain('日本是異常市場')
   })
 
   it('omits the Japan narrative when JP is out of scope', () => {
-    const summary = buildAiSummary(['US', 'TW'], 'en', today)
+    const summary = buildAiSummary(['US', 'TW'], 'en', 'USD', today)
     expect(summary).not.toContain('Japan is the outlier')
     expect(summary.length).toBeGreaterThan(0)
-    expect(buildAiSummary(['US', 'TW'], 'zh-TW', today)).not.toContain('日本')
+    expect(buildAiSummary(['US', 'TW'], 'zh-TW', 'USD', today)).not.toContain('日本')
   })
 
   it('says the same thing in every locale, sentence for sentence', () => {
     for (const markets of [MARKETS, ['US', 'TW'] as const, ['DE'] as const]) {
-      const en = buildAiSummary([...markets], 'en', today).split(/(?<=\.) /)
-      const zh = buildAiSummary([...markets], 'zh-TW', today).split(/(?<=。)/)
+      const en = buildAiSummary([...markets], 'en', 'USD', today).split(/(?<=\.) /)
+      const zh = buildAiSummary([...markets], 'zh-TW', 'USD', today).split(/(?<=。)/)
       expect(zh).toHaveLength(en.length)
     }
   })

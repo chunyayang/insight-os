@@ -142,7 +142,8 @@ export interface KpiMetric {
   // and on a count or a rate, which has no currency.
   functionalCurrency: CurrencyCode | null
   deltaPct: number // vs. comparison period; negative = down
-  // Shape only. A single market's monetary sparkline and delta are in its functional currency.
+  // Shape only. A monetary sparkline and delta are in the currency the card shows: a single
+  // market's functional currency, or at `All` the request's presentation currency.
   sparkline: number[]
 }
 

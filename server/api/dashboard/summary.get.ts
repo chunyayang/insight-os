@@ -12,6 +12,8 @@ import type {
  * server-side from daily-converted amounts) plus FxProvenance for audit — the client
  * only picks a key to display and never converts. At single-market scope they also
  * declare the market's `functionalCurrency`, which the client reads rather than derives.
+ * At `All`, the revenue delta, sparkline and AI summary are computed in the request's
+ * `presentationCurrency`, the currency the card shows.
  */
 export default defineEventHandler(async (event): Promise<ApiResponse<DashboardSummary>> => {
   const query = getQuery(event)
@@ -22,6 +24,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<DashboardSu
       : ([marketParam] as MarketCode[]).filter((m) => MARKETS.includes(m))
   const activeMarkets = markets.length ? markets : MARKETS
   const locale = requireLocale(query.locale)
+  const presentationCurrency = requirePresentationCurrency(query.presentationCurrency)
 
   await mockLatency('dashboard-summary')
 
@@ -31,6 +34,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<DashboardSu
   const todayIso = days.at(-1)!
   const kpis = buildKpis(
     activeMarkets,
+    presentationCurrency,
     { today: todayIso, yesterday: days.at(-2)!, spark: days.slice(-7) },
     today,
   )
@@ -42,7 +46,7 @@ export default defineEventHandler(async (event): Promise<ApiResponse<DashboardSu
     kpis,
     alerts,
     aiSummary: {
-      text: buildAiSummary(activeMarkets, locale, today),
+      text: buildAiSummary(activeMarkets, locale, presentationCurrency, today),
       generatedAt: new Date().toISOString(),
     },
     fx: fxProvenance(days[0]!, todayIso),
