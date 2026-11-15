@@ -17,8 +17,8 @@ export const dashboardKeys = {
  * the preferences store, never from the URL or another page's filter. `/` takes no `?market=`.
  * The layout renders no page before the store is seeded, so the first request is already
  * scoped to the user's market.
- * Amounts carry all four currencies, but the `All` revenue delta, sparkline and AI summary are
- * computed in one: the presentation currency, read from the organization store and sent.
+ * The revenue KPI comes back in one currency the server declares: the market's functional
+ * currency, or at `All` the presentation currency, read from the organization store and sent.
  */
 export function useDashboardSummary() {
   const { $api } = useNuxtApp()
@@ -26,21 +26,21 @@ export function useDashboardSummary() {
   const organization = useOrganizationStore()
   const { locale } = useI18n()
 
-  const market = computed(() => preferences.defaultMarket)
-
   return useQuery({
     // Locale is in the key because the AI summary and alerts are written in it, the currency
     // because the delta, sparkline and summary are computed in it: a Settings save refetches.
     queryKey: computed(() =>
-      dashboardKeys.summary(market.value, locale.value, organization.presentationCurrency),
+      dashboardKeys.summary(
+        preferences.defaultMarket,
+        locale.value,
+        organization.presentationCurrency,
+      ),
     ),
-    queryFn: async () => {
+    // The request is read from the key, not the stores: a fetch that runs after the stores have
+    // moved on (a retry, a refetch of an older entry) must still match the entry it fills.
+    queryFn: async ({ queryKey: [, , market, locale, presentationCurrency] }) => {
       const response = await $api<ApiResponse<DashboardSummary>>('/dashboard/summary', {
-        query: {
-          market: market.value,
-          locale: locale.value,
-          presentationCurrency: organization.presentationCurrency,
-        },
+        query: { market, locale, presentationCurrency },
       })
       return response.data
     },

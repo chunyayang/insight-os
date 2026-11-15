@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime'
 import { useQueryClient } from '@tanstack/vue-query'
-import { useDashboardSummary } from '../../app/composables/queries/useDashboardQuery'
+import { dashboardKeys, useDashboardSummary } from '../../app/composables/queries/useDashboardQuery'
 import { useFiltersStore } from '../../app/stores/filters'
 import { usePreferencesStore } from '../../app/stores/preferences'
 import { useOrganizationStore } from '../../app/stores/organization'
@@ -95,5 +95,21 @@ describe('useDashboardSummary', () => {
 
     useOrganizationStore().setPresentationCurrency('JPY')
     await vi.waitFor(() => expect(summaryCurrencies.at(-1)).toBe('JPY'))
+  })
+
+  it('refetches an older entry with the currency in its key, not the one now in the store', async () => {
+    await mountProbe('All', undefined, 'USD')
+    await vi.waitFor(() => expect(summaryCurrencies).toEqual(['USD']))
+    useOrganizationStore().setPresentationCurrency('JPY')
+    await vi.waitFor(() => expect(summaryCurrencies.at(-1)).toBe('JPY'))
+
+    // The USD entry is inactive now; refetching it must not fill it with JPY figures.
+    await withNuxtContext(() =>
+      useQueryClient().refetchQueries({
+        queryKey: dashboardKeys.summary('All', 'en', 'USD'),
+        type: 'all',
+      }),
+    )
+    expect(summaryCurrencies.at(-1)).toBe('USD')
   })
 })
