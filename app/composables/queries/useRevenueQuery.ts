@@ -26,9 +26,11 @@ export function useRevenueSeries(options?: {
 
   return useQuery({
     queryKey: computed(() => revenueKeys.series(market.value, range.value)),
-    queryFn: async () => {
+    // Read from the key, not the refs: a fetch for an entry the refs have moved off (a refetch
+    // of an inactive entry) must still request what that entry holds.
+    queryFn: async ({ queryKey: [, , market, range] }) => {
       const response = await $api<ApiResponse<RevenueResponse>>('/analytics/revenue', {
-        query: { market: market.value, range: range.value },
+        query: { market, range },
       })
       return response.data
     },

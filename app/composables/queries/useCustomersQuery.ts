@@ -19,10 +19,10 @@ export function useCustomersList(query: Ref<ListQuery>) {
 
   return useQuery({
     queryKey: computed(() => customerKeys.list(query.value)),
-    queryFn: async () => {
-      return await $api<ApiListResponse<Customer>>('/customers', {
-        query: query.value,
-      })
+    // Read from the key, not the ref: a fetch for an entry the ref has moved off (a refetch of
+    // an inactive entry) must still request the page and filters that entry holds.
+    queryFn: async ({ queryKey: [, , query] }) => {
+      return await $api<ApiListResponse<Customer>>('/customers', { query })
     },
     /**
      * Hold the current page on screen while the next one loads. Without it every page change
