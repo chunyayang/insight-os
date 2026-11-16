@@ -5,7 +5,6 @@ const props = defineProps<{ metric: KpiMetric }>()
 
 const { t } = useI18n()
 const fmt = useFormat()
-const organization = useOrganizationStore()
 
 const label = computed(() => t(`dashboard.kpi.${props.metric.key}`))
 
@@ -18,25 +17,21 @@ const ICON: Record<KpiMetric['key'], string> = {
 }
 
 /**
- * A single market's amount is in the currency it declares, an aggregate's in the org's presentation
- * currency (currency-model.md §3). The amount is read straight out of the Money map: the client
- * picks a key, it never converts, and never infers a currency from the market.
+ * The server declares the one currency an amount, its delta and its sparkline are in
+ * (currency-model.md §6). The card formats it and never chooses one, so it can't pair one
+ * currency's amount with another's delta.
  */
-const currency = computed(
-  () => props.metric.functionalCurrency ?? organization.presentationCurrency,
-)
-
 const displayValue = computed(() => {
-  const value = props.metric.value
-  if (typeof value === 'object') return fmt.compactCurrency(value[currency.value], currency.value)
+  const { value, currency } = props.metric
+  if (currency) return fmt.compactCurrency(value, currency)
   if (props.metric.key === 'conversionRate') return fmt.percent(value)
   return fmt.number(value)
 })
 
 // Only an amount is abbreviated, so only an amount has a fuller form to offer.
 const fullAmount = computed(() => {
-  const value = props.metric.value
-  return typeof value === 'object' ? fmt.money(value, currency.value) : undefined
+  const { value, currency } = props.metric
+  return currency ? fmt.currency(value, currency) : undefined
 })
 
 // The delta shows one decimal of a percent, so anything smaller than this reads "0.0%"

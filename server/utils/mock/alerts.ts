@@ -1,4 +1,4 @@
-import type { AnomalyAlert, LocaleCode, MarketCode } from '../../../app/types/api'
+import type { AnomalyAlert, CurrencyCode, LocaleCode, MarketCode } from '../../../app/types/api'
 import {
   ANOMALY_MARKET,
   ANOMALY_WINDOW_DAYS,
@@ -9,7 +9,7 @@ import {
   revenueOn,
 } from './markets'
 import { isoDate, addDays } from './dates'
-import { revenueComparisonCurrency } from './kpis'
+import { revenueCurrency } from './kpis'
 
 /**
  * Derives anomaly alerts from the SAME seeded data the charts render, so the alert, the
@@ -145,6 +145,7 @@ const ONE_DECIMAL_PERCENT = new Intl.NumberFormat('en-US', {
 export function buildAiSummary(
   markets: MarketCode[],
   locale: LocaleCode,
+  presentationCurrency: CurrencyCode,
   today = new Date(),
 ): string {
   const sentences = SUMMARY_SENTENCES[locale]
@@ -158,7 +159,7 @@ export function buildAiSummary(
     return change > 0 ? sentences.up(pct) : sentences.down(pct)
   }
   // The same currency as the revenue card's delta, so the two quote one figure.
-  const currency = revenueComparisonCurrency(markets)
+  const currency = revenueCurrency(markets, presentationCurrency)
   const revenue = pctChange(
     revenueOn(markets, todayIso, today)[currency],
     revenueOn(markets, yesterdayIso, today)[currency],

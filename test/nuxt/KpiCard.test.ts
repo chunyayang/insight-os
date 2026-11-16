@@ -1,19 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { nextTick } from 'vue'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import KpiCard from '../../app/components/dashboard/KpiCard.vue'
 import { useChartTheme } from '../../app/composables/useChartTheme'
 import { useOrganizationStore } from '../../app/stores/organization'
-import type { KpiMetric, Money } from '../../app/types/api'
+import type { KpiMetric } from '../../app/types/api'
 import { stubElementSize } from './support/layout'
-
-const money: Money = { USD: 240_499.66, JPY: 38_304_797, TWD: 7_671_166.43, EUR: 223_875.69 }
 
 function metric(overrides: Partial<KpiMetric> = {}): KpiMetric {
   return {
     key: 'revenue',
-    value: money,
-    functionalCurrency: null,
+    value: 240_499.66,
+    currency: 'USD',
     deltaPct: 0.0501,
     sparkline: [1, 2, 3, 4, 5],
     ...overrides,
@@ -31,7 +28,7 @@ describe('KpiCard', () => {
   const visible = (wrapper: { find: (s: string) => { text: () => string } }, selector: string) =>
     wrapper.find(`${selector} [aria-hidden="true"]`).text()
 
-  it('abbreviates a monetary KPI in the presentation currency, USD by default', async () => {
+  it('abbreviates a monetary KPI in the currency it declares', async () => {
     const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() } })
 
     expect(visible(wrapper, '.kpi__value')).toBe('$240.5K')
@@ -46,23 +43,10 @@ describe('KpiCard', () => {
     expect(value.find('.sr-only').text()).toBe('$240,499.66')
   })
 
-  it('re-renders the KPI when the presentation currency changes — no selector on this page', async () => {
-    const wrapper = await mountSuspended(KpiCard, { props: { metric: metric() } })
-    expect(visible(wrapper, '.kpi__value')).toBe('$240.5K') // USD default
-
-    // Settings → General is the only writer; the store is shared across the app, so a
-    // Dashboard KPI reacts even though it has no currency control of its own.
-    useOrganizationStore().setPresentationCurrency('EUR')
-    await nextTick()
-
-    expect(visible(wrapper, '.kpi__value')).toBe('€223.9K')
-    expect(wrapper.find('.kpi__value').attributes('title')).toBe('€223,875.69')
-  })
-
-  it('renders a single market in the currency it declares, whatever the presentation currency', async () => {
+  it('renders the declared currency, whatever the presentation currency', async () => {
     useOrganizationStore().setPresentationCurrency('EUR')
     const wrapper = await mountSuspended(KpiCard, {
-      props: { metric: metric({ functionalCurrency: 'JPY' }) },
+      props: { metric: metric({ value: 38_304_797, currency: 'JPY' }) },
     })
     const value = wrapper.find('.kpi__value')
 
@@ -75,14 +59,16 @@ describe('KpiCard', () => {
 
   it('formats a percentage KPI as a ratio, not a raw number', async () => {
     const wrapper = await mountSuspended(KpiCard, {
-      props: { metric: metric({ key: 'conversionRate', value: 0.0263, deltaPct: -0.18 }) },
+      props: {
+        metric: metric({ key: 'conversionRate', currency: null, value: 0.0263, deltaPct: -0.18 }),
+      },
     })
     expect(wrapper.text()).toContain('2.6%')
   })
 
   it('signs a negative delta and marks it as a downward trend', async () => {
     const wrapper = await mountSuspended(KpiCard, {
-      props: { metric: metric({ key: 'orders', value: 3332, deltaPct: -0.18 }) },
+      props: { metric: metric({ key: 'orders', currency: null, value: 3332, deltaPct: -0.18 }) },
     })
 
     expect(wrapper.text()).toContain('-18.0%')
@@ -116,7 +102,7 @@ describe('KpiCard', () => {
 
   it('renders a whole-number KPI with grouping', async () => {
     const wrapper = await mountSuspended(KpiCard, {
-      props: { metric: metric({ key: 'activeUsers', value: 67_000, deltaPct: 0 }) },
+      props: { metric: metric({ key: 'activeUsers', currency: null, value: 67_000, deltaPct: 0 }) },
     })
     expect(wrapper.find('.kpi__value').text()).toBe('67,000')
   })

@@ -79,7 +79,7 @@ Resource-oriented, after Google's API Improvement Proposals: [AIP-121](https://g
 - **A setting is a field, not a path.** `/api/org/settings` and `/api/me/settings` are one record each. A new organization setting is a field on the first, and a new preference is a field on the second. Something gets its own path only when it's a collection, like sessions, or needs a permission of its own, like SSO.
 - **Methods:** `GET` reads, `POST` creates, `PATCH` updates part of a resource, `DELETE` removes it. Reads never mutate. An action that is none of these, such as retrying a sync job or verifying a 2FA code, is a `POST` to a verb under the resource: `POST /api/sync-jobs/:id/retry`. AIP-136 writes that as a `:retry` suffix instead, but a colon doesn't work in Nitro's file-based route names on every OS.
 - Endpoints, built and planned:
-  - `GET /api/dashboard/summary?market=All&locale=zh-TW` → today's KPIs + AI daily summary + anomaly alerts. With a single `market`, the revenue KPI declares that market's `functionalCurrency`, and its delta and sparkline are computed in it; at `All` they stay in USD and `functionalCurrency` is `null`
+  - `GET /api/dashboard/summary?market=All&locale=zh-TW&presentationCurrency=EUR` → today's KPIs + AI daily summary + anomaly alerts. The revenue KPI is one amount in the one `currency` it declares, with its delta and sparkline in the same currency: a single `market`'s functional currency, or at `All` the request's `presentationCurrency` (see *Query parameter conventions*), which the AI summary's revenue movement also uses. Not a `Money` map: the request already fixes the currency (see *Currency & money conversion*)
   - `GET /api/anomalies/:id?locale=zh-TW` → one `AnomalyAlert`, for a chat opened from *Ask AI why →*
   - `GET /api/analytics/revenue?range=30d&markets=US,JP` → revenue series by market
   - `GET /api/analytics/funnel?market=JP&range=7d`
@@ -113,6 +113,7 @@ Resource-oriented, after Google's API Improvement Proposals: [AIP-121](https://g
 - Multi-value: comma-separated (`markets=US,JP,TW`). These map directly onto the page's URL-backed filters (see `stack-conventions` → *State management*), so query composables can pass filter refs straight through.
 - Locale: `locale=en|zh-TW` on requests for AI text, and on no other request (see *AI text and locale* below).
 - Display currency: **no query param.** Monetary endpoints return every currency at once as a `Money` map (see *Currency & money conversion* below); the display toggle is a client-side key switch, so no per-currency request is made. Which currency the client then *shows* is a display decision, not a contract one — `/product-spec` → `currency-model.md`.
+- Presentation currency: `presentationCurrency=USD|JPY|TWD|EUR` on `GET /api/dashboard/summary`, and on no other request yet. It is not the display currency. It fixes the one currency the summary's `All` revenue KPI and AI text are in. Absent or unknown is `400 VALIDATION_FAILED`, never filled in from the org setting, so the response depends only on its request. The query key includes it, read from the organization store, so a Settings save refetches.
 
 ## Core domain types (define in app/types/api.ts)
 
@@ -142,10 +143,10 @@ interface FxProvenance {            // audit metadata — NOT a reconstructable 
 
 interface KpiMetric {
   key: 'revenue' | 'orders' | 'conversionRate' | 'activeUsers'
-  value: number | Money            // Money for monetary metrics (revenue); plain number otherwise
-  functionalCurrency: CurrencyCode | null  // the scoped market's, on a monetary metric; null at `All` and on counts and rates
+  value: number                    // an amount in `currency` on revenue; a count or ratio otherwise
+  currency: CurrencyCode | null    // the one currency of value, delta and sparkline on revenue, chosen by the server; null on counts and rates
   deltaPct: number                 // vs. comparison period; negative = down
-  sparkline: number[]              // shape only; one market's monetary sparkline is in its functional currency
+  sparkline: number[]              // shape only; on revenue, in `currency`
 }
 
 interface AnomalyAlert {
@@ -159,10 +160,10 @@ interface AnomalyAlert {
 
 interface DashboardSummary {
   date: string                     // ISO date
-  kpis: KpiMetric[]                // monetary KPIs carry Money (all 4 currencies)
+  kpis: KpiMetric[]                // revenue in the one currency it declares, not Money
   alerts: AnomalyAlert[]
   aiSummary: AiSummary             // in the request's `locale`
-  fx: FxProvenance                 // how the Money totals in this payload were derived (audit)
+  fx: FxProvenance                 // how the converted amounts in this payload were derived (audit)
 }
 
 interface TimeSeriesPoint { t: string; value: number }        // t = ISO date; non-monetary series
@@ -185,6 +186,7 @@ interface RevenueResponse {
 ```
 
 - Monetary values are returned as a **`Money` map carrying all four currencies at once** (`{ USD, JPY, TWD, EUR }`), each computed **server-side using historical daily official rates** — every day is converted at that day's rate and then summed. A currency total is therefore the sum of daily-converted amounts, **never** the functional-currency total times a single rate. Each currency in the map is an independent, historically-accurate figure: the client must never derive one from another, and never converts. The client reads the key it needs (`/product-spec` → `currency-model.md` decides which) and only **formats** (decimals, grouping) via `useFormat`. Because official daily rates are frozen, the same range reproduces the same figure on every query (audit-stable). Remember **JPY and TWD display with 0 decimals** (TWD still carries sub-units in the payload).
+- **One exception: a payload whose request already fixes the currency returns that currency alone, and declares it.** Today that is the Dashboard summary's revenue KPI (`value` + `currency`). The other three currencies could never be shown without a refetch, and returning them would make the client repeat the server's choice of currency (`/product-spec` → `currency-model.md` §6). It is still converted day by day on the server.
 - Timestamps are always **ISO 8601 strings**, never epoch ints or pre-formatted display strings — display formatting is a frontend/i18n concern. They are UTC (`Z`), except a customer's journey event, which carries the customer's own offset (see *Customer journeys* below).
 
 ## Currency & money conversion (server-side, historical daily rates)
@@ -197,7 +199,7 @@ Cross-currency conversion is an **API-layer responsibility** and, for financial 
 - **The contract obligation:** every monetary resource declares a **`functionalCurrency: CurrencyCode`** — the currency the operation behind that record runs on — so the client can render the operating figure with no selector and no extra request. It is a **declared field, not a function of the record's market**: a record spanning every market carries whatever currency it declares, and a campaign's follows its ad account rather than its target market. The client must never map market → currency itself. One `Money` map serves the Analytics-normalized view, functional-currency views and dual-currency cells alike. **Which of those a given surface renders is decided in `/product-spec` → `currency-model.md`, not here.**
 - The frontend performs **display formatting only** (grouping, decimals, symbol) via `useFormat`. It never performs conversion. **JPY and TWD render with 0 decimals** — display only; TWD keeps its sub-units in the payload, since whole-dollar NT$ is a quoting convention rather than a missing minor unit.
 - **Range vs. currency are different kinds of change.** `range`/`from`/`to` are **data-scope** params: changing them alters which days are aggregated (and which daily rates apply), so the server must **re-query and re-aggregate** — it flows through the query key and triggers a refetch (with a loading skeleton). The currency toggle is a pure display projection over already-fetched data — no refetch. Keeping the frequent currency flip instant is precisely why all currencies are returned up front.
-- There is **no `currency` query param** — monetary endpoints always return the full `Money` map. Non-monetary series (orders, conversion rate, users) are currency-independent and returned as plain numbers.
+- There is **no `currency` query param** — monetary endpoints return the full `Money` map, except where the request already fixes the currency (above). `presentationCurrency` (see *Query parameter conventions*) is that case: it is organization policy the client reports, not a display choice, so it never stands in for the Analytics selector.
 - Mock note: seed a per-day official-rate table in `server/utils/mock/` and convert day-by-day so totals are reproducible; echo realistic `FxProvenance`. Per-day rates themselves, if ever needed, belong in a dedicated audit/export endpoint, not the display payload.
 - Trade-off (documented): the multi-currency `Money` map bakes the four-currency assumption into every monetary type. If the supported currency set grows large, or an un-paginated per-transaction monetary export is added, revisit and switch those endpoints to a single-requested-currency payload — still converted day-by-day historically; only the delivery shape changes. The trigger and the client-side upgrade path are settled in `/product-spec` → `currency-model.md` (§6).
 
