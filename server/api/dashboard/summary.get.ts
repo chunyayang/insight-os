@@ -6,14 +6,8 @@ import type {
 } from '../../../app/types/api'
 
 /**
- * Dashboard KPIs + anomaly alerts + AI daily summary, the text in the request's `locale`.
- *
- * Monetary KPIs carry a full `Money` map (all four currencies, each aggregated
- * server-side from daily-converted amounts) plus FxProvenance for audit — the client
- * only picks a key to display and never converts. At single-market scope they also
- * declare the market's `functionalCurrency`, which the client reads rather than derives.
- * At `All`, the revenue delta, sparkline and AI summary are computed in the request's
- * `presentationCurrency`, the currency the card shows.
+ * Dashboard KPIs, anomaly alerts and AI daily summary. The text is in `locale`; revenue is in the
+ * one currency `revenueCurrency` picks for the scope, so the card and the summary always agree.
  */
 export default defineEventHandler(async (event): Promise<ApiResponse<DashboardSummary>> => {
   const query = getQuery(event)
