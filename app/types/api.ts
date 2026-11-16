@@ -138,9 +138,8 @@ export type UpdateUserSettingsRequest = Partial<UserSettings>
 export interface KpiMetric {
   key: 'revenue' | 'orders' | 'conversionRate' | 'activeUsers'
   value: number // an amount in `currency` on a monetary metric (revenue); a count or ratio otherwise
-  // The one currency of `value`, `deltaPct` and `sparkline` on a monetary metric, chosen by the
-  // server: the scoped market's functional currency, or at `All` the request's presentation
-  // currency (currency-model.md §6). null on a count or a rate, which has no currency.
+  // The server's pick for `value`, `deltaPct` and `sparkline` (currency-model.md §3): read it, never
+  // derive it from the market. null on a count or a rate.
   currency: CurrencyCode | null
   deltaPct: number // vs. comparison period; negative = down
   sparkline: number[] // shape only
@@ -157,7 +156,7 @@ export interface AnomalyAlert {
 
 export interface DashboardSummary {
   date: string // ISO date
-  kpis: KpiMetric[] // a monetary KPI is in the one currency it declares
+  kpis: KpiMetric[]
   alerts: AnomalyAlert[]
   aiSummary: AiSummary // in the request's `locale`
   fx: FxProvenance // how the converted amounts in this payload were derived (audit)
