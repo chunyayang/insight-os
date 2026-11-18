@@ -42,7 +42,7 @@ describe('useCustomersList', () => {
     await vi.waitFor(() => expect(requests.at(-1)).toEqual({ page: '1', market: 'JP' }))
 
     // The unfiltered page 2 is inactive now; refetching it must not fill it with JP's rows.
-    // Exact match: a partial key would also match the JP entry, whose object contains `{}`.
+    requests.length = 0
     await withNuxtContext(() =>
       useQueryClient().refetchQueries({
         queryKey: customerKeys.list({ page: 2 }),
@@ -50,6 +50,6 @@ describe('useCustomersList', () => {
         type: 'all',
       }),
     )
-    expect(requests.at(-1)).toEqual({ page: '2' })
+    expect(requests).toEqual([{ page: '2' }])
   })
 })

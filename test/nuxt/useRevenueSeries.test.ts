@@ -43,9 +43,14 @@ describe('useRevenueSeries', () => {
     await vi.waitFor(() => expect(requests.at(-1)).toEqual({ market: 'JP', range: '7d' }))
 
     // The US entry is inactive now; refetching it must not fill it with JP's series.
+    requests.length = 0
     await withNuxtContext(() =>
-      useQueryClient().refetchQueries({ queryKey: revenueKeys.series('US', '30d'), type: 'all' }),
+      useQueryClient().refetchQueries({
+        queryKey: revenueKeys.series('US', '30d'),
+        exact: true,
+        type: 'all',
+      }),
     )
-    expect(requests.at(-1)).toEqual({ market: 'US', range: '30d' })
+    expect(requests).toEqual([{ market: 'US', range: '30d' }])
   })
 })
