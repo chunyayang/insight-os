@@ -113,7 +113,7 @@ Resource-oriented, after Google's API Improvement Proposals: [AIP-121](https://g
 - Multi-value: comma-separated (`markets=US,JP,TW`). These map directly onto the page's URL-backed filters (see `stack-conventions` → *State management*), so query composables can pass filter refs straight through.
 - Locale: `locale=en|zh-TW` on requests for AI text, and on no other request (see *AI text and locale* below).
 - Display currency: **no query param.** Monetary endpoints return every currency at once as a `Money` map (see *Currency & money conversion* below); the display toggle is a client-side key switch, so no per-currency request is made. Which currency the client then *shows* is a display decision, not a contract one — `/product-spec` → `currency-model.md`.
-- Presentation currency: `presentationCurrency=USD|JPY|TWD|EUR` on `GET /api/dashboard/summary`, and on no other request yet. It is not the display currency. It fixes the one currency the summary's `All` revenue KPI and AI text are in. Absent or unknown is `400 VALIDATION_FAILED`, never filled in from the org setting, so the response depends only on its request. The query key includes it, read from the organization store, so a Settings save refetches.
+- Presentation currency: `presentationCurrency=USD|JPY|TWD|EUR` on `GET /api/dashboard/summary`, and on no other request yet. It is not the display currency. It fixes the one currency the summary's `All` revenue KPI and AI text are in. Absent or unknown is `400 VALIDATION_FAILED`, never filled in from the org setting, so the response depends only on its request. The query key includes it, read from the org settings query, so a Settings save refetches.
 
 ## Core domain types (define in app/types/api.ts)
 
