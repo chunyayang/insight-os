@@ -37,7 +37,7 @@ export function useDashboardSummary() {
       ),
     ),
     // The request is read from the key, not the stores: a fetch that runs after the stores have
-    // moved on (a retry, a refetch of an older entry) must still match the entry it fills.
+    // moved on (a refetch of an inactive entry) must still match the entry it fills.
     queryFn: async ({ queryKey: [, , market, locale, presentationCurrency] }) => {
       const response = await $api<ApiResponse<DashboardSummary>>('/dashboard/summary', {
         query: { market, locale, presentationCurrency },
