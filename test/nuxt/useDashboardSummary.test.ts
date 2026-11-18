@@ -4,11 +4,10 @@ import { mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime'
 import { useQueryClient } from '@tanstack/vue-query'
 import { dashboardKeys, useDashboardSummary } from '../../app/composables/queries/useDashboardQuery'
 import { useFiltersStore } from '../../app/stores/filters'
-import { usePreferencesStore } from '../../app/stores/preferences'
-import { useOrganizationStore } from '../../app/stores/organization'
 import type { MarketFilter } from '../../app/constants/markets'
 import type { ApiResponse, CurrencyCode, DashboardSummary } from '../../app/types/api'
 import { withNuxtContext } from './support/context'
+import { seedOrgSettings, seedUserSettings } from './support/settings'
 
 const summaryMarkets: string[] = []
 const summaryCurrencies: string[] = []
@@ -19,16 +18,8 @@ registerEndpoint('/api/dashboard/summary', (event: { path: string }) => {
   return { data: { kpis: [], alerts: [] } } as unknown as ApiResponse<DashboardSummary>
 })
 
-// Seeds the store in setup, as the layout has by the time any page mounts. Seeding it from
-// the test body would reach a different Pinia instance (SettingsGeneral.test.ts says why).
 const Probe = defineComponent({
-  props: {
-    market: { type: String as () => MarketFilter, default: 'All' },
-    currency: { type: String as () => CurrencyCode, default: 'USD' },
-  },
-  setup(props) {
-    usePreferencesStore().setDefaultMarket(props.market)
-    useOrganizationStore().setPresentationCurrency(props.currency)
+  setup() {
     useDashboardSummary()
     return () => h('div')
   },
@@ -45,11 +36,11 @@ describe('useDashboardSummary', () => {
 
   afterEach(() => unmount())
 
-  async function mountProbe(market: MarketFilter, route?: string, currency?: CurrencyCode) {
-    const wrapper = await mountSuspended(Probe, {
-      props: { market, ...(currency ? { currency } : {}) },
-      ...(route ? { route } : {}),
-    })
+  // Seeds the settings first, as the layout has by the time any page mounts.
+  async function mountProbe(market: MarketFilter, route?: string, currency: CurrencyCode = 'USD') {
+    seedUserSettings({ defaultMarket: market })
+    seedOrgSettings({ presentationCurrency: currency })
+    const wrapper = await mountSuspended(Probe, route ? { route } : {})
     unmount = () => wrapper.unmount()
   }
 
@@ -63,7 +54,7 @@ describe('useDashboardSummary', () => {
     await mountProbe('All')
     await vi.waitFor(() => expect(summaryMarkets).toEqual(['All']))
 
-    usePreferencesStore().setDefaultMarket('DE')
+    seedUserSettings({ defaultMarket: 'DE' })
     await vi.waitFor(() => expect(summaryMarkets.at(-1)).toBe('DE'))
   })
 
@@ -93,14 +84,14 @@ describe('useDashboardSummary', () => {
     await mountProbe('All', undefined, 'USD')
     await vi.waitFor(() => expect(summaryCurrencies).toEqual(['USD']))
 
-    useOrganizationStore().setPresentationCurrency('JPY')
+    seedOrgSettings({ presentationCurrency: 'JPY' })
     await vi.waitFor(() => expect(summaryCurrencies.at(-1)).toBe('JPY'))
   })
 
-  it('refetches an older entry with the currency in its key, not the one now in the store', async () => {
+  it('refetches an older entry with the currency in its key, not the one now in the settings', async () => {
     await mountProbe('All', undefined, 'USD')
     await vi.waitFor(() => expect(summaryCurrencies).toEqual(['USD']))
-    useOrganizationStore().setPresentationCurrency('JPY')
+    seedOrgSettings({ presentationCurrency: 'JPY' })
     await vi.waitFor(() => expect(summaryCurrencies.at(-1)).toBe('JPY'))
 
     // The USD entry is inactive now; refetching it must not fill it with JPY figures.

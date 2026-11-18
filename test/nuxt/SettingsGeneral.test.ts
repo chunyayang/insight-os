@@ -6,10 +6,11 @@ import { mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime'
 import { focusManager, useQueryClient } from '@tanstack/vue-query'
 import Harness from './support/SettingsGeneralHarness.vue'
 import { useAuthStore } from '../../app/stores/auth'
-import { useOrganizationStore } from '../../app/stores/organization'
-import { usePreferencesStore } from '../../app/stores/preferences'
+import { orgSettingsKeys } from '../../app/composables/queries/useOrgSettingsQuery'
+import { userSettingsKeys } from '../../app/composables/queries/useUserSettingsQuery'
 import type { ApiResponse, OrgSettings, Role, UserSettings } from '../../app/types/api'
 import { withNuxtContext } from './support/context'
+import { seedOrgSettings } from './support/settings'
 
 let saved: UserSettings = { defaultMarket: 'All' }
 let settingsReads = 0
@@ -79,6 +80,14 @@ function pick(wrapper: VueWrapper, label: string, value: string) {
   select!.vm.$emit('update:modelValue', value)
 }
 
+/** What the cache holds for the signed-in user's market and the org's currency. */
+const cachedMarket = () =>
+  withNuxtContext(() => useQueryClient().getQueryData<UserSettings>(userSettingsKeys.me('u-1')))
+    ?.defaultMarket
+const cachedCurrency = () =>
+  withNuxtContext(() => useQueryClient().getQueryData<OrgSettings>(orgSettingsKeys.all))
+    ?.presentationCurrency
+
 /** Lets in-flight requests and the cache settle. */
 const settle = () => new Promise((resolve) => setTimeout(resolve, 50))
 
@@ -96,14 +105,11 @@ describe('SettingsGeneral', () => {
     focusManager.setFocused(undefined)
   })
 
-  it("renders the organization store's current currency, and lets an Admin change it", async () => {
+  it("renders the organization's current currency, and lets an Admin change it", async () => {
+    // Cached before mount, so the query never reads the endpoint's USD.
+    seedOrgSettings({ presentationCurrency: 'JPY' })
     const wrapper = await mountSuspended(Harness)
     signInAs('admin')
-
-    // Drives the store directly rather than stubbing the org-settings GET — this
-    // component reads useOrganizationStore(), not the query, so seeding the store
-    // is the more direct way to set up each case.
-    useOrganizationStore().setPresentationCurrency('JPY')
     await nextTick()
 
     expect(wrapper.html()).toContain('JPY')
@@ -133,7 +139,7 @@ describe('SettingsGeneral', () => {
       .find((c) => c.find(`#${id}`).exists())
     select!.vm.$emit('update:modelValue', 'JP')
 
-    await vi.waitFor(() => expect(usePreferencesStore().defaultMarket).toBe('JP'))
+    await vi.waitFor(() => expect(cachedMarket()).toBe('JP'))
     expect(saved.defaultMarket).toBe('JP')
   })
 
@@ -146,7 +152,7 @@ describe('SettingsGeneral', () => {
 
     pick(wrapper, 'Default operating market', 'TW')
 
-    await vi.waitFor(() => expect(usePreferencesStore().defaultMarket).toBe('TW'))
+    await vi.waitFor(() => expect(cachedMarket()).toBe('TW'))
     await settle()
     expect(settingsReads).toBe(reads)
   })
@@ -164,11 +170,11 @@ describe('SettingsGeneral', () => {
     await vi.waitFor(() => expect(settingsReads).toBe(reads + 1))
 
     pick(wrapper, 'Default operating market', 'DE')
-    await vi.waitFor(() => expect(usePreferencesStore().defaultMarket).toBe('DE'))
+    await vi.waitFor(() => expect(cachedMarket()).toBe('DE'))
 
     release()
     await settle()
-    expect(usePreferencesStore().defaultMarket).toBe('DE')
+    expect(cachedMarket()).toBe('DE')
   })
 
   it("takes an Admin's saved currency from the save itself, with no read back", async () => {
@@ -180,7 +186,7 @@ describe('SettingsGeneral', () => {
 
     pick(wrapper, 'Presentation currency', 'EUR')
 
-    await vi.waitFor(() => expect(useOrganizationStore().presentationCurrency).toBe('EUR'))
+    await vi.waitFor(() => expect(cachedCurrency()).toBe('EUR'))
     await settle()
     expect(orgReads).toBe(reads)
   })

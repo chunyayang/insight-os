@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/vue-query'
 import type { ApiResponse, CurrencyCode, DashboardSummary, LocaleCode } from '~/types/api'
 import type { MarketFilter } from '~/constants/markets'
+import { useOrgSettingsQuery } from './useOrgSettingsQuery'
+import { useUserSettingsQuery } from './useUserSettingsQuery'
 
 /**
  * Query-key factory for the dashboard domain. Keys are never inlined at call sites —
@@ -13,30 +15,26 @@ export const dashboardKeys = {
 }
 
 /**
- * Dashboard summary, scoped to the session's default operating market (spec §4.2): read from
- * the preferences store, never from the URL or another page's filter. `/` takes no `?market=`.
- * The layout renders no page before the store is seeded, so the first request is already
+ * Dashboard summary, scoped to the user's default operating market (spec §4.2): read from
+ * their settings, never from the URL or another page's filter. `/` takes no `?market=`.
+ * The layout renders no page before the settings settle, so the first request is already
  * scoped to the user's market.
  * The revenue KPI comes back in one currency the server declares: the market's functional
- * currency, or at `All` the presentation currency, read from the organization store and sent.
+ * currency, or at `All` the organization's presentation currency, which the request sends.
  */
 export function useDashboardSummary() {
   const { $api } = useNuxtApp()
-  const preferences = usePreferencesStore()
-  const organization = useOrganizationStore()
+  const { defaultMarket } = useUserSettingsQuery()
+  const { presentationCurrency } = useOrgSettingsQuery()
   const { locale } = useI18n()
 
   return useQuery({
     // Locale is in the key because the AI summary and alerts are written in it, the currency
     // because the delta, sparkline and summary are computed in it: a Settings save refetches.
     queryKey: computed(() =>
-      dashboardKeys.summary(
-        preferences.defaultMarket,
-        locale.value,
-        organization.presentationCurrency,
-      ),
+      dashboardKeys.summary(defaultMarket.value, locale.value, presentationCurrency.value),
     ),
-    // The request is read from the key, not the stores: a fetch that runs after the stores have
+    // The request is read from the key, not the settings: a fetch that runs after they have
     // moved on (a refetch of an inactive entry) must still match the entry it fills.
     queryFn: async ({ queryKey: [, , market, locale, presentationCurrency] }) => {
       const response = await $api<ApiResponse<DashboardSummary>>('/dashboard/summary', {

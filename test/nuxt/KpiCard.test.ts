@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import KpiCard from '../../app/components/dashboard/KpiCard.vue'
 import { useChartTheme } from '../../app/composables/useChartTheme'
-import { useOrganizationStore } from '../../app/stores/organization'
 import type { KpiMetric } from '../../app/types/api'
 import { stubElementSize } from './support/layout'
+import { seedOrgSettings } from './support/settings'
 
 function metric(overrides: Partial<KpiMetric> = {}): KpiMetric {
   return {
@@ -19,10 +19,6 @@ function metric(overrides: Partial<KpiMetric> = {}): KpiMetric {
 
 describe('KpiCard', () => {
   stubElementSize()
-
-  afterEach(() => {
-    useOrganizationStore().setPresentationCurrency('USD')
-  })
 
   // What a sighted reader sees: the full amount is in a screen-reader-only span.
   const visible = (wrapper: { find: (s: string) => { text: () => string } }, selector: string) =>
@@ -44,7 +40,7 @@ describe('KpiCard', () => {
   })
 
   it('renders the declared currency, whatever the presentation currency', async () => {
-    useOrganizationStore().setPresentationCurrency('EUR')
+    seedOrgSettings({ presentationCurrency: 'EUR' })
     const wrapper = await mountSuspended(KpiCard, {
       props: { metric: metric({ value: 38_304_797, currency: 'JPY' }) },
     })

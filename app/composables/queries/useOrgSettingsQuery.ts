@@ -1,21 +1,21 @@
 import { useQuery } from '@tanstack/vue-query'
-import type { ApiResponse, OrgSettings } from '~/types/api'
+import { DEFAULT_CURRENCY } from '~/constants/markets'
+import type { ApiResponse, CurrencyCode, OrgSettings } from '~/types/api'
 
 export const orgSettingsKeys = {
   all: ['org-settings'] as const,
 }
 
 /**
- * Organization config, which seeds the organization store (spec §4.10). Called only by the
- * authenticated layout, which renders no page until it settles. Every surface reads
- * `useOrganizationStore()` rather than this query, so reading a setting never requests it.
+ * Organization config (spec §4.10). Any surface may call it: the layout fetches it once and
+ * renders no page until it settles, and with `staleTime: Infinity` every other call reads
+ * the cache without a request.
  *
- * `useQuery` in this Vue Query version has no `onSuccess`, so the seed is a `watch`
- * on the query's data instead of a callback.
+ * Returns the query plus each setting resolved with its fallback, so a caller never reads
+ * `data` and never renders or sends an unset value when the load failed.
  */
 export function useOrgSettingsQuery() {
   const { $api } = useNuxtApp()
-  const organization = useOrganizationStore()
 
   const query = useQuery({
     queryKey: orgSettingsKeys.all,
@@ -31,17 +31,15 @@ export function useOrgSettingsQuery() {
     // load that keeps failing would hold it blank for seconds. One retry covers a blip; after
     // that the page renders on the fallbacks. (On the server Vue Query never retries.)
     retry: 1,
+    // A failed load has been retried and the page rendered on the fallbacks. A component that
+    // reads a setting must not restart it on mount: that sets the query pending again, and the
+    // layout would hide the page that just mounted.
+    retryOnMount: false,
   })
 
-  // Synchronous, so the store holds the currency before the layout, gated on this query's
-  // status, renders the page.
-  watch(
-    () => query.data.value,
-    (data) => {
-      if (data) organization.setPresentationCurrency(data.presentationCurrency)
-    },
-    { immediate: true, flush: 'sync' },
+  const presentationCurrency = computed<CurrencyCode>(
+    () => query.data.value?.presentationCurrency ?? DEFAULT_CURRENCY,
   )
 
-  return query
+  return { ...query, presentationCurrency }
 }

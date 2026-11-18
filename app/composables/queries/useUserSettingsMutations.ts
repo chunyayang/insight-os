@@ -4,7 +4,7 @@ import { userSettingsKeys } from './useUserSettingsQuery'
 
 /**
  * The PATCH answers with the whole `UserSettings`, so it becomes the query's data with no
- * refetch, and the query's own seed carries it into the preferences store.
+ * refetch, and every reader of the setting follows it.
  */
 export function useUpdateDefaultMarketMutation() {
   const { $api } = useNuxtApp()
