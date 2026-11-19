@@ -17,19 +17,16 @@ import type { TrendSeries } from '~/components/charts/TrendLineChart.vue'
  */
 const { t } = useI18n()
 const fmt = useFormat()
-const organization = useOrganizationStore()
+const { presentationCurrency } = useOrgSettingsQuery()
 const filters = useFiltersStore()
-const preferences = usePreferencesStore()
+const { defaultMarket } = useUserSettingsQuery()
 
 // Tabs only at `All`. A change to the default drops the picked tab, so the chart lands on the
 // new default, as the KPI cards do, and a pick made at `All` can't outlive the tabs.
-const hasTabs = computed(() => preferences.defaultMarket === 'All')
+const hasTabs = computed(() => defaultMarket.value === 'All')
 const picked = ref<MarketFilter>()
-watch(
-  () => preferences.defaultMarket,
-  () => (picked.value = undefined),
-)
-const market = computed(() => picked.value ?? preferences.defaultMarket)
+watch(defaultMarket, () => (picked.value = undefined))
+const market = computed(() => picked.value ?? defaultMarket.value)
 const { data, isPending, isError, error, refetch } = useRevenueSeries({ market })
 
 // The query scopes itself to the global range, so the title names that range rather
@@ -63,8 +60,8 @@ const labels = computed(() => data.value?.series[0]?.points.map((p) => fmt.month
 // Read from the series' declared field, never from the market. Without tabs there is one series.
 const currency = computed<CurrencyCode>(() =>
   hasTabs.value
-    ? organization.presentationCurrency
-    : (data.value?.series[0]?.functionalCurrency ?? organization.presentationCurrency),
+    ? presentationCurrency.value
+    : (data.value?.series[0]?.functionalCurrency ?? presentationCurrency.value),
 )
 
 const series = computed<TrendSeries[]>(

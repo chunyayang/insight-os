@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/vue-query'
+import type { MarketFilter } from '~/constants/markets'
 import type { ApiResponse, UserSettings } from '~/types/api'
 
 /** Keyed by user, so a different sign-in in the same tab never reads the last user's cache. */
@@ -8,17 +9,17 @@ export const userSettingsKeys = {
 }
 
 /**
- * The signed-in user's own settings, which seed the preferences store (spec §4.10). Called
- * only by the authenticated layout, which renders no page until it settles: pages read the
- * market from `usePreferencesStore()` and never wait on this query themselves.
+ * The signed-in user's own settings (spec §4.10). Any surface may call it: the layout fetches
+ * it once and renders no page until it settles, and with `staleTime: Infinity` every other
+ * call reads the cache without a request.
  *
- * Until this user's settings arrive the store reads `'All'`, so a new sign-in never
+ * Returns the query plus each setting resolved with its fallback. Until this user's settings
+ * arrive their key holds nothing, so `defaultMarket` reads `'All'` and a new sign-in never
  * starts on the previous user's market.
  */
 export function useUserSettingsQuery() {
   const { $api } = useNuxtApp()
   const auth = useAuthStore()
-  const preferences = usePreferencesStore()
 
   const userId = computed(() => auth.user?.id)
 
@@ -37,15 +38,13 @@ export function useUserSettingsQuery() {
     // load that keeps failing would hold it blank for seconds. One retry covers a blip; after
     // that the page renders on the fallbacks. (On the server Vue Query never retries.)
     retry: 1,
+    // A failed load has been retried and the page rendered on the fallbacks. A component that
+    // reads a setting must not restart it on mount: that sets the query pending again, and the
+    // layout would hide the page that just mounted.
+    retryOnMount: false,
   })
 
-  // Synchronous, so the store holds the user's market before the layout, gated on this
-  // query's status, renders the page.
-  watch(
-    () => query.data.value,
-    (data) => preferences.setDefaultMarket(data?.defaultMarket ?? 'All'),
-    { immediate: true, flush: 'sync' },
-  )
+  const defaultMarket = computed<MarketFilter>(() => query.data.value?.defaultMarket ?? 'All')
 
-  return query
+  return { ...query, defaultMarket }
 }

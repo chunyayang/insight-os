@@ -10,12 +10,11 @@
  */
 const router = useRouter()
 
-// Seeds the organization and preferences stores once per session (spec §4.10) so they are
-// readable anywhere in the app, not just on Settings.
+// The session's settings (spec §4.10), fetched here once; every other caller reads the cache.
 const orgSettings = useOrgSettingsQuery()
 const userSettings = useUserSettingsQuery()
-// No page renders until both have settled, so every page reads the session defaults from
-// the stores and none renders or fetches with a fallback first. A failed load settles too,
+// No page renders until both have settled, so every page reads the settings from the cache
+// and none renders or fetches with a fallback first. A failed load settles too,
 // and the page renders on the fallbacks. Only the page waits: the shell renders at once.
 const settingsSettled = computed(
   () => !orgSettings.isPending.value && !userSettings.isPending.value,

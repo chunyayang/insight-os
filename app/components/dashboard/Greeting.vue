@@ -9,12 +9,12 @@ import { dayPeriod } from '~/utils/format'
 const { t } = useI18n()
 const { longDate } = useFormat()
 const auth = useAuthStore()
-const preferences = usePreferencesStore()
+const { defaultMarket } = useUserSettingsQuery()
 
 // First word of the name: a CJK name with no space stays whole.
 const firstName = computed(() => auth.user?.name.split(' ')[0] ?? '')
 
-const market = computed(() => t(`common.markets.${preferences.defaultMarket.toLowerCase()}`))
+const market = computed(() => t(`common.markets.${defaultMarket.value.toLowerCase()}`))
 </script>
 
 <template>

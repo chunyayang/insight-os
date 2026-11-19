@@ -4,8 +4,8 @@ import type { CurrencyCode } from '~/types/api'
 
 const { t } = useI18n()
 const { can, isDisabledWhenDenied } = useCan()
-const organization = useOrganizationStore()
-const preferences = usePreferencesStore()
+const { presentationCurrency } = useOrgSettingsQuery()
+const { defaultMarket } = useUserSettingsQuery()
 
 const update = useUpdatePresentationCurrencyMutation()
 const updateMarket = useUpdateDefaultMarketMutation()
@@ -19,7 +19,7 @@ const marketOptions = computed(() =>
 )
 
 function onMarketChange(next: MarketFilter) {
-  if (next === preferences.defaultMarket) return
+  if (next === defaultMarket.value) return
   updateMarket.mutate({ defaultMarket: next })
 }
 
@@ -29,7 +29,7 @@ const isDisabled = computed(() => isDenied.value || update.isPending.value)
 const currencyOptions = computed(() => CURRENCY_CODES.map((code) => ({ label: code, value: code })))
 
 function onChange(next: CurrencyCode) {
-  if (next === organization.presentationCurrency) return
+  if (next === presentationCurrency.value) return
   update.mutate({ presentationCurrency: next })
 }
 </script>
@@ -47,7 +47,7 @@ function onChange(next: CurrencyCode) {
       class="mb-6"
     >
       <USelect
-        :model-value="preferences.defaultMarket"
+        :model-value="defaultMarket"
         :items="marketOptions"
         :disabled="updateMarket.isPending.value"
         class="w-56"
@@ -66,7 +66,7 @@ function onChange(next: CurrencyCode) {
       >
         <span class="inline-block">
           <USelect
-            :model-value="organization.presentationCurrency"
+            :model-value="presentationCurrency"
             :items="currencyOptions"
             :disabled="isDisabled"
             class="w-56"

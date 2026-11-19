@@ -1,11 +1,13 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime'
+import { useQueryClient } from '@tanstack/vue-query'
 import RevenueTrend from '../../app/components/dashboard/RevenueTrend.vue'
-import { useOrganizationStore } from '../../app/stores/organization'
-import { usePreferencesStore } from '../../app/stores/preferences'
+import { userSettingsKeys } from '../../app/composables/queries/useUserSettingsQuery'
 import type { ApiResponse, RevenueResponse } from '../../app/types/api'
+import { withNuxtContext } from './support/context'
 import { stubElementSize } from './support/layout'
+import { seedOrgSettings, seedUserSettings } from './support/settings'
 
 const usdPoint = { USD: 1000, JPY: 150_000, TWD: 31_000, EUR: 900 }
 const jpPoint = { USD: 51_000, JPY: 7_700_000, TWD: 1_580_000, EUR: 47_000 }
@@ -62,9 +64,10 @@ const chartOption = (wrapper: Awaited<ReturnType<typeof mountLoaded>>) =>
 describe('RevenueTrend', () => {
   stubElementSize()
 
-  afterEach(() => {
-    usePreferencesStore().setDefaultMarket('All')
-    useOrganizationStore().setPresentationCurrency('USD')
+  // Seeded before each test, as the layout has by the time any page mounts.
+  beforeEach(() => {
+    seedUserSettings({ defaultMarket: 'All' })
+    seedOrgSettings({ presentationCurrency: 'USD' })
     requestedMarkets.length = 0
   })
 
@@ -83,7 +86,7 @@ describe('RevenueTrend', () => {
   })
 
   it('hides the tabs when the default operating market is a single market, and shows that market', async () => {
-    usePreferencesStore().setDefaultMarket('JP')
+    seedUserSettings({ defaultMarket: 'JP' })
     const wrapper = await mountSuspended(RevenueTrend)
 
     await vi.waitFor(() => expect(requestedMarkets).toEqual(['JP']))
@@ -97,7 +100,9 @@ describe('RevenueTrend', () => {
     const de = wrapper.findAll('[role="tab"]').find((tab) => tab.text() === 'DE')
     await de!.trigger('mousedown')
     await vi.waitFor(() => expect(requestedMarkets.at(-1)).toBe('DE'))
-    expect(usePreferencesStore().defaultMarket).toBe('All')
+    expect(
+      withNuxtContext(() => useQueryClient().getQueryData(userSettingsKeys.me(undefined))),
+    ).toEqual({ defaultMarket: 'All' })
   })
 
   it('lands on the new default when it changes, dropping a picked tab', async () => {
@@ -112,18 +117,18 @@ describe('RevenueTrend', () => {
     await vi.waitFor(() => expect(selected()).toBe('DE'))
 
     // TW, which no earlier test has fetched: the query cache outlives a test.
-    usePreferencesStore().setDefaultMarket('TW')
+    seedUserSettings({ defaultMarket: 'TW' })
     await vi.waitFor(() => expect(requestedMarkets.at(-1)).toBe('TW'))
     expect(wrapper.find('[role="tablist"]').exists()).toBe(false)
 
     // Back at `All`, the tabs return on All, not on the DE picked before.
-    usePreferencesStore().setDefaultMarket('All')
+    seedUserSettings({ defaultMarket: 'All' })
     await vi.waitFor(() => expect(selected()).toBe('All'))
   })
 
   it('plots a single market in its declared functional currency, not the presentation currency', async () => {
-    useOrganizationStore().setPresentationCurrency('EUR')
-    usePreferencesStore().setDefaultMarket('JP')
+    seedOrgSettings({ presentationCurrency: 'EUR' })
+    seedUserSettings({ defaultMarket: 'JP' })
     const wrapper = await mountLoaded()
 
     expect(wrapper.text()).toContain('shown in JPY')
@@ -132,14 +137,14 @@ describe('RevenueTrend', () => {
     expect(chartOption(wrapper).tooltip.valueFormatter(7_700_000)).toBe('¥7,700,000')
 
     // The presentation currency has no say at this scope.
-    useOrganizationStore().setPresentationCurrency('USD')
+    seedOrgSettings({ presentationCurrency: 'USD' })
     await nextTick()
     expect(wrapper.text()).toContain('shown in JPY')
   })
 
   it('keeps a single-market tab picked at `All` in the presentation currency', async () => {
     // EUR, so neither the series' JPY nor a hardcoded USD could pass for it.
-    useOrganizationStore().setPresentationCurrency('EUR')
+    seedOrgSettings({ presentationCurrency: 'EUR' })
     const wrapper = await mountLoaded()
 
     await wrapper
@@ -159,7 +164,7 @@ describe('RevenueTrend', () => {
 
     expect(wrapper.text()).toContain('shown in USD') // default presentation currency
 
-    useOrganizationStore().setPresentationCurrency('EUR')
+    seedOrgSettings({ presentationCurrency: 'EUR' })
     await nextTick()
 
     // The chart caption is the accessible summary the chart's canvas can't provide.
@@ -168,7 +173,7 @@ describe('RevenueTrend', () => {
   })
 
   it('formats tooltip and axis values as money in the presentation currency', async () => {
-    useOrganizationStore().setPresentationCurrency('JPY')
+    seedOrgSettings({ presentationCurrency: 'JPY' })
     const wrapper = await mountSuspended(RevenueTrend)
     await vi.waitFor(() => {
       if (!wrapper.findComponent({ name: 'Echarts' }).exists()) throw new Error('still loading')

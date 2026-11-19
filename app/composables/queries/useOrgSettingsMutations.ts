@@ -4,8 +4,8 @@ import { orgSettingsKeys } from './useOrgSettingsQuery'
 
 /**
  * Settings → General is the only writer of organization config. The PATCH answers with
- * the whole `OrgSettings`, so it becomes the query's data with no refetch, and the
- * query's own seed carries it into the organization store.
+ * the whole `OrgSettings`, so it becomes the query's data with no refetch, and every
+ * reader of the setting follows it.
  */
 export function useUpdatePresentationCurrencyMutation() {
   const { $api } = useNuxtApp()

@@ -6,9 +6,8 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { UApp } from '#components'
 import DefaultLayout from '../../app/layouts/default.vue'
 import { DEFAULT_CURRENCY } from '../../app/constants/markets'
+import { userSettingsKeys } from '../../app/composables/queries/useUserSettingsQuery'
 import { useAuthStore } from '../../app/stores/auth'
-import { useOrganizationStore } from '../../app/stores/organization'
-import { usePreferencesStore } from '../../app/stores/preferences'
 import type { ApiResponse, OrgSettings, UserSettings } from '../../app/types/api'
 import { withNuxtContext } from './support/context'
 
@@ -39,8 +38,8 @@ let pageSaw: { market: string; currency: string } | undefined
 const Page = defineComponent({
   setup() {
     pageSaw = {
-      market: usePreferencesStore().defaultMarket,
-      currency: useOrganizationStore().presentationCurrency,
+      market: useUserSettingsQuery().defaultMarket.value,
+      currency: useOrgSettingsQuery().presentationCurrency.value,
     }
     return () => h('p', { id: 'page' })
   },
@@ -65,8 +64,6 @@ describe('default layout', () => {
   beforeEach(() => {
     withNuxtContext(() => useQueryClient().clear())
     useAuthStore().signOut()
-    useOrganizationStore().setPresentationCurrency(DEFAULT_CURRENCY)
-    usePreferencesStore().setDefaultMarket('All')
     held.clear()
     pageSaw = undefined
     orgFails = false
@@ -84,12 +81,16 @@ describe('default layout', () => {
     return wrapper
   }
 
-  it('renders the page only once both settings have arrived, with them in the stores', async () => {
+  it('renders the page only once both settings have arrived, with them in the cache', async () => {
     const wrapper = await mountShell()
     signIn()
 
     await release('me')
-    await vi.waitFor(() => expect(usePreferencesStore().defaultMarket).toBe('TW'))
+    await vi.waitFor(() =>
+      expect(
+        withNuxtContext(() => useQueryClient().getQueryData(userSettingsKeys.me('u-002'))),
+      ).toEqual({ defaultMarket: 'TW' }),
+    )
     await new Promise((resolve) => setTimeout(resolve, 50))
     expect(wrapper.find('#page').exists()).toBe(false)
 
@@ -111,7 +112,10 @@ describe('default layout', () => {
     // The retry comes after Vue Query's 1s delay.
     await release('org', 2000)
     await vi.waitFor(() => expect(wrapper.find('#page').exists()).toBe(true))
-    expect(orgReads).toBe(2)
     expect(pageSaw).toEqual({ market: 'TW', currency: DEFAULT_CURRENCY })
+
+    // The page reads the failed query too, and its mount doesn't start the load over.
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(orgReads).toBe(2)
   })
 })
