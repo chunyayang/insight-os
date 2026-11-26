@@ -22,13 +22,13 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.158",
-    "@nuxt/ui": "^4.13.0",
+    "@iconify-json/lucide": "^1.2.159",
+    "@nuxt/ui": "^4.13.1",
     "@nuxtjs/i18n": "^10.6.0",
     "@pinia/nuxt": "^1.0.3",
-    "@tanstack/vue-query": "^5.108.3",
+    "@tanstack/vue-query": "^5.108.4",
     "echarts": "^6.1.0",
-    "nuxt": "^4.6.4",
+    "nuxt": "^4.7.0",
     "pinia": "^4.1.0",
     "ufo": "^1.6.4",
     "vue": "^3.5.46",
