@@ -35,12 +35,16 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = payload.user
   }
 
-  /** Demo affordance from the spec: re-seed the session as another role and re-apply RBAC. */
+  /**
+   * Demo affordance from the spec: re-seed the session as another role and re-apply RBAC.
+   * Cookie write only; callers go through `useAuth()`, which owns the teardown.
+   */
   function switchRole(next: Role) {
     if (!user.value) return
     user.value = { ...user.value, role: next }
   }
 
+  /** Cookie write only; callers go through `useAuth()`, which owns the teardown. */
   function signOut() {
     token.value = null
     user.value = null

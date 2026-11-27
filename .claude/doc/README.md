@@ -18,3 +18,4 @@ describes completes, so a stale plan never reads as current fact.
 | [nuxt-ui-migration.md](nuxt-ui-migration.md) | Settled — started 2026-07-30; PrimeVue fully removed (#82) |
 | [echarts-migration.md](echarts-migration.md) | In flight — decided 2026-07-31; PRs 1–3 landed (#86, #90), PRs 4–7 gated on their consuming modules |
 | [axios-retirement.md](axios-retirement.md) | Settled 2026-10-01 — landed in #92 |
+| [session-teardown.md](session-teardown.md) | Settled 2026-11-27 — #162 |
