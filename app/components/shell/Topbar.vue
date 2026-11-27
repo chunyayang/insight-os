@@ -4,6 +4,7 @@ import { ROLES } from '~/constants/permissions'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const { signOut, switchRole } = useAuth()
 
 const search = ref('')
 
@@ -34,7 +35,7 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
         // Selecting the already-active role fires this with `false`. "No role" isn't a
         // state the app has, so only act on the checked edge and let the re-click be inert.
         onUpdateChecked: (checked: boolean) => {
-          if (checked) auth.switchRole(role)
+          if (checked) void switchRole(role)
         },
       })),
     },
@@ -43,10 +44,7 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
     {
       label: t('common.actions.signOut'),
       icon: 'i-lucide-log-out',
-      onSelect: async () => {
-        auth.signOut()
-        await navigateTo('/login')
-      },
+      onSelect: () => void signOut(),
     },
   ],
 ])
