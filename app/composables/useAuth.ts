@@ -16,7 +16,7 @@ function isSessionSettings(queryKey: QueryKey) {
  * `signOut` / `switchRole`, which only rewrite the session cookies.
  */
 export function useAuth() {
-  const auth = useAuthStore()
+  const authStore = useAuthStore()
   const queryClient = useQueryClient()
   const route = useRoute()
 
@@ -25,7 +25,7 @@ export function useAuth() {
    * no client state can outlive the session by being left off a list of things to clear.
    */
   async function signOut() {
-    auth.signOut()
+    authStore.signOut()
     // useCookie writes the cookie from a watcher. Leaving first would send the old token, and
     // the route guard would bounce `/login` back to `/`.
     await nextTick()
@@ -33,8 +33,8 @@ export function useAuth() {
   }
 
   async function switchRole(next: Role) {
-    if (!auth.user || next === auth.role) return
-    auth.switchRole(next)
+    if (!authStore.user || next === authStore.role) return
+    authStore.switchRole(next)
     // Reset, not remove: the page stays mounted, and its queries must refetch rather than
     // keep showing the previous role's data from entries no longer in the cache.
     const reset = queryClient.resetQueries({
